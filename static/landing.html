@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fluxo — Converta dados sem fricção</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0D12;
+    --surface:#12161D;
+    --surface-2:#1A2029;
+    --accent:#8d5ccc;
+    --accent-hover:#746fd9;
+    --accent-2:#a78bfa;
+    --text:#E8EAED;
+    --text-dim:#8A93A3;
+    --border:rgba(255,255,255,0.08);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    overflow-x:hidden;
+  }
+  ::selection{background:var(--accent);color:#0A0D12;}
+
+  /* ---------- HEADER ---------- */
+  header{
+    position:fixed;
+    top:0;left:0;right:0;
+    height:72px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 40px;
+    z-index:1000;
+    background:var(--bg);
+    border-bottom:1px solid transparent;
+    transition:background 0.4s ease, backdrop-filter 0.4s ease, border-color 0.4s ease;
+  }
+  header.scrolled{
+    background:rgba(10,13,18,0.55);
+    backdrop-filter:blur(16px) saturate(140%);
+    -webkit-backdrop-filter:blur(16px) saturate(140%);
+    border-bottom-color:var(--border);
+  }
+  .logo{
+    display:flex;align-items:center;gap:10px;
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;font-size:20px;letter-spacing:-0.02em;
+  }
+  .logo-mark{
+    width:26px;height:26px;border-radius:7px;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    display:flex;align-items:center;justify-content:center;
+  }
+  .logo-mark svg{width:14px;height:14px;}
+  nav{display:flex;gap:36px;}
+  nav a{
+    color:var(--text-dim);text-decoration:none;font-size:14px;font-weight:500;
+    transition:color 0.25s ease;
+  }
+  nav a:hover{color:var(--text);}
+  .cta-btn{
+    background:var(--text);color:var(--bg);
+    border:none;padding:10px 20px;border-radius:8px;
+    font-size:14px;font-weight:600;cursor:pointer;
+    font-family:'Inter',sans-serif;
+    transition:transform 0.2s ease, opacity 0.2s ease;
+  }
+  .cta-btn:hover{transform:translateY(-1px);background:var(--accent-hover);color:#fff;}
+
+  .scroll-bar-track{
+    position:absolute;bottom:0;left:0;right:0;height:2px;
+    background:transparent;
+  }
+  .scroll-bar-fill{
+    height:100%;width:0%;
+    background:linear-gradient(90deg,var(--accent),var(--accent-2));
+    transition:width 0.08s linear;
+  }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    min-height:100vh;
+    display:grid;
+    grid-template-columns:1.05fr 0.95fr;
+    align-items:center;
+    gap:60px;
+    padding:150px 60px 100px;
+    max-width:1400px;
+    margin:0 auto;
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;letter-spacing:0.14em;
+    color:var(--accent);text-transform:uppercase;
+    display:flex;align-items:center;gap:10px;margin-bottom:22px;
+  }
+  .eyebrow::before{
+    content:'';width:8px;height:8px;border-radius:2px;
+    background:var(--accent);
+    box-shadow:0 0 12px var(--accent);
+  }
+  h1{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:clamp(38px,4.6vw,60px);
+    line-height:1.05;
+    font-weight:700;
+    letter-spacing:-0.03em;
+    margin-bottom:22px;
+  }
+  h1 span{
+    background:linear-gradient(90deg,var(--accent),var(--accent-2));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .subtitle{
+    font-size:17px;line-height:1.6;
+    color:var(--text-dim);
+    max-width:460px;
+    margin-bottom:48px;
+  }
+
+  .formats{
+    display:flex;gap:16px;
+  }
+  .format-block{
+    flex:1;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:26px 16px 20px;
+    display:flex;flex-direction:column;align-items:center;gap:14px;
+    transition:transform 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+    cursor:default;
+  }
+  .format-block:hover{
+    transform:translateY(-4px);
+    border-color:rgba(141,92,204,0.45);
+    background:var(--surface-2);
+  }
+  .format-icon{
+    width:44px;height:44px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .format-icon svg{width:100%;height:100%;}
+  .format-label{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;font-weight:500;
+    letter-spacing:0.06em;
+    color:var(--text-dim);
+  }
+  .format-block:hover .format-label{color:var(--text);}
+
+  /* ---------- VIDEO PANEL ---------- */
+  .video-stage{
+    perspective:1400px;
+  }
+  .video-panel{
+    position:relative;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:20px;
+    overflow:hidden;
+    aspect-ratio:16/11;
+    transform-style:preserve-3d;
+    transition:transform 0.35s cubic-bezier(.22,.9,.35,1), box-shadow 0.35s ease;
+    box-shadow:0 30px 80px -30px rgba(0,0,0,0.6);
+  }
+  .video-panel:hover{
+    box-shadow:0 40px 100px -30px rgba(141,92,204,0.25), 0 30px 80px -30px rgba(0,0,0,0.6);
+  }
+  .video-chrome{
+    display:flex;align-items:center;gap:7px;
+    padding:14px 16px;
+    border-bottom:1px solid var(--border);
+    background:rgba(255,255,255,0.02);
+  }
+  .dot{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,0.15);}
+  .video-chrome-label{
+    margin-left:8px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;color:var(--text-dim);
+  }
+  .video-body{
+    position:relative;
+    height:calc(100% - 41px);
+    background:
+      radial-gradient(circle at 30% 20%, rgba(141,92,204,0.12), transparent 60%),
+      radial-gradient(circle at 80% 80%, rgba(167,139,250,0.08), transparent 55%),
+      var(--bg);
+    display:flex;align-items:center;justify-content:center;
+    overflow:hidden;
+  }
+  .demo-grid{
+    position:absolute;inset:0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size:32px 32px;
+    opacity:0.4;
+    mask-image:radial-gradient(ellipse at center, black 40%, transparent 80%);
+  }
+  .demo-stream{
+    position:relative;
+    display:flex;flex-direction:column;gap:10px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    z-index:2;
+  }
+  .stream-row{
+    display:flex;align-items:center;gap:10px;
+    background:rgba(255,255,255,0.03);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:8px 14px;
+    color:var(--text-dim);
+    animation:driftIn 0.6s ease backwards;
+  }
+  .stream-row b{color:var(--accent);font-weight:500;}
+  .stream-row.alt b{color:var(--accent-2);}
+  .stream-row:nth-child(1){animation-delay:0.1s;}
+  .stream-row:nth-child(2){animation-delay:0.25s;}
+  .stream-row:nth-child(3){animation-delay:0.4s;}
+  @keyframes driftIn{
+    from{opacity:0;transform:translateX(-8px);}
+    to{opacity:1;transform:translateX(0);}
+  }
+  .play-btn{
+    position:absolute;
+    bottom:20px;right:20px;
+    width:46px;height:46px;border-radius:50%;
+    background:var(--text);
+    display:flex;align-items:center;justify-content:center;
+    z-index:3;
+    box-shadow:0 8px 24px rgba(0,0,0,0.4);
+  }
+  .play-btn svg{width:16px;height:16px;margin-left:2px;}
+
+  /* ---------- COMO FUNCIONA ---------- */
+  .how-it-works{
+    padding:140px 40px 60px;
+    max-width:1400px;
+    margin:0 auto;
+  }
+  .section-title{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:clamp(30px,3.4vw,42px);
+    font-weight:700;
+    letter-spacing:-0.02em;
+    text-align:center;
+    margin-bottom:90px;
+  }
+  .timeline-wrap{
+    position:relative;
+    max-width:980px;
+    margin:0 auto;
+  }
+  .timeline-track{
+    position:absolute;
+    left:50%;top:0;bottom:0;
+    width:3px;
+    background:var(--border);
+    transform:translateX(-50%);
+    border-radius:3px;
+  }
+  .timeline-fill{
+    position:absolute;
+    left:50%;top:0;
+    width:3px;height:0%;
+    background:linear-gradient(180deg,var(--accent),#5b8ef0);
+    transform:translateX(-50%);
+    border-radius:3px;
+    transition:height 0.12s linear;
+  }
+  .timeline-marker{
+    position:absolute;
+    left:50%;top:0%;
+    width:16px;height:16px;
+    background:var(--accent-2);
+    border-radius:4px;
+    transform:translate(-50%,-50%);
+    box-shadow:0 0 16px rgba(141,92,204,0.7);
+    transition:top 0.12s linear;
+    z-index:2;
+  }
+  .step-row{
+    position:relative;
+    display:flex;
+    min-height:230px;
+    align-items:center;
+  }
+  .step-row.right{justify-content:flex-end;}
+  .step-row.left{justify-content:flex-start;}
+  .step-card{
+    width:44%;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:30px 28px;
+    opacity:0.28;
+    transform:translateY(24px);
+    transition:opacity 0.5s ease, transform 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease;
+  }
+  .step-card.active{
+    opacity:1;
+    transform:translateY(0);
+    border-color:rgba(141,92,204,0.45);
+    box-shadow:0 20px 50px -25px rgba(141,92,204,0.35);
+  }
+  .step-num{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;color:var(--accent-2);
+    letter-spacing:0.1em;
+  }
+  .step-card h3{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:20px;font-weight:600;
+    margin:10px 0 10px;
+  }
+  .step-card p{
+    font-size:14.5px;line-height:1.6;color:var(--text-dim);
+  }
+
+  /* ---------- FLUXO HORIZONTAL ---------- */
+  .flow-pin{
+    position:relative;
+    height:500vh;
+  }
+  .flow-sticky{
+    position:sticky;
+    top:0;
+    height:100vh;
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+    background:radial-gradient(circle at 50% 50%, rgba(141,92,204,0.06), transparent 60%), var(--bg);
+    border-top:1px solid var(--border);
+    border-bottom:1px solid var(--border);
+  }
+  .flow-track{
+    display:flex;
+    height:100%;
+    position:relative;
+    will-change:transform;
+  }
+  .flow-panel{
+    min-width:100vw;
+    height:100%;
+    position:relative;
+    z-index:2;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:22px;
+    padding:0 60px;
+    text-align:center;
+  }
+  .flow-icon{
+    width:80px;height:80px;
+    border-radius:20px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .flow-icon svg{width:36px;height:36px;}
+  .flow-stage{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;letter-spacing:0.14em;
+    color:var(--accent-2);text-transform:uppercase;
+  }
+  .flow-panel h3{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:clamp(24px,3vw,34px);
+    font-weight:700;
+  }
+  .flow-panel p{
+    color:var(--text-dim);
+    font-size:15.5px;
+    max-width:440px;
+    line-height:1.6;
+  }
+  .flow-dots{
+    position:absolute;
+    bottom:36px;left:50%;
+    transform:translateX(-50%);
+    display:flex;gap:10px;
+    z-index:5;
+  }
+  .flow-dot{
+    width:8px;height:8px;border-radius:50%;
+    background:var(--border);
+    transition:background 0.3s ease, transform 0.3s ease;
+  }
+  .flow-dot.active{background:var(--accent);transform:scale(1.3);}
+
+  .flow-line-svg{
+    position:absolute;
+    top:0;left:0;
+    height:100%;
+    z-index:1;
+    pointer-events:none;
+  }
+  .flow-line-path{
+    fill:none;
+    stroke:var(--accent);
+    stroke-width:2;
+    filter:drop-shadow(0 0 6px rgba(141,92,204,0.6));
+  }
+  .flow-node{
+    fill:var(--bg);
+    stroke:var(--border);
+    stroke-width:2;
+    transition:fill 0.3s ease, stroke 0.3s ease, r 0.3s ease;
+  }
+  .flow-node.active{
+    fill:var(--accent);
+    stroke:var(--accent-2);
+    filter:drop-shadow(0 0 8px rgba(141,92,204,0.8));
+  }
+
+  .flow-recap{
+    display:flex;align-items:center;gap:10px;
+    margin-top:8px;
+    padding:14px 20px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;
+    opacity:0;
+    transform:translateY(12px);
+    transition:opacity 0.5s ease, transform 0.5s ease;
+  }
+  .flow-recap-icon{
+    width:34px;height:34px;border-radius:9px;
+    background:var(--bg);
+    border:1px solid rgba(141,92,204,0.4);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .flow-recap-icon svg{width:16px;height:16px;}
+  .flow-recap-arrow{color:var(--accent-2);font-size:14px;opacity:0.7;}
+  .flow-recap-label{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;letter-spacing:0.08em;
+    color:var(--text-dim);text-transform:uppercase;
+    margin-right:6px;
+  }
+
+  /* ---------- QUEM SOMOS ---------- */
+  .about{
+    padding:120px 40px 140px;
+    max-width:1200px;
+    margin:0 auto;
+  }
+  .about-card{
+    display:flex;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:20px;
+    overflow:hidden;
+    min-height:280px;
+  }
+  .about-photo{
+    width:34%;
+    min-width:220px;
+    background:linear-gradient(160deg,#191d27,#0c0e13);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .avatar-circle{
+    width:120px;height:120px;
+    border-radius:50%;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Space Grotesk',sans-serif;
+    font-size:38px;font-weight:700;color:#fff;
+  }
+  .about-content{
+    flex:1;
+    padding:42px 44px;
+    display:flex;flex-direction:column;gap:18px;
+    justify-content:center;
+  }
+  .about-header{
+    display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  }
+  .about-header h3{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:26px;font-weight:700;
+    color:var(--accent-2);
+  }
+  .social-icons{display:flex;gap:10px;}
+  .social-icons a{
+    width:34px;height:34px;border-radius:9px;
+    background:var(--bg);border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;
+    color:var(--text-dim);transition:color 0.2s ease, border-color 0.2s ease;
+  }
+  .social-icons a svg{width:16px;height:16px;}
+  .social-icons a:hover{color:var(--accent-2);border-color:rgba(141,92,204,0.5);}
+  .skills-pills{display:flex;flex-wrap:wrap;gap:8px;}
+  .skills-pills span{
+    background:rgba(141,92,204,0.12);
+    color:var(--accent-2);
+    border:1px solid rgba(141,92,204,0.28);
+    padding:6px 13px;border-radius:20px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+  }
+  .about-desc{
+    color:var(--text-dim);
+    font-size:15px;line-height:1.65;
+    max-width:600px;
+  }
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width:900px){
+    .hero{grid-template-columns:1fr;padding:120px 24px 60px;gap:48px;}
+    header{padding:0 20px;}
+    nav{display:none;}
+    .formats{flex-direction:column;}
+    .format-block{flex-direction:row;justify-content:flex-start;padding:16px;}
+
+    .how-it-works{padding:100px 20px 40px;}
+    .section-title{margin-bottom:56px;}
+    .timeline-track,.timeline-fill{left:16px;}
+    .timeline-marker{left:16px;}
+    .step-row.right,.step-row.left{justify-content:flex-end;}
+    .step-card{width:calc(100% - 50px);}
+
+    .flow-panel{padding:0 28px;}
+
+    .about-card{flex-direction:column;}
+    .about-photo{width:100%;padding:36px 0;}
+    .about-content{padding:32px 28px;}
+  }
+
+  
+</style>
+</head>
+<body>
+
+<header id="siteHeader">
+  <div class="logo">
+    <span class="logo-mark">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M4 12h16M4 6h10M4 18h7" stroke="#0A0D12" stroke-width="2.4" stroke-linecap="round"/></svg>
+    </span>
+    Fluxo
+  </div>
+  <nav>
+    <a href="#formatos">Formatos</a>
+    <a href="#demo">Demonstração</a>
+    <a href="#precos">Preços</a>
+    <a href="#docs">Documentação</a>
+  </nav>
+  <button class="cta-btn">Começar grátis</button>
+  <div class="scroll-bar-track"><div class="scroll-bar-fill" id="scrollFill"></div></div>
+</header>
+
+<section class="hero">
+  <div class="hero-left">
+    <div class="eyebrow">Pipeline de dados</div>
+    <h1>Transforme dados<br>sem escrever <span>uma linha</span> de script.</h1>
+    <p class="subtitle">
+      Converta e valide arquivos entre CSV, JSON e Oracle SQL em segundos.
+      Sem código, sem retrabalho — só o dado certo, no formato certo.
+    </p>
+
+    <div class="formats" id="formatos">
+      <div class="format-block">
+        <div class="format-icon">
+          <svg viewBox="0 0 48 48" fill="none">
+            <rect x="6" y="8" width="36" height="32" rx="4" stroke="#8d5ccc" stroke-width="2"/>
+            <path d="M6 18h36M6 28h36M18 8v32M30 8v32" stroke="#8d5ccc" stroke-width="1.4" opacity="0.6"/>
+          </svg>
+        </div>
+        <div class="format-label">CSV</div>
+      </div>
+      <div class="format-block">
+        <div class="format-icon">
+          <svg viewBox="0 0 48 48" fill="none">
+            <path d="M18 6c-5 0-6 3-6 7v4c0 3-1 4-4 4 3 0 4 1 4 4v4c0 4 1 7 6 7" stroke="#a78bfa" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M30 6c5 0 6 3 6 7v4c0 3 1 4 4 4-3 0-4 1-4 4v4c0 4-1 7-6 7" stroke="#a78bfa" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="format-label">JSON</div>
+      </div>
+      <div class="format-block">
+        <div class="format-icon">
+          <svg viewBox="0 0 48 48" fill="none">
+            <ellipse cx="24" cy="11" rx="16" ry="6" stroke="#8d5ccc" stroke-width="2"/>
+            <path d="M8 11v13c0 3.3 7.2 6 16 6s16-2.7 16-6V11" stroke="#8d5ccc" stroke-width="2"/>
+            <path d="M8 24v13c0 3.3 7.2 6 16 6s16-2.7 16-6V24" stroke="#8d5ccc" stroke-width="2"/>
+          </svg>
+        </div>
+        <div class="format-label">ORACLE SQL</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-right video-stage" id="demo">
+    <div class="video-panel" id="videoPanel">
+      <div class="video-chrome">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        <div class="video-chrome-label">demo — vendas_2026.csv</div>
+      </div>
+      <div class="video-body">
+        <div class="demo-grid"></div>
+        <div class="demo-stream">
+          <div class="stream-row"><b>CSV</b> vendas_2026.csv <span>→</span> lido</div>
+          <div class="stream-row alt"><b>JSON</b> gerando schema <span>→</span> ok</div>
+          <div class="stream-row"><b>ORACLE</b> INSERT INTO vendas <span>→</span> 12.480 linhas</div>
+        </div>
+        <div class="play-btn">
+          <svg viewBox="0 0 24 24" fill="#0A0D12"><path d="M6 4l14 8-14 8V4z"/></svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ---------- COMO FUNCIONA ---------- -->
+<section class="how-it-works" id="como-funciona">
+  <h2 class="section-title">Como funciona</h2>
+
+  <div class="timeline-wrap" id="timelineWrap">
+    <div class="timeline-track"></div>
+    <div class="timeline-fill" id="timelineFill"></div>
+    <div class="timeline-marker" id="timelineMarker"></div>
+
+    <div class="step-row right">
+      <div class="step-card">
+        <span class="step-num">01</span>
+        <h3>Envie seu arquivo</h3>
+        <p>Arraste um CSV, JSON ou script SQL para a plataforma. Sem configuração, sem instalação.</p>
+      </div>
+    </div>
+
+    <div class="step-row left">
+      <div class="step-card">
+        <span class="step-num">02</span>
+        <h3>Fluxo identifica o formato</h3>
+        <p>Detecção automática de schema, tipos de dados e delimitadores — o Fluxo entende o arquivo sozinho.</p>
+      </div>
+    </div>
+
+    <div class="step-row right">
+      <div class="step-card">
+        <span class="step-num">03</span>
+        <h3>Conversão e validação</h3>
+        <p>Cada linha é validada e convertida entre CSV, JSON e Oracle SQL sem perda de dados.</p>
+      </div>
+    </div>
+
+    <div class="step-row left">
+      <div class="step-card">
+        <span class="step-num">04</span>
+        <h3>Exporte para onde precisar</h3>
+        <p>Baixe o resultado ou envie direto para o banco de dados. Pronto para uso em produção.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ---------- FLUXO HORIZONTAL ---------- -->
+<section class="flow-pin" id="flowPin">
+  <div class="flow-sticky">
+    <div class="flow-track" id="flowTrack">
+      <svg class="flow-line-svg" id="flowLineSvg">
+        <path class="flow-line-path" id="flowLinePath" d=""></path>
+        <g id="flowNodes"></g>
+      </svg>
+
+      <div class="flow-panel">
+        <div class="flow-icon">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M12 4v11m0-11l-4 4m4-4l4 4M5 17v2a1 1 0 001 1h12a1 1 0 001-1v-2" stroke="#8d5ccc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="flow-stage">Etapa 01</div>
+        <h3>Upload</h3>
+        <p>O usuário envia o arquivo de origem — CSV, JSON ou uma consulta SQL existente.</p>
+      </div>
+
+      <div class="flow-panel">
+        <div class="flow-icon">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h10" stroke="#8d5ccc" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </div>
+        <div class="flow-stage">Etapa 02</div>
+        <h3>Leitura</h3>
+        <p>O Fluxo faz o parsing do conteúdo e mapeia colunas, chaves e tipos automaticamente.</p>
+      </div>
+
+      <div class="flow-panel">
+        <div class="flow-icon">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M17 3l4 4-4 4M7 21l-4-4 4-4M3 7h14M21 17H7" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="flow-stage">Etapa 03</div>
+        <h3>Transformação</h3>
+        <p>Os dados são reestruturados para o formato de destino, mantendo relações e integridade.</p>
+      </div>
+
+      <div class="flow-panel">
+        <div class="flow-icon">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="#8d5ccc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="flow-stage">Etapa 04</div>
+        <h3>Validação</h3>
+        <p>Cada registro passa por checagem de consistência antes de seguir para a saída final.</p>
+      </div>
+
+      <div class="flow-panel">
+        <div class="flow-icon">
+          <svg viewBox="0 0 24 24" fill="none"><ellipse cx="12" cy="6" rx="8" ry="3" stroke="#a78bfa" stroke-width="1.8"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6" stroke="#a78bfa" stroke-width="1.8"/><path d="M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6" stroke="#a78bfa" stroke-width="1.8"/></svg>
+        </div>
+        <div class="flow-stage">Etapa 05</div>
+        <h3>Entrega</h3>
+        <p>Arquivo pronto para download ou já inserido diretamente no seu banco Oracle.</p>
+
+        <div class="flow-recap" id="flowRecap">
+          <span class="flow-recap-label">Fluxo completo</span>
+          <div class="flow-recap-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M12 4v11m0-11l-4 4m4-4l4 4M5 17v2a1 1 0 001 1h12a1 1 0 001-1v-2" stroke="#8d5ccc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <span class="flow-recap-arrow">→</span>
+          <div class="flow-recap-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h10" stroke="#8d5ccc" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+          <span class="flow-recap-arrow">→</span>
+          <div class="flow-recap-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M17 3l4 4-4 4M7 21l-4-4 4-4M3 7h14M21 17H7" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <span class="flow-recap-arrow">→</span>
+          <div class="flow-recap-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="#8d5ccc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <span class="flow-recap-arrow">→</span>
+          <div class="flow-recap-icon"><svg viewBox="0 0 24 24" fill="none"><ellipse cx="12" cy="6" rx="8" ry="3" stroke="#a78bfa" stroke-width="1.8"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6" stroke="#a78bfa" stroke-width="1.8"/><path d="M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6" stroke="#a78bfa" stroke-width="1.8"/></svg></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="flow-dots">
+      <div class="flow-dot"></div>
+      <div class="flow-dot"></div>
+      <div class="flow-dot"></div>
+      <div class="flow-dot"></div>
+      <div class="flow-dot"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ---------- QUEM SOMOS ---------- -->
+<section class="about" id="quem-somos">
+  <h2 class="section-title">Quem somos</h2>
+
+  <div class="about-card">
+    <div class="about-photo">
+      <div class="avatar-circle">MH</div>
+    </div>
+    <div class="about-content">
+      <div class="about-header">
+        <h3>Mateus Henrique Leccese da Silva</h3>
+        <div class="social-icons">
+          <a href="https://github.com/mateus-henriquee" aria-label="GitHub">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.87 8.37 6.84 9.73.5.1.68-.22.68-.49 0-.24-.01-.87-.01-1.71-2.78.62-3.37-1.37-3.37-1.37-.45-1.18-1.11-1.49-1.11-1.49-.91-.64.07-.63.07-.63 1 .07 1.53 1.05 1.53 1.05.89 1.57 2.34 1.12 2.91.86.09-.66.35-1.12.63-1.38-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.31.1-2.72 0 0 .84-.28 2.75 1.05a9.3 9.3 0 015 0c1.9-1.33 2.74-1.05 2.74-1.05.56 1.41.21 2.46.1 2.72.64.72 1.03 1.63 1.03 2.75 0 3.94-2.34 4.8-4.57 5.06.36.32.68.94.68 1.9 0 1.37-.01 2.47-.01 2.81 0 .27.18.6.69.49A10.26 10.26 0 0022 12.25C22 6.58 17.52 2 12 2z"/></svg>
+          </a>
+          <a href="in/devmateus-henriquee" aria-label="LinkedIn">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.94 5a2 2 0 11-4-.02 2 2 0 014 .02zM7 8.48H3V21h4V8.48zm6.32 0H9.35V21h3.94v-6.57c0-3.66 4.77-3.96 4.77 0V21H22v-7.93c0-6.17-7.06-5.94-8.68-2.91V8.48z"/></svg>
+          </a>
+          <a href="https://www.instagram.com/mat.hlc" aria-label="Instagram">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="skills-pills">
+        <span>Python</span>
+        <span>Power BI</span>
+        <span>SQL Server</span>
+        <span>MongoDB</span>
+        <span>HTML / CSS</span>
+        <span>Figma</span>
+      </div>
+
+      <p class="about-desc">
+        Desenvolvedor full stack focado em ferramentas de dados. Criei o Fluxo para
+        resolver um problema recorrente: perder tempo convertendo arquivos entre
+        formatos manualmente. Gosto de transformar processos repetitivos em produtos simples.
+      </p>
+    </div>
+  </div>
+</section>
+
+<script>
+  const header = document.getElementById('siteHeader');
+  const fill = document.getElementById('scrollFill');
+
+  function onScroll(){
+    const y = window.scrollY;
+    header.classList.toggle('scrolled', y > 40);
+
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = docHeight > 0 ? (y / docHeight) * 100 : 0;
+    fill.style.width = pct + '%';
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+
+  // Tilt: reage em toda a área do painel
+  const panel = document.getElementById('videoPanel');
+  panel.addEventListener('mousemove', (e) => {
+    const rect = panel.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+
+    const rotateY = (x - 0.5) * 22;
+    const rotateX = (0.5 - y) * -22;
+    panel.style.transform = `rotateY(${rotateY}deg) rotateX(${rotateX}deg) scale(1.02)`;
+  });
+  panel.addEventListener('mouseleave', () => {
+    panel.style.transform = 'rotateY(0deg) rotateX(0deg) scale(1)';
+  });
+
+  // ---------- COMO FUNCIONA: linha de progresso + cards ----------
+  const timelineWrap = document.getElementById('timelineWrap');
+  const timelineFill = document.getElementById('timelineFill');
+  const timelineMarker = document.getElementById('timelineMarker');
+  const stepCards = document.querySelectorAll('.step-card');
+
+  function onTimelineScroll(){
+    if(!timelineWrap) return;
+    const rect = timelineWrap.getBoundingClientRect();
+    const vh = window.innerHeight;
+    const total = rect.height - vh * 0.35;
+    let progress = (vh * 0.65 - rect.top) / total;
+    progress = Math.max(0, Math.min(1, progress));
+
+    timelineFill.style.height = (progress * 100) + '%';
+    timelineMarker.style.top = (progress * 100) + '%';
+
+    stepCards.forEach((card, i) => {
+      const threshold = (i + 0.35) / stepCards.length;
+      card.classList.toggle('active', progress >= threshold);
+    });
+  }
+
+  // ---------- LINHA CONECTORA DO FLUXO ----------
+  const flowPin = document.getElementById('flowPin');
+  const flowTrack = document.getElementById('flowTrack');
+  const flowPanels = document.querySelectorAll('.flow-panel');
+  const flowDots = document.querySelectorAll('.flow-dot');
+  const flowLineSvg = document.getElementById('flowLineSvg');
+  const flowLinePath = document.getElementById('flowLinePath');
+  const flowNodesGroup = document.getElementById('flowNodes');
+  const flowRecap = document.getElementById('flowRecap');
+  let flowLineLength = 0;
+  let flowIconXs = [];
+
+  function buildFlowLine(){
+    if(!flowLineSvg || flowPanels.length === 0) return;
+    const panelWidth = window.innerWidth;
+    const totalWidth = panelWidth * flowPanels.length;
+    const totalHeight = window.innerHeight;
+
+    flowLineSvg.setAttribute('width', totalWidth);
+    flowLineSvg.setAttribute('height', totalHeight);
+    flowLineSvg.setAttribute('viewBox', `0 0 ${totalWidth} ${totalHeight}`);
+
+    const trackRect = flowTrack.getBoundingClientRect();
+    const firstIcon = document.querySelector('.flow-icon');
+    const iconRect = firstIcon.getBoundingClientRect();
+    const iconY = iconRect.top - trackRect.top + iconRect.height / 2;
+
+    flowIconXs = [];
+    flowPanels.forEach((p, i) => flowIconXs.push(i * panelWidth + panelWidth / 2));
+
+    const x0 = flowIconXs[0];
+    const xN = flowIconXs[flowIconXs.length - 1];
+    flowLinePath.setAttribute('d', `M ${x0} ${iconY} L ${xN} ${iconY}`);
+    flowLineLength = xN - x0;
+    flowLinePath.style.strokeDasharray = flowLineLength;
+    flowLinePath.style.strokeDashoffset = flowLineLength;
+
+    flowNodesGroup.innerHTML = '';
+    flowIconXs.forEach((x) => {
+      const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      c.setAttribute('cx', x);
+      c.setAttribute('cy', iconY);
+      c.setAttribute('r', 7);
+      c.setAttribute('class', 'flow-node');
+      flowNodesGroup.appendChild(c);
+    });
+  }
+
+  window.addEventListener('resize', buildFlowLine);
+  buildFlowLine();
+
+  // ---------- FLUXO HORIZONTAL (scroll-jacking) ----------
+  function onFlowScroll(){
+    if(!flowPin) return;
+    const rect = flowPin.getBoundingClientRect();
+    const total = flowPin.offsetHeight - window.innerHeight;
+    let progress = -rect.top / total;
+    progress = Math.max(0, Math.min(1, progress));
+
+    const maxTranslate = (flowPanels.length - 1) * 100;
+    flowTrack.style.transform = `translateX(-${progress * maxTranslate}vw)`;
+
+    const activeIndex = Math.round(progress * (flowPanels.length - 1));
+    flowDots.forEach((dot, i) => dot.classList.toggle('active', i === activeIndex));
+
+    if(flowLinePath && flowLineLength){
+      flowLinePath.style.strokeDashoffset = flowLineLength * (1 - progress);
+    }
+    document.querySelectorAll('.flow-node').forEach((node, i) => {
+      const threshold = i / (flowPanels.length - 1);
+      node.classList.toggle('active', progress >= threshold - 0.02);
+    });
+    if(flowRecap){
+      flowRecap.style.opacity = progress > 0.9 ? 1 : 0;
+      flowRecap.style.transform = progress > 0.9 ? 'translateY(0)' : 'translateY(12px)';
+    }
+  }
+
+  function onAllScroll(){
+    onScroll();
+    onTimelineScroll();
+    onFlowScroll();
+  }
+  window.removeEventListener('scroll', onScroll);
+  window.addEventListener('scroll', onAllScroll, {passive:true});
+  onAllScroll();
+</script>
+
+</body>
+</html>
