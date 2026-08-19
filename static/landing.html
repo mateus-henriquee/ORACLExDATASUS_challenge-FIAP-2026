@@ -556,6 +556,168 @@
     max-width:600px;
   }
 
+  /* ---------- LOGIN / CADASTRO ---------- */
+  body.no-scroll{overflow:hidden;}
+
+  .auth-overlay{
+    position:fixed;inset:0;
+    background:rgba(10,13,18,0.6);
+    backdrop-filter:blur(16px) saturate(140%);
+    -webkit-backdrop-filter:blur(16px) saturate(140%);
+    display:flex;align-items:center;justify-content:center;
+    z-index:2000;
+    padding:20px;
+    opacity:0;
+    visibility:hidden;
+    transition:opacity 0.35s ease, visibility 0.35s ease;
+  }
+  .auth-overlay.open{opacity:1;visibility:visible;}
+
+  .auth-card{
+    position:relative;
+    width:100%;max-width:420px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:20px;
+    padding:36px 32px 32px;
+    box-shadow:0 40px 100px -20px rgba(0,0,0,0.6);
+    max-height:88vh;
+    overflow-y:auto;
+    transform:translateY(28px) scale(0.92);
+    opacity:0;
+    transition:transform 0.45s cubic-bezier(.34,1.56,.64,1), opacity 0.35s ease;
+  }
+  .auth-overlay.open .auth-card{transform:translateY(0) scale(1);opacity:1;}
+
+  .auth-forms-viewport{
+    overflow:hidden;
+    transition:height 0.42s cubic-bezier(.65,0,.35,1);
+  }
+  .auth-forms-track{
+    display:flex;
+    align-items:flex-start;
+    width:200%;
+    transition:transform 0.5s cubic-bezier(.65,0,.35,1);
+  }
+  .auth-forms-track.to-register{transform:translateX(-50%);}
+  .auth-form-pane{
+    width:50%;
+    flex-shrink:0;
+    padding:0 2px;
+  }
+
+  .auth-close{
+    position:absolute;
+    top:18px;left:18px;
+    width:34px;height:34px;border-radius:9px;
+    background:var(--bg);border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;
+    color:var(--text-dim);cursor:pointer;
+    transition:color 0.2s ease, border-color 0.2s ease;
+  }
+  .auth-close:hover{color:var(--text);border-color:rgba(141,92,204,0.5);}
+  .auth-close svg{width:16px;height:16px;}
+
+  .auth-tabs{
+    display:flex;
+    gap:4px;
+    margin:8px 0 26px;
+    padding:4px;
+    background:var(--bg);
+    border:1px solid var(--border);
+    border-radius:12px;
+  }
+  .auth-tab{
+    flex:1;
+    background:none;border:none;
+    padding:9px 0;border-radius:8px;
+    color:var(--text-dim);
+    font-family:'Inter',sans-serif;
+    font-size:13.5px;font-weight:600;
+    cursor:pointer;
+    transition:background 0.25s ease, color 0.25s ease;
+  }
+  .auth-tab.active{
+    background:linear-gradient(135deg,var(--accent),var(--accent-hover));
+    color:#fff;
+  }
+
+  .auth-form{display:flex;flex-direction:column;gap:16px;}
+
+  .auth-title{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:22px;font-weight:700;
+    text-align:center;
+    margin-bottom:2px;
+  }
+  .auth-subtitle{
+    font-size:13.5px;color:var(--text-dim);
+    text-align:center;margin-bottom:8px;
+  }
+
+  .field{display:flex;flex-direction:column;gap:6px;}
+  .field label{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;letter-spacing:0.06em;
+    color:var(--text-dim);text-transform:uppercase;
+  }
+  .field input, .field select{
+    background:var(--bg);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:11px 13px;
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    outline:none;
+    transition:border-color 0.2s ease;
+  }
+  .field input:focus, .field select:focus{border-color:var(--accent);}
+  .field select{appearance:none;cursor:pointer;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238A93A3' stroke-width='2'><path d='M6 9l6 6 6-6'/></svg>");
+    background-repeat:no-repeat;
+    background-position:right 12px center;
+    background-size:16px;
+    padding-right:36px;
+  }
+  .field-error{
+    font-size:12px;color:#f2718a;
+    min-height:14px;
+  }
+
+  .strength-meter{display:flex;gap:5px;margin-top:2px;}
+  .strength-seg{
+    flex:1;height:4px;border-radius:3px;
+    background:var(--border);
+    transition:background 0.25s ease;
+  }
+  .strength-label{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;margin-top:4px;
+    color:var(--text-dim);
+  }
+  .strength-label.fraca{color:#f2718a;}
+  .strength-label.media{color:var(--accent-2);}
+  .strength-label.forte{color:#5be8a5;}
+
+  .auth-submit{
+    margin-top:6px;
+    background:linear-gradient(135deg,var(--accent),var(--accent-hover));
+    border:none;color:#fff;
+    padding:12px 0;border-radius:10px;
+    font-family:'Inter',sans-serif;
+    font-size:14.5px;font-weight:600;
+    cursor:pointer;
+    transition:opacity 0.2s ease, transform 0.2s ease;
+  }
+  .auth-submit:hover{opacity:0.92;transform:translateY(-1px);}
+
+  .auth-msg{
+    font-size:13px;text-align:center;min-height:16px;
+  }
+  .auth-msg.error{color:#f2718a;}
+  .auth-msg.success{color:#5be8a5;}
+
   /* ---------- RESPONSIVE ---------- */
   @media (max-width:900px){
     .hero{grid-template-columns:1fr;padding:120px 24px 60px;gap:48px;}
@@ -594,7 +756,7 @@
     <a href="#flowPin">Fluxo</a>
     <a href="#quem-somos">Quem somos</a>
   </nav>
-  <button class="cta-btn">Começar grátis</button>
+  <button class="cta-btn" id="openAuthBtn">Começar grátis</button>
   <div class="scroll-bar-track"><div class="scroll-bar-fill" id="scrollFill"></div></div>
 </header>
 
@@ -863,6 +1025,93 @@
   </div>
 </section>
 
+<!-- ---------- LOGIN / CADASTRO ---------- -->
+<div class="auth-overlay" id="authOverlay">
+  <div class="auth-card">
+    <button class="auth-close" id="authClose" aria-label="Fechar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tabLogin" data-tab="login">Entrar</button>
+      <button class="auth-tab" id="tabRegister" data-tab="register">Criar conta</button>
+    </div>
+
+    <!-- LOGIN / CADASTRO — trilho deslizante -->
+    <div class="auth-forms-viewport" id="authViewport">
+      <div class="auth-forms-track" id="authTrack">
+
+        <div class="auth-form-pane">
+          <form class="auth-form" id="loginForm">
+            <div class="auth-title">Bem-vindo de volta</div>
+            <div class="auth-subtitle">Acesse sua conta no Fluxo</div>
+
+            <div class="field">
+              <label for="loginEmail">E-mail</label>
+              <input type="email" id="loginEmail" required placeholder="voce@email.com">
+            </div>
+            <div class="field">
+              <label for="loginPassword">Senha</label>
+              <input type="password" id="loginPassword" required placeholder="••••••••">
+            </div>
+
+            <div class="auth-msg" id="loginMsg"></div>
+            <button type="submit" class="auth-submit">Entrar</button>
+          </form>
+        </div>
+
+        <div class="auth-form-pane">
+          <form class="auth-form" id="registerForm">
+            <div class="auth-title">Criar conta</div>
+            <div class="auth-subtitle">Leva menos de um minuto</div>
+
+            <div class="field">
+              <label for="regName">Nome</label>
+              <input type="text" id="regName" required placeholder="Seu nome completo">
+            </div>
+
+            <div class="field">
+              <label for="regProfile">Perfil</label>
+              <select id="regProfile" required>
+                <option value="" disabled selected>Selecione um perfil</option>
+                <option value="Analítico">Analítico</option>
+                <option value="Financeiro">Financeiro</option>
+                <option value="Padrão">Padrão</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="regEmail">E-mail</label>
+              <input type="email" id="regEmail" required placeholder="voce@email.com">
+            </div>
+
+            <div class="field">
+              <label for="regPassword">Senha</label>
+              <input type="password" id="regPassword" required placeholder="Mínimo 8 caracteres">
+              <div class="strength-meter">
+                <div class="strength-seg" id="seg1"></div>
+                <div class="strength-seg" id="seg2"></div>
+                <div class="strength-seg" id="seg3"></div>
+              </div>
+              <div class="strength-label" id="strengthLabel">Precisa de 1 letra maiúscula e 1 número</div>
+            </div>
+
+            <div class="field">
+              <label for="regConfirm">Confirmar senha</label>
+              <input type="password" id="regConfirm" required placeholder="Repita a senha">
+              <div class="field-error" id="confirmError"></div>
+            </div>
+
+            <div class="auth-msg" id="registerMsg"></div>
+            <button type="submit" class="auth-submit">Criar conta</button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
   const header = document.getElementById('siteHeader');
   const fill = document.getElementById('scrollFill');
@@ -1002,6 +1251,161 @@
   window.removeEventListener('scroll', onScroll);
   window.addEventListener('scroll', onAllScroll, {passive:true});
   onAllScroll();
+
+  // ---------- LOGIN / CADASTRO ----------
+  const authOverlay = document.getElementById('authOverlay');
+  const authClose = document.getElementById('authClose');
+  const openAuthBtn = document.getElementById('openAuthBtn');
+  const tabLogin = document.getElementById('tabLogin');
+  const tabRegister = document.getElementById('tabRegister');
+  const authViewport = document.getElementById('authViewport');
+  const authTrack = document.getElementById('authTrack');
+  const loginForm = document.getElementById('loginForm');
+  const registerForm = document.getElementById('registerForm');
+  const loginMsg = document.getElementById('loginMsg');
+  const registerMsg = document.getElementById('registerMsg');
+  const loginPane = loginForm.closest('.auth-form-pane');
+  const registerPane = registerForm.closest('.auth-form-pane');
+
+  // "banco" em memória — apenas para demonstração no front-end
+  const users = [];
+  let currentTab = 'login';
+
+  function setPaneHeight(pane){
+    if(!pane) return;
+    authViewport.style.height = pane.offsetHeight + 'px';
+  }
+
+  function openAuth(tab){
+    authOverlay.classList.add('open');
+    document.body.classList.add('no-scroll');
+    setTab(tab || 'login', true);
+    loginMsg.textContent = '';
+    registerMsg.textContent = '';
+  }
+  function closeAuth(){
+    authOverlay.classList.remove('open');
+    document.body.classList.remove('no-scroll');
+  }
+  function setTab(tab, instant){
+    currentTab = tab;
+    const isLogin = tab === 'login';
+    tabLogin.classList.toggle('active', isLogin);
+    tabRegister.classList.toggle('active', !isLogin);
+    authTrack.classList.toggle('to-register', !isLogin);
+    setPaneHeight(isLogin ? loginPane : registerPane);
+  }
+
+  openAuthBtn.addEventListener('click', () => openAuth('login'));
+  authClose.addEventListener('click', closeAuth);
+  authOverlay.addEventListener('click', (e) => { if(e.target === authOverlay) closeAuth(); });
+  document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeAuth(); });
+  tabLogin.addEventListener('click', () => setTab('login'));
+  tabRegister.addEventListener('click', () => setTab('register'));
+  window.addEventListener('resize', () => setPaneHeight(currentTab === 'login' ? loginPane : registerPane));
+
+  // Força de senha
+  const regPassword = document.getElementById('regPassword');
+  const seg1 = document.getElementById('seg1');
+  const seg2 = document.getElementById('seg2');
+  const seg3 = document.getElementById('seg3');
+  const strengthLabel = document.getElementById('strengthLabel');
+
+  function passwordMeetsMinimum(pw){
+    return /[A-Z]/.test(pw) && /[0-9]/.test(pw) && pw.length >= 6;
+  }
+
+  function getStrength(pw){
+    let score = 0;
+    if(pw.length >= 8) score++;
+    if(/[A-Z]/.test(pw)) score++;
+    if(/[0-9]/.test(pw)) score++;
+    if(/[^A-Za-z0-9]/.test(pw)) score++;
+    if(pw.length >= 12) score++;
+
+    if(pw.length === 0) return {level:0,label:'',cls:''};
+    if(score <= 2) return {level:1,label:'Senha fraca',cls:'fraca'};
+    if(score <= 3) return {level:2,label:'Senha média',cls:'media'};
+    return {level:3,label:'Senha forte',cls:'forte'};
+  }
+
+  regPassword.addEventListener('input', () => {
+    const s = getStrength(regPassword.value);
+    const segs = [seg1, seg2, seg3];
+    segs.forEach((seg, i) => {
+      seg.style.background = i < s.level
+        ? (s.cls === 'fraca' ? '#f2718a' : s.cls === 'media' ? 'var(--accent-2)' : '#5be8a5')
+        : 'var(--border)';
+    });
+    strengthLabel.textContent = s.label || 'Precisa de 1 letra maiúscula e 1 número';
+    strengthLabel.className = 'strength-label ' + s.cls;
+  });
+
+  // Cadastro
+  registerForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    registerMsg.textContent = '';
+    registerMsg.className = 'auth-msg';
+
+    const name = document.getElementById('regName').value.trim();
+    const profile = document.getElementById('regProfile').value;
+    const email = document.getElementById('regEmail').value.trim().toLowerCase();
+    const password = regPassword.value;
+    const confirm = document.getElementById('regConfirm').value;
+    const confirmError = document.getElementById('confirmError');
+    confirmError.textContent = '';
+
+    if(!name || !profile || !email){
+      registerMsg.textContent = 'Preencha todos os campos.';
+      registerMsg.classList.add('error');
+      return;
+    }
+    if(!passwordMeetsMinimum(password)){
+      registerMsg.textContent = 'A senha precisa de ao menos 1 letra maiúscula e 1 número.';
+      registerMsg.classList.add('error');
+      return;
+    }
+    if(password !== confirm){
+      confirmError.textContent = 'As senhas não coincidem.';
+      return;
+    }
+    if(users.some(u => u.email === email)){
+      registerMsg.textContent = 'Já existe uma conta com esse e-mail.';
+      registerMsg.classList.add('error');
+      return;
+    }
+
+    users.push({name, profile, email, password});
+    registerMsg.textContent = 'Conta criada! Você já pode entrar.';
+    registerMsg.classList.add('success');
+    registerForm.reset();
+    strengthLabel.textContent = 'Precisa de 1 letra maiúscula e 1 número';
+    strengthLabel.className = 'strength-label';
+    [seg1, seg2, seg3].forEach(seg => seg.style.background = 'var(--border)');
+
+    setTimeout(() => setTab('login'), 900);
+  });
+
+  // Login
+  loginForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    loginMsg.textContent = '';
+    loginMsg.className = 'auth-msg';
+
+    const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+    const password = document.getElementById('loginPassword').value;
+    const user = users.find(u => u.email === email && u.password === password);
+
+    if(!user){
+      loginMsg.textContent = 'E-mail ou senha inválidos.';
+      loginMsg.classList.add('error');
+      return;
+    }
+
+    loginMsg.textContent = `Bem-vindo, ${user.name.split(' ')[0]} (${user.profile}).`;
+    loginMsg.classList.add('success');
+    setTimeout(closeAuth, 900);
+  });
 </script>
 
 </body>
