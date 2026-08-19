@@ -62,10 +62,36 @@
   .logo-mark svg{width:14px;height:14px;}
   nav{display:flex;gap:36px;}
   nav a{
+    position:relative;
     color:var(--text-dim);text-decoration:none;font-size:14px;font-weight:500;
+    padding-bottom:6px;
     transition:color 0.25s ease;
   }
+  nav a::after{
+    content:'';
+    position:absolute;
+    left:0;bottom:0;
+    width:100%;height:2px;
+    background:linear-gradient(90deg,var(--accent),var(--accent-2));
+    border-radius:2px;
+    box-shadow:0 0 10px rgba(141,92,204,0.9), 0 0 4px rgba(167,139,250,0.8);
+    transform:scaleX(0);
+    transform-origin:left;
+    transition:transform 0.3s ease;
+  }
   nav a:hover{color:var(--text);}
+  nav a:hover::after{transform:scaleX(1);}
+
+  /* ---------- SCROLLBAR ---------- */
+  ::-webkit-scrollbar{width:11px;}
+  ::-webkit-scrollbar-track{background:var(--bg);}
+  ::-webkit-scrollbar-thumb{
+    background:linear-gradient(180deg,var(--accent),var(--accent-hover));
+    border-radius:10px;
+    border:2px solid var(--bg);
+  }
+  ::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,var(--accent-2),var(--accent));}
+  html{scrollbar-color:var(--accent) var(--bg);scrollbar-width:thin;}
   .cta-btn{
     background:var(--text);color:var(--bg);
     border:none;padding:10px 20px;border-radius:8px;
@@ -459,6 +485,11 @@
     max-width:1200px;
     margin:0 auto;
   }
+  .about-list{
+    display:flex;
+    flex-direction:column;
+    gap:28px;
+  }
   .about-card{
     display:flex;
     background:var(--surface);
@@ -466,6 +497,12 @@
     border-radius:20px;
     overflow:hidden;
     min-height:280px;
+  }
+  .about-card.reverse{
+    flex-direction:row-reverse;
+  }
+  .about-card.reverse .about-photo{
+    background:linear-gradient(200deg,#191d27,#0c0e13);
   }
   .about-photo{
     width:34%;
@@ -536,12 +573,10 @@
 
     .flow-panel{padding:0 28px;}
 
-    .about-card{flex-direction:column;}
+    .about-card,.about-card.reverse{flex-direction:column;}
     .about-photo{width:100%;padding:36px 0;}
     .about-content{padding:32px 28px;}
   }
-
-  
 </style>
 </head>
 <body>
@@ -555,9 +590,9 @@
   </div>
   <nav>
     <a href="#formatos">Formatos</a>
-    <a href="#demo">Demonstração</a>
-    <a href="#precos">Preços</a>
-    <a href="#docs">Documentação</a>
+    <a href="#como-funciona">Como funciona</a>
+    <a href="#flowPin">Fluxo</a>
+    <a href="#quem-somos">Quem somos</a>
   </nav>
   <button class="cta-btn">Começar grátis</button>
   <div class="scroll-bar-track"><div class="scroll-bar-fill" id="scrollFill"></div></div>
@@ -751,41 +786,80 @@
 <section class="about" id="quem-somos">
   <h2 class="section-title">Quem somos</h2>
 
-  <div class="about-card">
-    <div class="about-photo">
-      <div class="avatar-circle">MH</div>
-    </div>
-    <div class="about-content">
-      <div class="about-header">
-        <h3>Mateus Henrique Leccese da Silva</h3>
-        <div class="social-icons">
-          <a href="https://github.com/mateus-henriquee" aria-label="GitHub">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.87 8.37 6.84 9.73.5.1.68-.22.68-.49 0-.24-.01-.87-.01-1.71-2.78.62-3.37-1.37-3.37-1.37-.45-1.18-1.11-1.49-1.11-1.49-.91-.64.07-.63.07-.63 1 .07 1.53 1.05 1.53 1.05.89 1.57 2.34 1.12 2.91.86.09-.66.35-1.12.63-1.38-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.31.1-2.72 0 0 .84-.28 2.75 1.05a9.3 9.3 0 015 0c1.9-1.33 2.74-1.05 2.74-1.05.56 1.41.21 2.46.1 2.72.64.72 1.03 1.63 1.03 2.75 0 3.94-2.34 4.8-4.57 5.06.36.32.68.94.68 1.9 0 1.37-.01 2.47-.01 2.81 0 .27.18.6.69.49A10.26 10.26 0 0022 12.25C22 6.58 17.52 2 12 2z"/></svg>
-          </a>
-          <a href="in/devmateus-henriquee" aria-label="LinkedIn">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.94 5a2 2 0 11-4-.02 2 2 0 014 .02zM7 8.48H3V21h4V8.48zm6.32 0H9.35V21h3.94v-6.57c0-3.66 4.77-3.96 4.77 0V21H22v-7.93c0-6.17-7.06-5.94-8.68-2.91V8.48z"/></svg>
-          </a>
-          <a href="https://www.instagram.com/mat.hlc" aria-label="Instagram">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1"/></svg>
-          </a>
+  <div class="about-list">
+
+    <div class="about-card">
+      <div class="about-photo">
+        <div class="avatar-circle">MH</div>
+      </div>
+      <div class="about-content">
+        <div class="about-header">
+          <h3>Mateus Henrique Leccese da Silva</h3>
+          <div class="social-icons">
+            <a href="#" aria-label="GitHub">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.87 8.37 6.84 9.73.5.1.68-.22.68-.49 0-.24-.01-.87-.01-1.71-2.78.62-3.37-1.37-3.37-1.37-.45-1.18-1.11-1.49-1.11-1.49-.91-.64.07-.63.07-.63 1 .07 1.53 1.05 1.53 1.05.89 1.57 2.34 1.12 2.91.86.09-.66.35-1.12.63-1.38-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.31.1-2.72 0 0 .84-.28 2.75 1.05a9.3 9.3 0 015 0c1.9-1.33 2.74-1.05 2.74-1.05.56 1.41.21 2.46.1 2.72.64.72 1.03 1.63 1.03 2.75 0 3.94-2.34 4.8-4.57 5.06.36.32.68.94.68 1.9 0 1.37-.01 2.47-.01 2.81 0 .27.18.6.69.49A10.26 10.26 0 0022 12.25C22 6.58 17.52 2 12 2z"/></svg>
+            </a>
+            <a href="#" aria-label="LinkedIn">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.94 5a2 2 0 11-4-.02 2 2 0 014 .02zM7 8.48H3V21h4V8.48zm6.32 0H9.35V21h3.94v-6.57c0-3.66 4.77-3.96 4.77 0V21H22v-7.93c0-6.17-7.06-5.94-8.68-2.91V8.48z"/></svg>
+            </a>
+            <a href="#" aria-label="Instagram">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1"/></svg>
+            </a>
+          </div>
         </div>
-      </div>
 
-      <div class="skills-pills">
-        <span>Python</span>
-        <span>Power BI</span>
-        <span>SQL Server</span>
-        <span>MongoDB</span>
-        <span>HTML / CSS</span>
-        <span>Figma</span>
-      </div>
+        <div class="skills-pills">
+          <span>Python</span>
+          <span>Power BI</span>
+          <span>SQL Server</span>
+          <span>MongoDB</span>
+          <span>HTML / CSS</span>
+          <span>Figma</span>
+        </div>
 
-      <p class="about-desc">
-        Desenvolvedor full stack focado em ferramentas de dados. Criei o Fluxo para
-        resolver um problema recorrente: perder tempo convertendo arquivos entre
-        formatos manualmente. Gosto de transformar processos repetitivos em produtos simples.
-      </p>
+        <p class="about-desc">
+          Desenvolvedor full stack focado em ferramentas de dados. Criei o Fluxo para
+          resolver um problema recorrente: perder tempo convertendo arquivos entre
+          formatos manualmente. Gosto de transformar processos repetitivos em produtos simples.
+        </p>
+      </div>
     </div>
+
+    <div class="about-card reverse">
+      <div class="about-photo">
+        <div class="avatar-circle">XX</div>
+      </div>
+      <div class="about-content">
+        <div class="about-header">
+          <h3>Segundo Integrante</h3>
+          <div class="social-icons">
+            <a href="#" aria-label="GitHub">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.87 8.37 6.84 9.73.5.1.68-.22.68-.49 0-.24-.01-.87-.01-1.71-2.78.62-3.37-1.37-3.37-1.37-.45-1.18-1.11-1.49-1.11-1.49-.91-.64.07-.63.07-.63 1 .07 1.53 1.05 1.53 1.05.89 1.57 2.34 1.12 2.91.86.09-.66.35-1.12.63-1.38-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.31.1-2.72 0 0 .84-.28 2.75 1.05a9.3 9.3 0 015 0c1.9-1.33 2.74-1.05 2.74-1.05.56 1.41.21 2.46.1 2.72.64.72 1.03 1.63 1.03 2.75 0 3.94-2.34 4.8-4.57 5.06.36.32.68.94.68 1.9 0 1.37-.01 2.47-.01 2.81 0 .27.18.6.69.49A10.26 10.26 0 0022 12.25C22 6.58 17.52 2 12 2z"/></svg>
+            </a>
+            <a href="#" aria-label="LinkedIn">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.94 5a2 2 0 11-4-.02 2 2 0 014 .02zM7 8.48H3V21h4V8.48zm6.32 0H9.35V21h3.94v-6.57c0-3.66 4.77-3.96 4.77 0V21H22v-7.93c0-6.17-7.06-5.94-8.68-2.91V8.48z"/></svg>
+            </a>
+            <a href="#" aria-label="Instagram">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <div class="skills-pills">
+          <span>JavaScript</span>
+          <span>Node.js</span>
+          <span>Oracle SQL</span>
+          <span>MongoDB</span>
+          <span>UI Design</span>
+        </div>
+
+        <p class="about-desc">
+          Complete com o nome, habilidades e descrição do segundo integrante do time.
+          Este card já vem invertido — foto à direita, texto à esquerda — para intercalar com o anterior.
+        </p>
+      </div>
+    </div>
+
   </div>
 </section>
 
