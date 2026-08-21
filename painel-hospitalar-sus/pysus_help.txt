@@ -1,0 +1,165 @@
+Help on class PySUS in module pysus.api.client:
+
+class PySUS(builtins.object)
+ |  PySUS(db_path: pathlib.Path = WindowsPath('C:/Users/mateu/pysus/config.db'))
+ |
+ |  Central orchestrator for downloading and querying PySUS datasets.
+ |
+ |  Methods defined here:
+ |
+ |  async __aenter__(self)
+ |
+ |  async __aexit__(self, exc_type, exc_val, exc_tb)
+ |      Clean up all client connections and dispose of the engine.
+ |
+ |  __init__(self, db_path: pathlib.Path = WindowsPath('C:/Users/mateu/pysus/config.db'))
+ |      Initialize the PySUS orchestrator.
+ |
+ |      Creates a SQLAlchemy engine backed by DuckDB, initializes the
+ |      schema, and sets up the session factory.
+ |
+ |      Parameters
+ |      ----------
+ |      db_path : Path, optional
+ |          Path to the DuckDB database file. Defaults to
+ |          ``CACHEPATH / "config.db"``.
+ |
+ |  async download(self, file: pysus.api.models.BaseRemoteFile, token: str | None = None, callback: collections.abc.Callable | None = None, timeout: float | None = None) -> pysus.api.models.BaseLocalFile
+ |      Download a remote file and return a local file handle.
+ |
+ |      Skips re-download if a matching local copy already exists.
+ |
+ |      Parameters
+ |      ----------
+ |      file : BaseRemoteFile
+ |          The remote file to download.
+ |      token : str, optional
+ |          Access token for authenticated clients (e.g. DadosGov).
+ |      callback : Callable, optional
+ |          Progress callback invoked during the download.
+ |      timeout : float, optional
+ |          Maximum seconds to wait for the download. ``None`` (default)
+ |          means no timeout.
+ |
+ |      Returns
+ |      -------
+ |      BaseLocalFile
+ |          The downloaded file wrapped in the appropriate handler.
+ |
+ |      Raises
+ |      ------
+ |      ValueError
+ |          If the file's client is not recognised.
+ |      RuntimeError
+ |          If the download fails for any reason.
+ |
+ |  async download_to_parquet(self, file: pysus.api.models.BaseRemoteFile, token: str | None = None, callback: collections.abc.Callable[[int, int], None] | None = None, timeout: float | None = None, add_dv: bool = True) -> pysus.api.extensions.Parquet
+ |      Download a file and convert it to Parquet format.
+ |
+ |      Parameters
+ |      ----------
+ |      file : BaseRemoteFile
+ |          The remote file to download and convert.
+ |      token : str, optional
+ |          Access token for authenticated clients.
+ |      callback : Callable[[int, int], None], optional
+ |          Progress callback.
+ |      timeout : float, optional
+ |          Maximum seconds to wait for the download.
+ |      add_dv : bool, optional
+ |          Whether to apply the IBGE verification digit on load
+ |          (default True).
+ |
+ |      Returns
+ |      -------
+ |      Parquet
+ |          The converted Parquet file handler.
+ |
+ |      Raises
+ |      ------
+ |      NotImplementedError
+ |          If the downloaded file type cannot be converted to Parquet.
+ |
+ |  get_completed_remote_paths(self) -> set[str]
+ |      Return remote paths for all successfully downloaded files.
+ |
+ |  async get_dadosgov(self, access_token: str | None) -> pysus.api.dadosgov.client.DadosGov
+ |      Return the DadosGov client, connecting lazily if needed.
+ |
+ |  async get_ducklake(self, callback: collections.abc.Callable[[int, int], None] | None = None) -> pysus.api.ducklake.client.DuckLake
+ |      Return the DuckLake client, initializing it lazily if needed.
+ |
+ |  async get_ftp(self) -> pysus.api.ftp.client.FTP
+ |      Return the FTP client, connecting lazily if needed.
+ |
+ |  async get_local_file(self, file: pysus.api.models.BaseRemoteFile) -> pysus.api.models.BaseLocalFile | None
+ |      Look up a previously downloaded file by its remote path.
+ |
+ |  get_local_hierarchy(self)
+ |      Build a nested dict of cached files grouped by client and dataset.
+ |
+ |      Returns
+ |      -------
+ |      dict
+ |          Nested dict keyed by
+ |          ``{client: {dataset: {group: [files]}}}``.
+ |
+ |  async query(self, client: Optional[Annotated[str, AfterValidator(func=<function _validate_origin at 0x000001FD6D972C00>)]] = None, dataset: str | list[str] | None = None, group: str | list[str] | None = None, state: str | list[str] | None = None, year: int | list[int] | None = None, month: int | list[int] | None = None) -> list[pysus.api.models.BaseRemoteFile]
+ |      Query available datasets through the DuckLake catalog.
+ |
+ |      Parameters
+ |      ----------
+ |      client : Origin, optional
+ |          Source client to filter by.
+ |      dataset : str or list of str, optional
+ |          Dataset name(s) to filter by.
+ |      group : str or list of str, optional
+ |          Group name pattern(s) to filter by (case-insensitive ILIKE).
+ |      state : str or list of str, optional
+ |          Two-letter state code(s) to filter by.
+ |      year : int or list of int, optional
+ |          Year(s) to filter by.
+ |      month : int or list of int, optional
+ |          Month(s) to filter by.
+ |
+ |      Returns
+ |      -------
+ |      list
+ |          List of matching File objects.
+ |
+ |  read_parquet(self, paths: list[pathlib.Path], sql: str | None = None, mode: Literal['union', 'intersection', 'strict'] = 'union', add_dv: bool = True) -> 'DuckDBPyConnection | pd.DataFrame'
+ |      Read Parquet files with optional schema handling and SQL filter.
+ |
+ |      Parameters
+ |      ----------
+ |      paths : list of Path
+ |          One or more Parquet file paths to read.
+ |      sql : str, optional
+ |          Optional SQL filter expression applied to the result.
+ |      mode : {"union", "intersection", "strict"}, optional
+ |          Schema resolution mode (default ``"union"``).
+ |      add_dv : bool, optional
+ |          When True, automatically applies the IBGE verification digit to
+ |          municipality code columns. If matching columns are found, a
+ |          DataFrame is returned instead of a ``DuckDBPyConnection``.
+ |
+ |      Returns
+ |      -------
+ |      DuckDBPyConnection or pd.DataFrame
+ |          The query result.
+ |
+ |      Raises
+ |      ------
+ |      ValueError
+ |          If no paths are provided, or if the schema mode is ``"strict"``
+ |          and the files have differing schemas.
+ |
+ |  ----------------------------------------------------------------------
+ |  Data descriptors defined here:
+ |
+ |  __dict__
+ |      dictionary for instance variables
+ |
+ |  __weakref__
+ |      list of weak references to the object
+

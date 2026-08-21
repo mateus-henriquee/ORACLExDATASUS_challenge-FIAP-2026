@@ -505,19 +505,43 @@
     background:linear-gradient(200deg,#191d27,#0c0e13);
   }
   .about-photo{
-    width:34%;
-    min-width:220px;
-    background:linear-gradient(160deg,#191d27,#0c0e13);
-    display:flex;align-items:center;justify-content:center;
-  }
-  .avatar-circle{
-    width:120px;height:120px;
-    border-radius:50%;
-    background:linear-gradient(135deg,var(--accent),var(--accent-2));
-    display:flex;align-items:center;justify-content:center;
-    font-family:'Space Grotesk',sans-serif;
-    font-size:38px;font-weight:700;color:#fff;
-  }
+  position:relative;
+  width:34%;
+  min-width:220px;
+  background:linear-gradient(160deg,#191d27,#0c0e13);
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+.member-photo{
+  width:100%;height:100%;
+  object-fit:cover;
+  object-position:center;
+  display:block;
+}
+.avatar-circle{
+  width:120px;height:120px;
+  border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Space Grotesk',sans-serif;
+  font-size:38px;font-weight:700;color:#fff;
+}
+.cv-overlay{
+  position:absolute;inset:0;
+  background:rgba(10,13,18,0.78);
+  backdrop-filter:blur(2px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+  text-decoration:none;color:#fff;
+  opacity:0;
+  transition:opacity 0.3s ease;
+}
+.about-photo:hover .cv-overlay{opacity:1;}
+.cv-overlay svg{width:26px;height:26px;}
+.cv-overlay span{
+  font-family:'Inter',sans-serif;
+  font-size:13px;font-weight:600;
+  letter-spacing:0.01em;
+}
   .about-content{
     flex:1;
     padding:42px 44px;
@@ -718,6 +742,85 @@
   .auth-msg.error{color:#f2718a;}
   .auth-msg.success{color:#5be8a5;}
 
+  /* ---------- TESTE DE PERFIL ---------- */
+.profile-quiz-toggle{
+  background:none;border:none;
+  color:var(--accent-2);
+  font-family:'JetBrains Mono',monospace;
+  font-size:11.5px;
+  text-decoration:underline;
+  text-underline-offset:3px;
+  cursor:pointer;
+  text-align:left;
+  padding:0;
+  margin-top:-8px;
+  width:fit-content;
+}
+.profile-quiz{
+  display:none;
+  flex-direction:column;
+  gap:18px;
+  padding:16px 16px 18px;
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:12px;
+}
+.profile-quiz.open{display:flex;}
+
+.quiz-question p{
+  font-size:13px;line-height:1.45;
+  color:var(--text);
+  margin-bottom:10px;
+}
+.quiz-scale{display:flex;align-items:center;gap:10px;}
+.quiz-scale-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;letter-spacing:0.06em;
+  color:var(--text-dim);text-transform:uppercase;
+  flex-shrink:0;
+}
+.quiz-dots{display:flex;gap:9px;flex:1;justify-content:space-between;}
+.quiz-dot{
+  width:18px;height:18px;border-radius:50%;
+  border:2px solid var(--border);
+  background:var(--surface);
+  cursor:pointer;padding:0;
+  transition:border-color 0.2s ease, background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+.quiz-dot:hover{border-color:var(--accent);transform:scale(1.1);}
+.quiz-dot.selected{
+  background:linear-gradient(135deg,var(--accent),var(--accent-hover));
+  border-color:var(--accent);
+  box-shadow:0 0 10px rgba(141,92,204,0.65);
+  transform:scale(1.1);
+}
+
+.quiz-result{
+  display:none;
+  flex-direction:column;
+  gap:10px;align-items:center;text-align:center;
+  padding-top:14px;
+  border-top:1px solid var(--border);
+}
+.quiz-result.show{display:flex;}
+.quiz-result-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;color:var(--text-dim);text-transform:uppercase;
+}
+.quiz-result-value{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:19px;font-weight:700;color:var(--accent-2);
+}
+.quiz-apply-btn{
+  background:linear-gradient(135deg,var(--accent),var(--accent-hover));
+  border:none;color:#fff;
+  padding:8px 20px;border-radius:8px;
+  font-family:'Inter',sans-serif;
+  font-size:13px;font-weight:600;cursor:pointer;
+  transition:opacity 0.2s ease, transform 0.2s ease;
+}
+.quiz-apply-btn:hover{opacity:0.9;transform:translateY(-1px);}
+
   /* ---------- RESPONSIVE ---------- */
   @media (max-width:900px){
     .hero{grid-template-columns:1fr;padding:120px 24px 60px;gap:48px;}
@@ -736,7 +839,7 @@
     .flow-panel{padding:0 28px;}
 
     .about-card,.about-card.reverse{flex-direction:column;}
-    .about-photo{width:100%;padding:36px 0;}
+    .about-photo{width:100%;height:260px;}
     .about-content{padding:32px 28px;}
   }
 </style>
@@ -952,8 +1055,12 @@
 
     <div class="about-card">
       <div class="about-photo">
-        <div class="avatar-circle">MH</div>
-      </div>
+  <img class="member-photo" src="https://avatars.githubusercontent.com/u/99336388?v=4" alt="Foto de Mateus Henrique Leccese da Silva">
+  <a class="cv-overlay" href="./assets/cv/cv-mateus.pdf" target="_blank" rel="noopener">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>
+    <span>Ver currículo</span>
+  </a>
+</div>
       <div class="about-content">
         <div class="about-header">
           <h3>Mateus Henrique Leccese da Silva</h3>
@@ -1004,8 +1111,12 @@
 
     <div class="about-card reverse">
       <div class="about-photo">
-        <div class="avatar-circle">GB</div>
-      </div>
+  <img class="member-photo" src="https://avatars.githubusercontent.com/u/226207329?v=4" alt="Foto de Guilherme do Nascimento Buosi">
+  <a class="cv-overlay" href="assets/cv/mateus-cv.pdf" target="_blank" rel="noopener">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>
+    <span>Ver currículo</span>
+  </a>
+</div>
       <div class="about-content">
         <div class="about-header">
           <h3>Guilherme do Nascimento Buosi</h3>
@@ -1057,8 +1168,12 @@
 
     <div class="about-card">
       <div class="about-photo">
-        <div class="avatar-circle">PS</div>
-      </div>
+  <img class="member-photo" src="https://avatars.githubusercontent.com/u/211584450?v=4" alt="Foto de Mateus Henrique Leccese da Silva">
+  <a class="cv-overlay" href="assets/cv/mateus-cv.pdf" target="_blank" rel="noopener">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>
+    <span>Ver currículo</span>
+  </a>
+</div>
       <div class="about-content">
         <div class="about-header">
           <h3>Pedro Samugin Verillo</h3>
@@ -1105,8 +1220,12 @@
 
     <div class="about-card reverse">
       <div class="about-photo">
-        <div class="avatar-circle">DV</div>
-      </div>
+  <img class="member-photo" src="https://avatars.githubusercontent.com/u/111158452?v=4" alt="Foto de Danillo Vidal">
+  <a class="cv-overlay" href="assets/cv/mateus-cv.pdf" target="_blank" rel="noopener">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>
+    <span>Ver currículo</span>
+  </a>
+</div>
       <div class="about-content">
         <div class="about-header">
           <h3>Danillo Vidal</h3>
@@ -1158,8 +1277,12 @@
 
     <div class="about-card">
       <div class="about-photo">
-        <div class="avatar-circle">GR</div>
-      </div>
+  <img class="member-photo" src="https://avatars.githubusercontent.com/u/110945771?v=4" alt="Foto de Guilherme Rigobello">
+  <a class="cv-overlay" href="assets/cv/mateus-cv.pdf" target="_blank" rel="noopener">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>
+    <span>Ver currículo</span>
+  </a>
+</div>
       <div class="about-content">
         <div class="about-header">
           <h3>Guilherme Rigobello</h3>
@@ -1265,6 +1388,61 @@
                 <option value="Padrão">Padrão</option>
               </select>
             </div>
+
+            <button type="button" class="profile-quiz-toggle" id="quizToggle">Não sabe seu perfil? Faça um teste rápido</button>
+
+<div class="profile-quiz" id="profileQuiz">
+  <div class="quiz-question" data-question="1">
+    <p>1. Você sabe ou já teve algum contato anteriormente com dashboards?</p>
+    <div class="quiz-scale">
+      <span class="quiz-scale-label">Não</span>
+      <div class="quiz-dots">
+        <button type="button" class="quiz-dot" data-value="0"></button>
+        <button type="button" class="quiz-dot" data-value="1"></button>
+        <button type="button" class="quiz-dot" data-value="2"></button>
+        <button type="button" class="quiz-dot" data-value="3"></button>
+        <button type="button" class="quiz-dot" data-value="4"></button>
+      </div>
+      <span class="quiz-scale-label">Sim</span>
+    </div>
+  </div>
+
+  <div class="quiz-question" data-question="2">
+    <p>2. Você lida com frequência com dados financeiros (orçamentos, fluxo de caixa, relatórios contábeis)?</p>
+    <div class="quiz-scale">
+      <span class="quiz-scale-label">Não</span>
+      <div class="quiz-dots">
+        <button type="button" class="quiz-dot" data-value="0"></button>
+        <button type="button" class="quiz-dot" data-value="1"></button>
+        <button type="button" class="quiz-dot" data-value="2"></button>
+        <button type="button" class="quiz-dot" data-value="3"></button>
+        <button type="button" class="quiz-dot" data-value="4"></button>
+      </div>
+      <span class="quiz-scale-label">Sim</span>
+    </div>
+  </div>
+
+  <div class="quiz-question" data-question="3">
+    <p>3. Você prefere um fluxo simples e direto, sem muitas configurações ou análises avançadas?</p>
+    <div class="quiz-scale">
+      <span class="quiz-scale-label">Não</span>
+      <div class="quiz-dots">
+        <button type="button" class="quiz-dot" data-value="0"></button>
+        <button type="button" class="quiz-dot" data-value="1"></button>
+        <button type="button" class="quiz-dot" data-value="2"></button>
+        <button type="button" class="quiz-dot" data-value="3"></button>
+        <button type="button" class="quiz-dot" data-value="4"></button>
+      </div>
+      <span class="quiz-scale-label">Sim</span>
+    </div>
+  </div>
+
+  <div class="quiz-result" id="quizResult">
+    <span class="quiz-result-label">Perfil sugerido</span>
+    <span class="quiz-result-value" id="quizResultValue">—</span>
+    <button type="button" class="quiz-apply-btn" id="quizApply">Usar esse perfil</button>
+  </div>
+</div>
 
             <div class="field">
               <label for="regEmail">E-mail</label>
@@ -1461,6 +1639,70 @@
     if(!pane) return;
     authViewport.style.height = pane.offsetHeight + 'px';
   }
+
+  // ---------- TESTE DE PERFIL ----------
+const quizToggle = document.getElementById('quizToggle');
+const profileQuiz = document.getElementById('profileQuiz');
+const quizResult = document.getElementById('quizResult');
+const quizResultValue = document.getElementById('quizResultValue');
+const quizApply = document.getElementById('quizApply');
+const quizAnswers = {1: null, 2: null, 3: null};
+
+quizToggle.addEventListener('click', () => {
+  profileQuiz.classList.toggle('open');
+  setPaneHeight(registerPane); // remova esta linha se não usar o trilho deslizante
+});
+
+document.querySelectorAll('.quiz-question').forEach((questionEl) => {
+  const qIndex = questionEl.dataset.question;
+  const dots = questionEl.querySelectorAll('.quiz-dot');
+
+  dots.forEach((dot) => {
+    dot.addEventListener('click', () => {
+      dots.forEach((d) => d.classList.remove('selected'));
+      dot.classList.add('selected');
+      quizAnswers[qIndex] = Number(dot.dataset.value);
+      checkQuizComplete();
+    });
+  });
+});
+
+function checkQuizComplete(){
+  const answered = Object.values(quizAnswers).every((v) => v !== null);
+  if(!answered){
+    quizResult.classList.remove('show');
+    setPaneHeight(registerPane);
+    return;
+  }
+
+  const scores = {
+    'Analítico': quizAnswers[1],
+    'Financeiro': quizAnswers[2],
+    'Padrão': quizAnswers[3]
+  };
+
+  let suggested = 'Padrão';
+  let best = -1;
+  Object.entries(scores).forEach(([profile, value]) => {
+    if(value > best){
+      best = value;
+      suggested = profile;
+    }
+  });
+
+  quizResultValue.textContent = suggested;
+  quizResult.dataset.suggested = suggested;
+  quizResult.classList.add('show');
+  setPaneHeight(registerPane);
+}
+
+quizApply.addEventListener('click', () => {
+  const suggested = quizResult.dataset.suggested;
+  if(suggested){
+    document.getElementById('regProfile').value = suggested;
+    profileQuiz.classList.remove('open');
+  }
+});
 
   function openAuth(tab){
     authOverlay.classList.add('open');

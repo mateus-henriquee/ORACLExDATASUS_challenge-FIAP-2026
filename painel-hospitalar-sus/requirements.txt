@@ -1,0 +1,5 @@
+pysus
+oracledb
+pandas
+python-dotenv
+requests

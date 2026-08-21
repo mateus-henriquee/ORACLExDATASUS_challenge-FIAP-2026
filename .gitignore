@@ -1,1 +1,23 @@
+# Segredos — NUNCA suba isso
+.env
+**/.env
+
+# Ambiente Python
+venv/
+**/venv/
+__pycache__/
+**/__pycache__/
+*.pyc
+
+# Modelo de IA (arquivo grande, cada um baixa o seu)
 models/*.gguf
+
+# Dados gerados/baixados (não faz sentido versionar)
+data/
+**/data/
+painel-hospitalar-sus/checkpoint_hospital.json
+*.duckdb
+
+# Editor
+.vscode/
+.idea/
