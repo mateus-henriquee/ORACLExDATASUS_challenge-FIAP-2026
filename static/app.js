@@ -1,8 +1,36 @@
 let currentChat = null;
-let editingChatId = null; // aba em modo de renomear
-let openMenuId = null;    // id da aba com dropdown aberto (so p/ destaque visual)
-let menuEl = null;        // elemento do dropdown, anexado ao body
+let editingChatId = null;
+let openMenuId = null;
+let menuEl = null;
 let thinkingInterval = null;
+
+// ---------- Autenticacao ----------
+// Le o token da URL (?token=xxx) quando vem da landing, salva no sessionStorage
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const tokenUrl = params.get("token");
+  if (tokenUrl) {
+    sessionStorage.setItem("dm_token", tokenUrl);
+    // limpa o token da URL sem recarregar a pagina
+    const url = new URL(window.location.href);
+    url.searchParams.delete("token");
+    window.history.replaceState({}, "", url.toString());
+  }
+})();
+
+function getToken() {
+  return sessionStorage.getItem("dm_token") || "";
+}
+
+function authHeaders() {
+  const token = getToken();
+  return token ? { "Authorization": `Bearer ${token}` } : {};
+}
+
+function authFetch(url, opts = {}) {
+  opts.headers = { ...(opts.headers || {}), ...authHeaders() };
+  return fetch(url, opts);
+}
 
 const chatWindow = document.getElementById("chat-window");
 const chatTitle = document.getElementById("chat-title");
@@ -51,7 +79,7 @@ function openMenu(chat, btnEl) {
   delBtn.onclick = async (e) => {
     e.stopPropagation();
     try {
-      const res = await fetch(`/chats/${chat.id}`, { method: "DELETE" });
+      const res = await authFetch(`/chats/${chat.id}`, { method: "DELETE" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       if (currentChat === chat.id) currentChat = null;
     } catch (err) {
@@ -75,7 +103,7 @@ document.addEventListener("click", () => {
 // ---------- Abas ----------
 
 async function loadChats(justCreatedId) {
-  const res = await fetch("/chats");
+  const res = await authFetch("/chats");
   const chats = await res.json();
   const tabsDiv = document.getElementById("tabs");
   tabsDiv.innerHTML = "";
@@ -93,7 +121,7 @@ async function loadChats(justCreatedId) {
       const save = async () => {
         const novoNome = input.value.trim() || chat.name;
         editingChatId = null;
-        await fetch(`/chats/${chat.id}`, { method: "PUT", body: new URLSearchParams({ name: novoNome }) });
+        await authFetch(`/chats/${chat.id}`, { method: "PUT", body: new URLSearchParams({ name: novoNome }) });
         loadChats();
       };
       input.onblur = save;
@@ -153,18 +181,61 @@ async function loadChats(justCreatedId) {
 
 async function selectChat(id) {
   currentChat = id;
-  const chats = await (await fetch("/chats")).json();
+  const chats = await (await authFetch("/chats")).json();
   const chat = chats.find(c => c.id === id);
   chatTitle.textContent = chat ? chat.name : "Conversa";
   loadChats();
 
-  const res = await fetch(`/chats/${id}/history`);
+  const res = await authFetch(`/chats/${id}/history`);
   const history = await res.json();
   chatWindow.innerHTML = "";
   chatWindow.appendChild(emptyState);
   history.forEach(msg => renderMessage(msg, false));
   toggleEmptyState();
+  atualizarFonte();
 }
+
+// ---------- Fonte de dados (Oracle x CSV) ----------
+
+async function atualizarFonte() {
+  if (!currentChat) return;
+  try {
+    const resp = await authFetch(`/chats/${currentChat}/fonte`);
+    const info = await resp.json();
+    document.querySelectorAll("#fonte-switch button").forEach(btn => {
+      const tipo = btn.dataset.fonte;
+      btn.classList.toggle("active", tipo === info.tipo);
+      btn.disabled = (tipo === "csv" && !info.csv_disponivel);
+    });
+  } catch (err) {
+    console.error("Falha ao ler a fonte de dados:", err);
+  }
+}
+
+document.querySelectorAll("#fonte-switch button").forEach(btn => {
+  btn.addEventListener("click", async () => {
+    if (!currentChat) return alert("Selecione uma aba primeiro.");
+    if (btn.disabled || btn.classList.contains("active")) return;
+
+    const tipo = btn.dataset.fonte;
+    const textoOriginal = btn.textContent;
+    btn.textContent = "...";
+    try {
+      const resp = await authFetch(`/chats/${currentChat}/fonte`, {
+        method: "POST",
+        body: new URLSearchParams({ tipo }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.detail || "Falha ao trocar a fonte.");
+      alert(`Fonte alterada para ${tipo === "oracle" ? "Oracle" : "CSV"}: ${data.linhas} linhas.`);
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      btn.textContent = textoOriginal;
+      atualizarFonte();
+    }
+  });
+});
 
 // ---------- Grafico interativo (Chart.js) ----------
 
@@ -211,7 +282,7 @@ function renderInteractiveChart(bubble, payload) {
   chartBtn.title = "Ver grafico";
   chartBtn.className = "active";
   const tableBtn = document.createElement("button");
-  tableBtn.textContent = "📅";
+  tableBtn.textContent = "▤";
   tableBtn.title = "Ver tabela";
 
   chartBtn.onclick = (e) => {
@@ -266,7 +337,7 @@ function renderInteractiveChart(bubble, payload) {
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: "#282827",
+          backgroundColor: "#111110",
           titleColor: "#fff",
           bodyColor: "#fff",
           padding: 10,
@@ -369,6 +440,7 @@ function renderMessage(msg, animate) {
     finish();
   }
 }
+
 function typeWriter(el, text, onDone) {
   const cursor = document.createElement("span");
   cursor.className = "typing-cursor";
@@ -434,9 +506,9 @@ function removeThinking() {
 // ---------- Acoes ----------
 
 document.getElementById("new-tab").onclick = async () => {
-  const chats = await (await fetch("/chats")).json();
+  const chats = await (await authFetch("/chats")).json();
   const nome = `Nova conversa ${chats.length + 1}`;
-  const res = await fetch("/chats", { method: "POST", body: new URLSearchParams({ name: nome }) });
+  const res = await authFetch("/chats", { method: "POST", body: new URLSearchParams({ name: nome }) });
   if (res.ok) {
     const data = await res.json();
     loadChats(data.id);
@@ -452,11 +524,12 @@ document.getElementById("csv-file").onchange = async (e) => {
   if (!file) return;
   const fd = new FormData();
   fd.append("file", file);
-  const res = await fetch(`/chats/${currentChat}/upload_csv`, { method: "POST", body: fd });
+  const res = await authFetch(`/chats/${currentChat}/upload_csv`, { method: "POST", body: fd });
   const data = await res.json();
   if (res.ok) alert(`CSV carregado: ${data.linhas} linhas. Colunas: ${data.colunas.join(", ")}`);
   else alert(data.detail || "Erro ao carregar CSV.");
   e.target.value = "";
+  atualizarFonte();
 };
 
 document.getElementById("message-form").onsubmit = async (e) => {
@@ -471,7 +544,7 @@ document.getElementById("message-form").onsubmit = async (e) => {
   showThinking();
 
   try {
-    const res = await fetch(`/chats/${currentChat}/message`, {
+    const res = await authFetch(`/chats/${currentChat}/message`, {
       method: "POST",
       body: new URLSearchParams({ question }),
     });

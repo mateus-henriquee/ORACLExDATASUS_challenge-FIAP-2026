@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Relatórios — DataMind</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0d12;--card:#1a1917;--border:#3d3b37;--text:#ece8e1;--muted:#9a9587;--faint:#63606f;--accent:#8d5ccc;--green:#6fbf73;--red:#d9695f;--r:12px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;}
+
+.sidebar{width:240px;flex-shrink:0;background:#12110f;border-right:1px solid var(--border);display:flex;flex-direction:column;padding:18px 14px;}
+.brand{display:flex;align-items:center;gap:8px;padding-bottom:22px;}
+.brand-mark{color:var(--accent);font-size:20px;}
+.brand-name{font-family:'Source Serif 4',serif;font-size:16px;font-weight:600;}
+.brand-sub{font-size:11px;color:var(--faint);margin-left:auto;}
+.nav-label{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--faint);font-weight:600;margin:4px 6px 8px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;color:var(--muted);font-size:13.5px;cursor:pointer;margin-bottom:2px;text-decoration:none;}
+.nav-item:hover{background:var(--card);color:var(--text);}
+.nav-item.active{background:rgba(141,92,204,.13);color:var(--text);font-weight:600;border-left:2px solid var(--accent);padding-left:8px;}
+.nav-item svg{width:18px;height:18px;flex-shrink:0;}
+.spacer{flex:1;}
+.logout{display:flex;align-items:center;gap:10px;padding:12px 10px 0;border-top:1px solid var(--border);color:var(--muted);font-size:13.5px;cursor:pointer;}
+.logout:hover{color:var(--red);}
+.logout svg{width:18px;height:18px;}
+
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.header{padding:20px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.header h1{font-family:'Source Serif 4',serif;font-size:20px;font-weight:600;}
+.header p{font-size:12px;color:var(--muted);margin-top:3px;}
+
+.btn-novo{display:flex;align-items:center;gap:6px;background:var(--accent);border:none;border-radius:9px;color:#fff;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;padding:9px 16px;cursor:pointer;}
+.btn-novo:hover{background:#746fd9;}
+
+.scroll{flex:1;overflow-y:auto;padding:24px 28px 60px;}
+.scroll::-webkit-scrollbar{width:6px;}
+.scroll::-webkit-scrollbar-thumb{background:#761dbb;border-radius:6px;}
+
+/* Cards de relatório */
+.relatorios-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;}
+
+.relatorio-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:18px;position:relative;animation:fadeIn .3s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+.rel-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;}
+.rel-titulo{font-family:'Source Serif 4',serif;font-size:15px;font-weight:600;line-height:1.3;}
+.rel-data{font-size:10px;color:var(--faint);margin-top:2px;}
+.rel-desc{font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.5;}
+.rel-campos{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+.rel-campo{font-size:10.5px;padding:3px 9px;border-radius:20px;background:rgba(141,92,204,.12);color:var(--accent);border:1px solid rgba(141,92,204,.22);}
+.rel-acoes{display:flex;gap:8px;}
+.btn-expandir{flex:1;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:12px;padding:7px;cursor:pointer;}
+.btn-expandir:hover{border-color:var(--accent);color:var(--text);}
+.btn-excluir{background:none;border:1px solid rgba(217,105,95,.25);border-radius:8px;color:var(--red);font-size:12px;padding:7px 10px;cursor:pointer;}
+.btn-excluir:hover{background:rgba(217,105,95,.1);}
+
+/* Dados expandidos */
+.rel-dados{margin-top:14px;border-top:1px solid var(--border);padding-top:12px;display:none;}
+.rel-dados.open{display:block;}
+.rel-table{width:100%;border-collapse:collapse;font-size:12px;}
+.rel-table th{text-align:left;color:var(--faint);font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;padding:6px 8px;border-bottom:1px solid var(--border);}
+.rel-table td{padding:8px 8px;border-bottom:1px solid #1e1d1a;color:var(--text);}
+.rel-table tr:last-child td{border-bottom:none;}
+.loading-dados{font-size:12px;color:var(--muted);padding:10px 0;}
+
+/* Empty state */
+.empty{text-align:center;padding:80px 20px;color:var(--faint);}
+.empty-icon{font-size:40px;color:var(--accent);opacity:.6;margin-bottom:16px;}
+.empty h3{font-family:'Source Serif 4',serif;font-size:18px;color:var(--text);margin-bottom:8px;}
+.empty p{font-size:14px;line-height:1.6;}
+
+/* Modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:flex;align-items:center;justify-content:center;display:none;}
+.modal-bg.open{display:flex;}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:28px;width:100%;max-width:480px;}
+.modal h2{font-family:'Source Serif 4',serif;font-size:18px;margin-bottom:20px;}
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.field input,.field textarea,.field select{width:100%;background:#111010;border:1px solid var(--border);border-radius:9px;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;padding:10px 13px;outline:none;}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--accent);}
+.field textarea{resize:vertical;min-height:80px;}
+.campos-check{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.campo-item{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;}
+.campo-item input{width:auto;accent-color:var(--accent);}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
+.btn-cancelar{background:none;border:1px solid var(--border);border-radius:9px;color:var(--muted);font-size:13px;padding:9px 18px;cursor:pointer;}
+.btn-cancelar:hover{color:var(--text);}
+.btn-criar{background:var(--accent);border:none;border-radius:9px;color:#fff;font-size:13px;font-weight:600;padding:9px 20px;cursor:pointer;}
+.btn-criar:hover{background:#746fd9;}
+.btn-criar:disabled{opacity:.5;cursor:default;}
+.erro-modal{font-size:12px;color:var(--red);margin-top:8px;}
+</style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="brand"><span class="brand-mark">✳</span><span class="brand-name">DataMind</span><span class="brand-sub">Executivo</span></div>
+  <div class="nav-label">Navegação</div>
+  <a class="nav-item" href="/dashboard">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="5" rx="1.5"/><rect x="13" y="10" width="8" height="11" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/></svg>Dashboard
+  </a>
+  <a class="nav-item" href="/comparativos">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M12 20V4M20 20v-7"/></svg>Comparativos
+  </a>
+  <a class="nav-item active" href="/relatorios">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"/></svg>Relatórios
+  </a>
+  <div class="spacer"></div>
+  <div class="logout" id="logout-btn">
+    <a class="nav-item" href="/">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+      <span id="nome-usuario">Sair</span>
+    </a>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="header">
+    <div><h1>Relatórios</h1><p>Seus relatórios — visíveis só para você</p></div>
+    <button class="btn-novo" id="btn-novo">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+      Novo relatório
+    </button>
+  </div>
+
+  <div class="scroll">
+    <div class="relatorios-grid" id="grid"></div>
+  </div>
+</main>
+
+<!-- Modal criar -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <h2>Novo relatório</h2>
+    <div class="field">
+      <label>Título</label>
+      <input type="text" id="m-titulo" placeholder="Ex: Internações por município — Q1 2024">
+    </div>
+    <div class="field">
+      <label>Descrição</label>
+      <textarea id="m-desc" placeholder="Descreva o objetivo deste relatório..."></textarea>
+    </div>
+    <div class="field">
+      <label>Dimensão de análise</label>
+      <select id="m-dim">
+        <option value="municipio">Município</option>
+        <option value="hospital">Hospital</option>
+        <option value="faixa_etaria">Faixa etária</option>
+        <option value="competencia">Competência (mês)</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Campos a exibir</label>
+      <div class="campos-check">
+        <label class="campo-item"><input type="checkbox" value="internacoes" checked> Internações</label>
+        <label class="campo-item"><input type="checkbox" value="custo" checked> Custo total</label>
+        <label class="campo-item"><input type="checkbox" value="permanencia"> Permanência média</label>
+      </div>
+    </div>
+    <div class="erro-modal" id="m-erro"></div>
+    <div class="modal-footer">
+      <button class="btn-cancelar" id="btn-cancelar">Cancelar</button>
+      <button class="btn-criar" id="btn-criar">Criar relatório</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API = 'http://localhost:8001';
+  const token = sessionStorage.getItem('dm_token');
+  const perfil = sessionStorage.getItem('dm_perfil');
+  if (!token || perfil !== 'executivo') window.location.href = '/landing';
+
+  const nome = sessionStorage.getItem('dm_nome');
+  if (nome) document.getElementById('nome-usuario').textContent = nome + ' — Sair';
+
+  const authH = () => ({'Authorization': `Bearer ${token}`});
+
+  document.getElementById('logout-btn').addEventListener('click', async () => {
+    try { await fetch(`${API}/auth/logout`, {method:'POST',headers:authH()}); } catch(e){}
+    sessionStorage.clear(); window.location.href = '/landing';
+  });
+
+  const CAMPOS_LABEL = {internacoes:'Internações', custo:'Custo total', permanencia:'Permanência média'};
+  const DIMS = {municipio:'Município',hospital:'Hospital',faixa_etaria:'Faixa etária',competencia:'Competência'};
+
+  function fmtVal(campo, v) {
+    if (campo === 'custo') return 'R$ '+(v/1e6).toLocaleString('pt-BR',{minimumFractionDigits:1})+' mi';
+    if (campo === 'permanencia') return v.toFixed(1).replace('.',',')+' dias';
+    return v.toLocaleString('pt-BR');
+  }
+
+  let relatorios = [];
+
+  async function carregar() {
+    try {
+      const r = await fetch(`${API}/api/relatorios?token=${encodeURIComponent(token)}`);
+      relatorios = await r.json();
+      renderGrid();
+    } catch(e) { renderGrid(); }
+  }
+
+  function renderGrid() {
+    const grid = document.getElementById('grid');
+    if (!relatorios.length) {
+      grid.innerHTML = `
+        <div class="empty" style="grid-column:1/-1">
+          <div class="empty-icon">📋</div>
+          <h3>Nenhum relatório ainda</h3>
+          <p>Crie seu primeiro relatório clicando em<br><strong>Novo relatório</strong> no canto superior direito.</p>
+        </div>`;
+      return;
+    }
+    grid.innerHTML = relatorios.map(rel => {
+      const t = rel.titulo||rel.title||rel.nome||'Sem título';
+      const d = rel.descricao||rel.description||'—';
+      const dim = rel.campos?.dim||rel.dim||'municipio';
+      const mets = rel.campos?.metricas||rel.metricas||[];
+      const dt = rel.criado_em||rel.created_at||'';
+      return `
+      <div class="relatorio-card" id="card-${rel.id}">
+        <div class="rel-header">
+          <div>
+            <div class="rel-titulo">${t}</div>
+            <div class="rel-data">${dt} · ${DIMS[dim]||'Município'}</div>
+          </div>
+        </div>
+        <div class="rel-desc">${d}</div>
+        <div class="rel-campos">${mets.map(c=>`<span class="rel-campo">${CAMPOS_LABEL[c]||c}</span>`).join('')}</div>
+        <div class="rel-acoes">
+          <button class="btn-expandir" onclick="toggleDados('${rel.id}')">Ver dados</button>
+          <button class="btn-excluir" onclick="excluir('${rel.id}')">Excluir</button>
+        </div>
+        <div class="rel-dados" id="dados-${rel.id}">
+          <div class="loading-dados">Carregando dados...</div>
+        </div>
+      </div>
+    `;
+    }).join('');
+  } // <-- Chave adicionada para fechar a função renderGrid()
+
+  async function toggleDados(id) {
+    const el = document.getElementById(`dados-${id}`);
+    const rel = relatorios.find(r => r.id === id);
+    if (!rel) return;
+    if (el.classList.toggle('open')) {
+      el.innerHTML = '<div class="loading-dados">Buscando do Oracle...</div>';
+      try {
+        const dim = rel.campos?.dim || 'municipio';
+        const r = await fetch(`${API}/api/comparativos?dim=${dim}&top=15`);
+        const dados = await r.json();
+        const metricas = rel.campos?.metricas || ['internacoes'];
+        const ths = `<tr><th>${DIMS[dim]}</th>${metricas.map(m=>`<th>${CAMPOS_LABEL[m]}</th>`).join('')}</tr>`;
+        const trs = dados.map(d=>`<tr><td>${d.label}</td>${metricas.map(m=>`<td>${fmtVal(m,d[m])}</td>`).join('')}</tr>`).join('');
+        el.innerHTML = `<table class="rel-table"><thead>${ths}</thead><tbody>${trs}</tbody></table>`;
+      } catch(e) {
+        el.innerHTML = '<div class="loading-dados" style="color:#d9695f">Erro ao buscar dados.</div>';
+      }
+    }
+  }
+
+  async function excluir(id) {
+    if (!confirm('Excluir este relatório?')) return;
+    try {
+      await fetch(`${API}/api/relatorios/${id}?token=${encodeURIComponent(token)}`, {method:'DELETE'});
+      relatorios = relatorios.filter(r => r.id !== id);
+      const card = document.getElementById(`card-${id}`);
+      if (card) { card.style.opacity = '0'; card.style.transform = 'scale(.95)'; card.style.transition = '.2s'; setTimeout(()=>renderGrid(), 200); }
+    } catch(e) { alert('Erro ao excluir.'); }
+  }
+
+  // Modal
+  document.getElementById('btn-novo').addEventListener('click', () => {
+    document.getElementById('m-erro').textContent = '';
+    document.getElementById('modal-bg').classList.add('open');
+  });
+  document.getElementById('btn-cancelar').addEventListener('click', () => document.getElementById('modal-bg').classList.remove('open'));
+  document.getElementById('modal-bg').addEventListener('click', e => { if (e.target === document.getElementById('modal-bg')) document.getElementById('modal-bg').classList.remove('open'); });
+
+  document.getElementById('btn-criar').addEventListener('click', async () => {
+    const titulo = document.getElementById('m-titulo').value.trim();
+    const desc   = document.getElementById('m-desc').value.trim();
+    const dim    = document.getElementById('m-dim').value;
+    const metricas = Array.from(document.querySelectorAll('.campos-check input:checked')).map(el=>el.value);
+    const erro = document.getElementById('m-erro');
+
+    if (!titulo) { erro.textContent = 'Informe um título.'; return; }
+    if (!metricas.length) { erro.textContent = 'Selecione ao menos um campo.'; return; }
+    erro.textContent = '';
+
+    const btn = document.getElementById('btn-criar');
+    btn.disabled = true; btn.textContent = 'Criando...';
+    try {
+      const body = new URLSearchParams({titulo, descricao: desc, campos: JSON.stringify({dim, metricas}), token});
+      const r = await fetch(`${API}/api/relatorios`, {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body});
+      const novo = await r.json();
+      relatorios.unshift(novo);
+      renderGrid();
+      document.getElementById('modal-bg').classList.remove('open');
+      document.getElementById('m-titulo').value = '';
+      document.getElementById('m-desc').value = '';
+    } catch(e) { erro.textContent = 'Erro ao criar. Verifique se o backend está rodando.'; }
+    finally { btn.disabled = false; btn.textContent = 'Criar relatório'; }
+  });
+
+  carregar();
+</script>
+</body>
+</html>

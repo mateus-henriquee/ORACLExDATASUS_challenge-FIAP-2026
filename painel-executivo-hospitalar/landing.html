@@ -843,24 +843,477 @@
     .about-content{padding:32px 28px;}
   }
 </style>
+<style id="novas-secoes-css">
+
+/* ── Números por trás ── */
+.numeros-section {
+  padding: 120px 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+}
+.numeros-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; letter-spacing: .14em;
+  color: var(--accent); text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.numeros-titulo {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(28px, 4vw, 48px);
+  font-weight: 700; letter-spacing: -.03em;
+  margin-bottom: 14px;
+}
+.numeros-sub {
+  font-size: 16px; color: var(--text-dim);
+  max-width: 520px; margin: 0 auto 72px;
+  line-height: 1.6;
+}
+.numeros-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
+}
+.numero-card {
+  background: var(--surface);
+  padding: 40px 28px;
+  position: relative;
+  overflow: hidden;
+}
+.numero-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 0%, rgba(141,92,204,.08), transparent 60%);
+  opacity: 0;
+  transition: opacity .4s ease;
+}
+.numero-card:hover::before { opacity: 1; }
+.numero-val {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(32px, 4vw, 52px);
+  font-weight: 700;
+  letter-spacing: -.04em;
+  background: linear-gradient(135deg, #fff 30%, var(--accent-2));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  margin-bottom: 8px;
+  display: block;
+}
+.numero-label {
+  font-size: 13px; color: var(--text-dim);
+  line-height: 1.4;
+}
+.numero-icon {
+  font-size: 28px; margin-bottom: 16px; display: block;
+}
+
+/* ── Carrossel fontes ── */
+.carousel-section {
+  padding: 48px 0;
+  overflow: hidden;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.carousel-label {
+  text-align: center;
+  font-size: 11px; letter-spacing: .12em;
+  color: var(--text-dim); text-transform: uppercase;
+  margin-bottom: 28px;
+}
+.carousel-track-wrap {
+  overflow: hidden;
+  cursor: default;
+  -webkit-mask-image: linear-gradient(90deg, transparent, black 10%, black 90%, transparent);
+  mask-image: linear-gradient(90deg, transparent, black 10%, black 90%, transparent);
+}
+.carousel-track {
+  display: flex;
+  gap: 48px;
+  width: max-content;
+  animation: scroll-left 22s linear infinite;
+}
+.carousel-track:hover { animation-play-state: paused; }
+@keyframes scroll-left {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.carousel-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+  padding: 10px 20px;
+  border: 1px solid var(--border);
+  border-radius: 40px;
+  background: var(--bg);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-dim);
+  transition: border-color .2s, color .2s;
+  user-select: none;
+}
+.carousel-item:hover { border-color: var(--accent); color: var(--text); }
+.carousel-item svg { width: 20px; height: 20px; flex-shrink: 0; }
+
+/* ── Destaques ao vivo ── */
+.destaques-section {
+  padding: 120px 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.destaques-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 48px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.destaques-titulo {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(24px, 3.5vw, 42px);
+  font-weight: 700; letter-spacing: -.03em;
+}
+.live-badge {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 12px; color: #6fbf73;
+  border: 1px solid rgba(111,191,115,.3);
+  background: rgba(111,191,115,.08);
+  padding: 6px 14px; border-radius: 20px;
+}
+.live-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #6fbf73;
+  animation: live-pulse 1.8s ease-in-out infinite;
+}
+@keyframes live-pulse {
+  0%,100% { opacity: 1; box-shadow: 0 0 0 0 rgba(111,191,115,.4); }
+  50%      { opacity: .7; box-shadow: 0 0 0 5px rgba(111,191,115,0); }
+}
+.destaques-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.destaque-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 28px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color .25s, transform .25s;
+}
+.destaque-card:hover {
+  border-color: rgba(141,92,204,.4);
+  transform: translateY(-3px);
+}
+.destaque-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0; transition: opacity .3s;
+}
+.destaque-card:hover::after { opacity: 1; }
+.destaque-tag {
+  font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--accent); font-family: 'JetBrains Mono', monospace;
+  margin-bottom: 16px; display: block;
+}
+.destaque-val {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(16px, 2vw, 22px);
+  font-weight: 600; line-height: 1.3;
+  margin-bottom: 8px; color: var(--text);
+  min-height: 56px;
+}
+.destaque-desc { font-size: 13px; color: var(--text-dim); line-height: 1.5; }
+.destaque-skeleton {
+  background: linear-gradient(90deg, var(--surface-2) 25%, rgba(141,92,204,.08) 50%, var(--surface-2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: 6px; height: 28px; width: 80%;
+}
+@keyframes shimmer { 0% {background-position:200%} 100% {background-position:-200%} }
+
+/* ── Stack tecnologia ── */
+.stack-section {
+  padding: 120px 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.stack-titulo {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(24px, 3.5vw, 42px);
+  font-weight: 700; letter-spacing: -.03em;
+  margin-bottom: 14px;
+}
+.stack-sub {
+  font-size: 15px; color: var(--text-dim);
+  max-width: 520px; line-height: 1.6; margin-bottom: 64px;
+}
+.stack-flow {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  position: relative;
+}
+.stack-step {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px 24px;
+  position: relative;
+  transition: border-color .25s, transform .25s;
+  z-index: 1;
+}
+.stack-step:not(:last-child) { margin-right: -1px; border-radius: 16px 0 0 16px; }
+.stack-step:not(:first-child):not(:last-child) { border-radius: 0; }
+.stack-step:last-child { border-radius: 0 16px 16px 0; }
+.stack-step:first-child { border-radius: 16px 0 0 16px; }
+.stack-step:hover { border-color: rgba(141,92,204,.5); transform: translateY(-4px); z-index: 2; border-radius: 16px; }
+.stack-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; color: var(--accent);
+  margin-bottom: 16px; display: block; letter-spacing: .1em;
+}
+.stack-icon { font-size: 28px; margin-bottom: 12px; display: block; }
+.stack-name {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 16px; font-weight: 600;
+  margin-bottom: 8px; color: var(--text);
+}
+.stack-desc { font-size: 12.5px; color: var(--text-dim); line-height: 1.5; }
+.stack-arrow {
+  position: absolute; right: -14px; top: 50%;
+  transform: translateY(-50%);
+  width: 28px; height: 28px;
+  background: var(--accent);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 3; font-size: 12px;
+  box-shadow: 0 0 16px rgba(141,92,204,.4);
+}
+.stack-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 12px; }
+.stack-tag {
+  font-size: 9.5px; padding: 2px 7px; border-radius: 20px;
+  background: rgba(141,92,204,.1); color: var(--accent);
+  border: 1px solid rgba(141,92,204,.2);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ── FAQ ── */
+.faq-section {
+  padding: 120px 40px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+.faq-titulo {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(24px, 3.5vw, 42px);
+  font-weight: 700; letter-spacing: -.03em;
+  margin-bottom: 14px; text-align: center;
+}
+.faq-sub {
+  font-size: 15px; color: var(--text-dim);
+  text-align: center; line-height: 1.6; margin-bottom: 56px;
+}
+.faq-item {
+  border-bottom: 1px solid var(--border);
+  overflow: hidden;
+}
+.faq-q {
+  width: 100%;
+  background: none; border: none;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 22px 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px; font-weight: 500;
+  color: var(--text); cursor: pointer; text-align: left; gap: 16px;
+}
+.faq-q:hover { color: var(--accent-2); }
+.faq-icon {
+  width: 24px; height: 24px; flex-shrink: 0;
+  border: 1px solid var(--border); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; color: var(--accent);
+  transition: transform .3s ease, background .2s;
+}
+.faq-item.open .faq-icon { transform: rotate(45deg); background: rgba(141,92,204,.12); }
+.faq-a {
+  max-height: 0; overflow: hidden;
+  transition: max-height .4s cubic-bezier(.22,.9,.35,1), padding .3s ease;
+  font-size: 14px; color: var(--text-dim); line-height: 1.7;
+}
+.faq-item.open .faq-a { max-height: 200px; padding-bottom: 20px; }
+
+@media (max-width: 900px) {
+  .numeros-grid { grid-template-columns: repeat(2, 1fr); }
+  .destaques-grid { grid-template-columns: 1fr; }
+  .stack-flow { flex-direction: column; }
+  .stack-step:hover { border-radius: 16px; }
+  .stack-step { border-radius: 16px !important; margin-right: 0 !important; }
+  .stack-arrow { display: none; }
+}
+</style>
+<style id="footer-css">
+footer {
+  background: #080b0f;
+  border-top: 1px solid rgba(255,255,255,0.07);
+  padding: 80px 60px 0;
+  position: relative;
+  overflow: hidden;
+}
+footer::before {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 320px;
+  background: linear-gradient(to top, rgba(141,92,204,0.04), transparent);
+  pointer-events: none;
+}
+
+.footer-top {
+  display: grid;
+  grid-template-columns: 1.4fr repeat(4, 1fr);
+  gap: 48px;
+  margin-bottom: 64px;
+}
+
+.footer-brand .logo {
+  margin-bottom: 16px;
+  font-size: 18px;
+}
+.footer-brand p {
+  font-size: 13.5px;
+  color: var(--text-dim);
+  line-height: 1.65;
+  max-width: 260px;
+  margin-bottom: 24px;
+}
+.footer-social {
+  display: flex;
+  gap: 10px;
+}
+.footer-social a {
+  width: 36px; height: 36px;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: border-color .2s, color .2s, background .2s;
+}
+.footer-social a:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(141,92,204,.08);
+}
+.footer-social svg { width: 16px; height: 16px; }
+
+.footer-col-title {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text);
+  margin-bottom: 20px;
+}
+.footer-col ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.footer-col ul li a {
+  font-size: 13.5px;
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color .2s;
+}
+.footer-col ul li a:hover { color: var(--accent-2); }
+
+.footer-divider {
+  border: none;
+  border-top: 1px solid rgba(255,255,255,0.07);
+}
+
+.footer-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 0;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.footer-copy {
+  font-size: 12.5px;
+  color: var(--text-dim);
+}
+.footer-copy span { color: var(--accent-2); }
+.footer-links {
+  display: flex;
+  gap: 24px;
+}
+.footer-links a {
+  font-size: 12.5px;
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color .2s;
+}
+.footer-links a:hover { color: var(--text); }
+
+/* Nome grande no fundo */
+.footer-wordmark {
+  text-align: center;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(60px, 12vw, 160px);
+  font-weight: 700;
+  letter-spacing: -.04em;
+  background: linear-gradient(to bottom, rgba(141,92,204,0.15), transparent);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  line-height: 1;
+  padding: 20px 0 0;
+  user-select: none;
+  pointer-events: none;
+}
+
+@media (max-width: 900px) {
+  footer { padding: 60px 24px 0; }
+  .footer-top { grid-template-columns: 1fr 1fr; gap: 32px; }
+  .footer-brand { grid-column: 1 / -1; }
+  .footer-wordmark { font-size: clamp(48px, 16vw, 100px); }
+}
+</style>
 </head>
 <body>
 
 <header id="siteHeader">
+  <div class="scroll-bar-track"><div class="scroll-bar-fill" id="scrollFill"></div></div>
   <div class="logo">
-    <span class="logo-mark">
-      <svg viewBox="0 0 24 24" fill="none"><path d="M4 12h16M4 6h10M4 18h7" stroke="#0A0D12" stroke-width="2.4" stroke-linecap="round"/></svg>
-    </span>
-    Fluxo
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+    </div>
+    DataMind
   </div>
   <nav>
-    <a href="#formatos">Formatos</a>
     <a href="#como-funciona">Como funciona</a>
     <a href="#flowPin">Fluxo</a>
     <a href="#quem-somos">Quem somos</a>
+    <a href="#numeros">Números</a>
+    <a href="#stack">Tecnologia</a>
+    <a href="#faq">FAQ</a>
   </nav>
   <button class="cta-btn" id="openAuthBtn">Começar grátis</button>
-  <div class="scroll-bar-track"><div class="scroll-bar-fill" id="scrollFill"></div></div>
 </header>
 
 <section class="hero">
@@ -1043,6 +1496,244 @@
       <div class="flow-dot"></div>
       <div class="flow-dot"></div>
       <div class="flow-dot"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 1. Números por trás ── -->
+<section id="numeros" style="padding: 120px 0 0;">
+  <div class="numeros-section">
+    <p class="numeros-eyebrow">Dados reais do SIH-SUS</p>
+    <h2 class="numeros-titulo">Os números por trás da plataforma</h2>
+    <p class="numeros-sub">Tudo que você vê nos dashboards vem de fontes oficiais do governo federal, processadas e carregadas em tempo real.</p>
+    <div class="numeros-grid">
+      <div class="numero-card">
+        <span class="numero-icon">🏥</span>
+        <span class="numero-val" data-target="925180" data-suffix="">0</span>
+        <span class="numero-label">Internações carregadas do SIH-SUS 2024 — SP</span>
+      </div>
+      <div class="numero-card">
+        <span class="numero-icon">🗺️</span>
+        <span class="numero-val" data-target="153000" data-suffix="+">0</span>
+        <span class="numero-label">Estabelecimentos de saúde cadastrados no CNES</span>
+      </div>
+      <div class="numero-card">
+        <span class="numero-icon">📍</span>
+        <span class="numero-val" data-target="645" data-suffix="">0</span>
+        <span class="numero-label">Municípios do estado de São Paulo cobertos</span>
+      </div>
+      <div class="numero-card">
+        <span class="numero-icon">💰</span>
+        <span class="numero-val" data-target="1668" data-prefix="R$ " data-suffix=" mi">0</span>
+        <span class="numero-label">Em reembolsos SUS processados no período</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Carrossel de fontes ── -->
+<section class="carousel-section">
+  <p class="carousel-label">Fontes de dados oficiais</p>
+  <div class="carousel-track-wrap">
+    <div class="carousel-track" id="carousel-track">
+      <!-- Bloco A -->
+      <div class="carousel-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M12 8v4l3 3"/></svg>
+        DATASUS
+      </div>
+      <div class="carousel-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 9h6M9 12h6M9 15h4"/></svg>
+        SIH-SUS
+      </div>
+      <div class="carousel-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10A15.3 15.3 0 0 1 8 12a15.3 15.3 0 0 1 4-10z"/></svg>
+        IBGE
+      </div>
+      <div class="carousel-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        CNES / DEMAS
+      </div>
+      <div class="carousel-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        SIGTAP
+      </div>
+      <div class="carousel-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        Oracle XE
+      </div>
+      <div class="carousel-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        Python / pysus
+      </div>
+      <div class="carousel-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.6 19.79 19.79 0 0 1 1.61 5.06 2 2 0 0 1 3.6 3h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10.7a16 16 0 0 0 6.29 6.29l.89-.89a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        OCI Object Storage
+      </div>
+      <div class="carousel-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        FastAPI
+      </div>
+      <!-- Bloco B (duplicado para loop infinito) -->
+      <div class="carousel-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M12 8v4l3 3"/></svg>
+        DATASUS
+      </div>
+      <div class="carousel-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 9h6M9 12h6M9 15h4"/></svg>
+        SIH-SUS
+      </div>
+      <div class="carousel-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10A15.3 15.3 0 0 1 8 12a15.3 15.3 0 0 1 4-10z"/></svg>
+        IBGE
+      </div>
+      <div class="carousel-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        CNES / DEMAS
+      </div>
+      <div class="carousel-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        SIGTAP
+      </div>
+      <div class="carousel-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        Oracle XE
+      </div>
+      <div class="carousel-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        Python / pysus
+      </div>
+      <div class="carousel-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.6 19.79 19.79 0 0 1 1.61 5.06 2 2 0 0 1 3.6 3h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10.7a16 16 0 0 0 6.29 6.29l.89-.89a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        OCI Object Storage
+      </div>
+      <div class="carousel-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        FastAPI
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 3. Destaques ao vivo ── -->
+<section style="background: var(--surface); border-top: 1px solid var(--border);">
+  <div class="destaques-section">
+    <div class="destaques-header">
+      <h2 class="destaques-titulo">Destaques do período</h2>
+      <div class="live-badge"><div class="live-dot"></div> Dados ao vivo — Oracle</div>
+    </div>
+    <div class="destaques-grid">
+      <div class="destaque-card">
+        <span class="destaque-tag">🏆 Hospital líder</span>
+        <div class="destaque-val" id="dest-hospital"><div class="destaque-skeleton"></div></div>
+        <p class="destaque-desc">Estabelecimento com maior volume de internações no período carregado.</p>
+      </div>
+      <div class="destaque-card">
+        <span class="destaque-tag">📍 Município em destaque</span>
+        <div class="destaque-val" id="dest-municipio"><div class="destaque-skeleton"></div></div>
+        <p class="destaque-desc">Cidade com maior custo total de reembolso SUS no período.</p>
+      </div>
+      <div class="destaque-card">
+        <span class="destaque-tag">📅 Mês de pico</span>
+        <div class="destaque-val" id="dest-mes"><div class="destaque-skeleton"></div></div>
+        <p class="destaque-desc">Competência com o maior número de internações registradas.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 4. Tecnologia / Stack ── -->
+<section id="stack">
+  <div class="stack-section">
+    <h2 class="stack-titulo">Arquitetura de dados</h2>
+    <p class="stack-sub">Pipeline completo do dado bruto do governo até o dashboard — tudo rodando localmente com tecnologias de nível enterprise.</p>
+    <div class="stack-flow">
+      <div class="stack-step">
+        <span class="stack-num">01 —</span>
+        <span class="stack-icon">🏛️</span>
+        <div class="stack-name">Fontes oficiais</div>
+        <div class="stack-desc">Dados coletados diretamente das APIs públicas do governo federal e do repositório SIGTAP.</div>
+        <div class="stack-tags"><span class="stack-tag">DATASUS</span><span class="stack-tag">IBGE API</span><span class="stack-tag">CNES</span></div>
+        <div class="stack-arrow">→</div>
+      </div>
+      <div class="stack-step">
+        <span class="stack-num">02 —</span>
+        <span class="stack-icon">☁️</span>
+        <div class="stack-name">Data Lake</div>
+        <div class="stack-desc">Arquivo bruto (.parquet) armazenado no OCI Object Storage via PAR URL — sem necessidade de credenciais de acesso.</div>
+        <div class="stack-tags"><span class="stack-tag">OCI</span><span class="stack-tag">Parquet</span><span class="stack-tag">Object Storage</span></div>
+        <div class="stack-arrow">→</div>
+      </div>
+      <div class="stack-step">
+        <span class="stack-num">03 —</span>
+        <span class="stack-icon">⚙️</span>
+        <div class="stack-name">Pipeline ETL</div>
+        <div class="stack-desc">Scripts Python com pysus, pandas e oracledb transformam e carregam os dados com deduplicação via MERGE SQL.</div>
+        <div class="stack-tags"><span class="stack-tag">Python</span><span class="stack-tag">pysus</span><span class="stack-tag">pandas</span></div>
+        <div class="stack-arrow">→</div>
+      </div>
+      <div class="stack-step">
+        <span class="stack-num">04 —</span>
+        <span class="stack-icon">🗄️</span>
+        <div class="stack-name">Oracle XE</div>
+        <div class="stack-desc">Banco relacional local com esquema estrela: FATO_INTERNACAO + dimensões de hospital, município e procedimento.</div>
+        <div class="stack-tags"><span class="stack-tag">Oracle XE 21c</span><span class="stack-tag">SQL</span><span class="stack-tag">Star Schema</span></div>
+        <div class="stack-arrow">→</div>
+      </div>
+      <div class="stack-step">
+        <span class="stack-num">05 —</span>
+        <span class="stack-icon">📊</span>
+        <div class="stack-name">Dashboards</div>
+        <div class="stack-desc">API FastAPI servindo dados para três perfis de usuário com autenticação JWT e visualizações em tempo real.</div>
+        <div class="stack-tags"><span class="stack-tag">FastAPI</span><span class="stack-tag">Chart.js</span><span class="stack-tag">JWT</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 5. FAQ ── -->
+<section id="faq" style="background: var(--surface); border-top: 1px solid var(--border);">
+  <div class="faq-section">
+    <h2 class="faq-titulo">Perguntas frequentes</h2>
+    <p class="faq-sub">Tudo que você precisa saber antes de entrar na plataforma.</p>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        Os dados são reais?
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-a">Sim. Todos os dados vêm de fontes oficiais do governo federal: o SIH-SUS (Sistema de Informações Hospitalares do SUS) via DATASUS, o CNES (Cadastro Nacional de Estabelecimentos de Saúde), o SIGTAP (Tabela de Procedimentos) e o IBGE. Nenhum dado é simulado ou inventado.</div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        Preciso instalar algo para usar?
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-a">A plataforma roda localmente no seu computador. Você precisa ter Python 3.12+, Oracle XE 21c e as dependências instaladas via pip. O setup completo está documentado no README do repositório. Após a instalação, basta rodar um comando para subir o servidor.</div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        Como faço login e quais são os perfis?
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-a">Existem três perfis: Executivo (visão financeira e comparativos), Analítico (gráficos detalhados e análise por dimensão) e Leigo (IA conversacional que responde perguntas sobre os dados em linguagem natural). Cada perfil acessa dashboards e funcionalidades diferentes.</div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        De onde vêm os 925 mil registros de internação?
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-a">Do SIH-SUS via biblioteca pysus — carregamos 4 competências de 2024 (fevereiro, junho, agosto e dezembro) para o estado de São Paulo. Cada competência tem entre 220 mil e 244 mil internações. O pipeline suporta expansão para outros estados e períodos.</div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        A IA usa internet ou dados externos?
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-a">Não. A IA do perfil leigo usa um modelo GGUF rodando 100% localmente — sem chamadas a APIs externas, sem OpenAI, sem internet. O modelo lê os dados do Oracle, gera SQL para responder suas perguntas e interpreta os resultados em linguagem natural, tudo na sua máquina.</div>
     </div>
   </div>
 </section>
@@ -1333,6 +2024,97 @@
 
   </div>
 </section>
+
+<footer>
+  <div class="footer-top">
+
+    <!-- Marca -->
+    <div class="footer-brand">
+      <div class="logo">
+        <div class="logo-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        </div>
+        DataMind
+      </div>
+      <p>Plataforma de análise de internações hospitalares do SUS — dados reais do governo federal, visualizados em tempo real.</p>
+      <div class="footer-social">
+        <a href="#" title="GitHub">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2z"/></svg>
+        </a>
+        <a href="#" title="LinkedIn">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+        </a>
+        <a href="#" title="Instagram">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- Produto -->
+    <div class="footer-col">
+      <div class="footer-col-title">Produto</div>
+      <ul>
+        <li><a href="#como-funciona">Como funciona</a></li>
+        <li><a href="#flowPin">Fluxo de dados</a></li>
+        <li><a href="#stack">Tecnologia</a></li>
+        <li><a href="#numeros">Números</a></li>
+        <li><a href="#" onclick="document.getElementById('openAuthBtn').click();return false;">Começar grátis</a></li>
+      </ul>
+    </div>
+
+    <!-- Plataforma -->
+    <div class="footer-col">
+      <div class="footer-col-title">Plataforma</div>
+      <ul>
+        <li><a href="http://localhost:8001/dashboard">Dashboard Executivo</a></li>
+        <li><a href="http://localhost:8001/analitico">Dashboard Analítico</a></li>
+        <li><a href="http://localhost:8000">IA Conversacional</a></li>
+        <li><a href="http://localhost:8001/comparativos">Comparativos</a></li>
+        <li><a href="http://localhost:8001/relatorios">Relatórios</a></li>
+      </ul>
+    </div>
+
+    <!-- Dados -->
+    <div class="footer-col">
+      <div class="footer-col-title">Fontes de dados</div>
+      <ul>
+        <li><a href="https://datasus.saude.gov.br" target="_blank">DATASUS</a></li>
+        <li><a href="https://cnes.datasus.gov.br" target="_blank">CNES / DEMAS</a></li>
+        <li><a href="https://servicodados.ibge.gov.br" target="_blank">IBGE API</a></li>
+        <li><a href="https://github.com/RenatoKR/SIGTAP" target="_blank">SIGTAP</a></li>
+        <li><a href="https://github.com/AlertaDengue/PySUS" target="_blank">pysus</a></li>
+      </ul>
+    </div>
+
+    <!-- Sobre -->
+    <div class="footer-col">
+      <div class="footer-col-title">Sobre</div>
+      <ul>
+        <li><a href="#quem-somos">Quem somos</a></li>
+        <li><a href="#faq">FAQ</a></li>
+        <li><a href="https://www.fiap.com.br" target="_blank">FIAP</a></li>
+        <li><a href="#" onclick="document.getElementById('openAuthBtn').click();return false;">Login</a></li>
+      </ul>
+    </div>
+
+  </div>
+
+  <hr class="footer-divider">
+
+  <div class="footer-bottom">
+    <p class="footer-copy">
+      © 2024 <span>DataMind</span>. Projeto acadêmico — FIAP · Modern Data Architecture & Engineering.
+      Dados oficiais do Ministério da Saúde.
+    </p>
+    <div class="footer-links">
+      <a href="#faq">FAQ</a>
+      <a href="#quem-somos">Sobre</a>
+      <a href="https://datasus.saude.gov.br" target="_blank">DATASUS</a>
+    </div>
+  </div>
+
+  <div class="footer-wordmark">DataMind</div>
+</footer>
 
 <!-- ---------- LOGIN / CADASTRO ---------- -->
 <div class="auth-overlay" id="authOverlay">
@@ -1769,17 +2551,17 @@ quizApply.addEventListener('click', () => {
     strengthLabel.className = 'strength-label ' + s.cls;
   });
 
-  // Cadastro
-  registerForm.addEventListener('submit', (e) => {
+  // Cadastro — integrado com API real
+  registerForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     registerMsg.textContent = '';
     registerMsg.className = 'auth-msg';
 
-    const name = document.getElementById('regName').value.trim();
-    const profile = document.getElementById('regProfile').value;
-    const email = document.getElementById('regEmail').value.trim().toLowerCase();
+    const name     = document.getElementById('regName').value.trim();
+    const profile  = document.getElementById('regProfile').value;
+    const email    = document.getElementById('regEmail').value.trim().toLowerCase();
     const password = regPassword.value;
-    const confirm = document.getElementById('regConfirm').value;
+    const confirm  = document.getElementById('regConfirm').value;
     const confirmError = document.getElementById('confirmError');
     confirmError.textContent = '';
 
@@ -1797,43 +2579,177 @@ quizApply.addEventListener('click', () => {
       confirmError.textContent = 'As senhas não coincidem.';
       return;
     }
-    if(users.some(u => u.email === email)){
-      registerMsg.textContent = 'Já existe uma conta com esse e-mail.';
+
+    const btn = registerForm.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    const textoOriginal = btn.textContent;
+    btn.textContent = 'Cadastrando...';
+
+    try {
+      const resp = await fetch('http://localhost:8001/auth/register', {
+        method: 'POST',
+        body: new URLSearchParams({ username: email, password, nome: name, perfil: profile }),
+      });
+      const data = await resp.json();
+
+      if (!resp.ok) {
+        registerMsg.textContent = data.detail || 'Erro ao cadastrar.';
+        registerMsg.classList.add('error');
+        return;
+      }
+
+      registerMsg.textContent = 'Conta criada! Você já pode entrar.';
+      registerMsg.classList.add('success');
+      registerForm.reset();
+      strengthLabel.textContent = 'Precisa de 1 letra maiúscula e 1 número';
+      strengthLabel.className = 'strength-label';
+      [seg1, seg2, seg3].forEach(seg => seg.style.background = 'var(--border)');
+      setTimeout(() => setTab('login'), 900);
+
+    } catch (err) {
+      registerMsg.textContent = 'Erro ao conectar à API.';
       registerMsg.classList.add('error');
-      return;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = textoOriginal;
     }
-
-    users.push({name, profile, email, password});
-    registerMsg.textContent = 'Conta criada! Você já pode entrar.';
-    registerMsg.classList.add('success');
-    registerForm.reset();
-    strengthLabel.textContent = 'Precisa de 1 letra maiúscula e 1 número';
-    strengthLabel.className = 'strength-label';
-    [seg1, seg2, seg3].forEach(seg => seg.style.background = 'var(--border)');
-
-    setTimeout(() => setTab('login'), 900);
   });
 
-  // Login
-  loginForm.addEventListener('submit', (e) => {
+  // Login — integrado com API real
+  loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     loginMsg.textContent = '';
     loginMsg.className = 'auth-msg';
 
-    const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+    const email    = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
-    const user = users.find(u => u.email === email && u.password === password);
 
-    if(!user){
-      loginMsg.textContent = 'E-mail ou senha inválidos.';
+    const btn = loginForm.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    const textoOriginal = btn.textContent;
+    btn.textContent = 'Entrando...';
+
+    try {
+      const resp = await fetch('http://localhost:8001/auth/login', {
+        method: 'POST',
+        body: new URLSearchParams({ username: email, password }),
+      });
+      const data = await resp.json();
+
+      if (!resp.ok) {
+        loginMsg.textContent = data.detail || 'E-mail ou senha inválidos.';
+        loginMsg.classList.add('error');
+        return;
+      }
+
+      // Salva sessão
+      sessionStorage.setItem('dm_token',  data.token);
+      sessionStorage.setItem('dm_perfil', data.perfil);
+      sessionStorage.setItem('dm_nome',   data.nome);
+
+      loginMsg.textContent = `Bem-vindo, ${data.nome.split(' ')[0]}!`;
+      loginMsg.classList.add('success');
+
+      // Redireciona pro dashboard certo
+      const destinos = {
+        executivo: 'http://localhost:8001/dashboard',
+        analitico: 'http://localhost:8001/analitico',
+        leigo: `http://localhost:8000?token=${encodeURIComponent(data.token)}`
+      };
+      const dest = destinos[data.perfil] || 'http://localhost:8001/dashboard';
+      setTimeout(() => { window.location.href = dest; }, 800);
+
+    } catch (err) {
+      loginMsg.textContent = 'Erro ao conectar à API. Verifique se o backend está rodando.';
       loginMsg.classList.add('error');
-      return;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = textoOriginal;
     }
-
-    loginMsg.textContent = `Bem-vindo, ${user.name.split(' ')[0]} (${user.profile}).`;
-    loginMsg.classList.add('success');
-    setTimeout(closeAuth, 900);
   });
+
+// ── Contador animado (números por trás) ──
+function animarContador(el) {
+  const target  = parseInt(el.dataset.target || '0');
+  const prefix  = el.dataset.prefix || '';
+  const suffix  = el.dataset.suffix || '';
+  const dur     = 2000;
+  const start   = performance.now();
+
+  function step(now) {
+    const p = Math.min((now - start) / dur, 1);
+    const ease = 1 - Math.pow(1 - p, 3);
+    const val = Math.floor(ease * target);
+    el.textContent = prefix + val.toLocaleString('pt-BR') + suffix;
+    if (p < 1) requestAnimationFrame(step);
+    else el.textContent = prefix + target.toLocaleString('pt-BR') + suffix;
+  }
+  requestAnimationFrame(step);
+}
+
+const obsContadores = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      animarContador(e.target);
+      obsContadores.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.4 });
+
+document.querySelectorAll('.numero-val[data-target]').forEach(el => obsContadores.observe(el));
+
+// ── Destaques ao vivo (puxa da API) ──
+(async function carregarDestaques() {
+  const API = 'http://localhost:8001';
+  try {
+    // Hospital com mais internações
+    const rH = await fetch(`${API}/api/custo-por-hospital?limite=1`);
+    const dH = await rH.json();
+    if (dH.length) {
+      document.getElementById('dest-hospital').textContent =
+        dH[0].hospital + ' — ' + dH[0].internacoes.toLocaleString('pt-BR') + ' internações';
+    }
+  } catch(e) {
+    document.getElementById('dest-hospital').textContent = 'API offline — rode o backend';
+  }
+
+  try {
+    // Município com maior custo
+    const rM = await fetch(`${API}/api/analise/municipios-top?limite=1`);
+    const dM = await rM.json();
+    if (dM.length) {
+      const custo = (dM[0].custo/1e6).toLocaleString('pt-BR',{minimumFractionDigits:1});
+      document.getElementById('dest-municipio').textContent =
+        dM[0].municipio + ' — R$ ' + custo + ' mi';
+    }
+  } catch(e) {
+    document.getElementById('dest-municipio').textContent = 'API offline — rode o backend';
+  }
+
+  try {
+    // Mês de pico (mais internações)
+    const rC = await fetch(`${API}/api/custo-por-mes`);
+    const dC = await rC.json();
+    if (dC.length) {
+      const pico = dC.reduce((a, b) => b.internacoes > a.internacoes ? b : a);
+      const comp = pico.competencia;
+      const mes = comp ? comp.slice(4,6) + '/' + comp.slice(0,4) : '—';
+      document.getElementById('dest-mes').textContent =
+        mes + ' — ' + pico.internacoes.toLocaleString('pt-BR') + ' internações';
+    }
+  } catch(e) {
+    document.getElementById('dest-mes').textContent = 'API offline — rode o backend';
+  }
+})();
+
+// ── FAQ accordion ──
+function toggleFaq(btn) {
+  const item = btn.closest('.faq-item');
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+  if (!isOpen) item.classList.add('open');
+}
+
 </script>
 
 </body>

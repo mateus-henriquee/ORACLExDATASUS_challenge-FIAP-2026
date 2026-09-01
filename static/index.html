@@ -25,17 +25,28 @@
       <div id="tabs" class="tabs-list"></div>
 
       <div class="sidebar-footer">
-        <span class="dot"></span> Modelo local · CPU
+        <div><span class="dot"></span> -Modelo Local - CPU</div>
+        <div class="logout-btn">
+          <a href="/landing" style="display:flex;align-items:center;text-decoration:none;color:inherit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+          Sair</a>
+        </div>
       </div>
     </aside>
 
     <main class="main">
       <header class="chat-header">
         <h1 id="chat-title">Selecione ou crie uma conversa</h1>
-        <label class="upload-btn" for="csv-file">
-          <span>⤒</span> CSV
-          <input type="file" id="csv-file" accept=".csv" hidden>
-        </label>
+        <div class="header-actions">
+          <div class="fonte-switch" id="fonte-switch" title="De onde a IA lê os dados">
+            <button data-fonte="oracle" class="active">Oracle</button>
+            <button data-fonte="csv" disabled>CSV</button>
+          </div>
+          <label class="upload-btn" for="csv-file">
+            <span>⤒</span> CSV
+            <input type="file" id="csv-file" accept=".csv" hidden>
+          </label>
+        </div>
       </header>
 
       <div id="chat-window" class="chat-window">

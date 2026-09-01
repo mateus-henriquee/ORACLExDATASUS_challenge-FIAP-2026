@@ -19,6 +19,7 @@ def init_db():
             CREATE TABLE IF NOT EXISTS chats (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL,
+                usuario TEXT NOT NULL DEFAULT 'anonimo',
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP
             )
         """)
@@ -44,28 +45,38 @@ def init_db():
             )
         """)
         conn.commit()
-        # migracao p/ bancos criados antes das colunas novas existirem
-        for coluna in ("table_path", "chart_data"):
+        # migracoes — adiciona colunas novas sem quebrar bancos antigos
+        for tabela, coluna, definicao in [
+            ("messages", "table_path", "TEXT"),
+            ("messages", "chart_data", "TEXT"),
+            ("chats",    "usuario",    "TEXT NOT NULL DEFAULT 'anonimo'"),
+        ]:
             try:
-                conn.execute(f"ALTER TABLE messages ADD COLUMN {coluna} TEXT")
+                conn.execute(f"ALTER TABLE {tabela} ADD COLUMN {coluna} {definicao}")
                 conn.commit()
             except sqlite3.OperationalError:
-                pass
+                pass  # coluna ja existe
 
 
-def create_chat(name: str) -> int:
+def create_chat(name: str, usuario: str = "anonimo") -> int:
     with get_conn() as conn:
-        count = conn.execute("SELECT COUNT(*) c FROM chats").fetchone()["c"]
+        count = conn.execute(
+            "SELECT COUNT(*) c FROM chats WHERE usuario=?", (usuario,)
+        ).fetchone()["c"]
         if count >= MAX_TABS:
             raise ValueError(f"Limite de {MAX_TABS} abas atingido.")
-        cur = conn.execute("INSERT INTO chats (name) VALUES (?)", (name,))
+        cur = conn.execute(
+            "INSERT INTO chats (name, usuario) VALUES (?, ?)", (name, usuario)
+        )
         conn.commit()
         return cur.lastrowid
 
 
-def list_chats():
+def list_chats(usuario: str = "anonimo"):
     with get_conn() as conn:
-        return [dict(r) for r in conn.execute("SELECT * FROM chats ORDER BY id").fetchall()]
+        return [dict(r) for r in conn.execute(
+            "SELECT * FROM chats WHERE usuario=? ORDER BY id", (usuario,)
+        ).fetchall()]
 
 
 def rename_chat(chat_id: int, name: str):
@@ -83,7 +94,7 @@ def delete_chat(chat_id: int):
 
 
 def add_message(chat_id: int, role: str, content: str, plot_path: str = None,
-                 table_path: str = None, chart_data: str = None):
+                table_path: str = None, chart_data: str = None):
     with get_conn() as conn:
         conn.execute(
             "INSERT INTO messages (chat_id, role, content, plot_path, table_path, chart_data) VALUES (?,?,?,?,?,?)",

@@ -4,6 +4,8 @@
   --bg-card: #30302e;
   --bg-card-hover: #383734;
   --bg-user-bubble: #3a3835;
+  --text-muted: #9a9587;
+  --red: #d9695f;
   --border: #3d3b37;
   --text-primary: #ece8e1;
   --text-muted: #9a9587;
@@ -238,7 +240,8 @@ body::-webkit-scrollbar-thumb {
   font-size: 11.5px;
   color: var(--text-faint);
   display: flex;
-  align-items: center;
+  width: 100%;
+  flex-direction: column;
   gap: 6px;
 }
 
@@ -289,6 +292,46 @@ body::-webkit-scrollbar-thumb {
 }
 
 .upload-btn:hover { border-color: var(--accent); color: var(--text-primary); }
+
+.header-actions { display: flex; align-items: center; gap: 10px; }
+
+.fonte-switch {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  height: 34px;
+}
+
+.fonte-switch button {
+  background: transparent;
+  border: none;
+  border-right: 1px solid var(--border);
+  color: var(--text-muted);
+  font-family: var(--sans);
+  font-size: 12px;
+  padding: 0 14px;
+  height: 100%;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.fonte-switch button:last-child { border-right: none; }
+
+.fonte-switch button:hover:not(:disabled):not(.active) {
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
+.fonte-switch button.active {
+  background: var(--accent-soft);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.fonte-switch button:disabled { opacity: 0.35; cursor: not-allowed; }
 
 .chat-window {
   flex: 1;
@@ -343,6 +386,10 @@ body::-webkit-scrollbar-thumb {
   color: var(--text-primary);
   border-bottom-left-radius: 4px;
 }
+
+.logout-btn { display: flex; align-items: center; gap: 10px; padding: 10px 10px; border-radius: var(--radius-sm); color: var(--text-muted); font-size: 13.5px; cursor: pointer; border-top: 1px solid var(--border); margin-top: 10px; padding-top: 14px; }
+.logout-btn svg { width: 18px; height: 18px; }
+.logout-btn:hover { color: var(--red); }
 
 /* ---------- Grafico + toggle tabela ---------- */
 

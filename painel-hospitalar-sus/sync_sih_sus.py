@@ -1,15 +1,4 @@
-"""
-Extrai o SIH-SUS (grupo RD - AIH reduzida) de SP para as competencias
-de 2024 (ultimo ano fechado disponivel no catalogo), transforma e carrega
-no Oracle.
-
-Correcoes aplicadas apos investigacao real do catalogo do pysus:
-- dataset='sih' (minusculo -- 'SIH' maiusculo nao e reconhecido)
-- filtro por grupo 'RD' feito em Python, nao via parametro da API
-  (o parametro group= da API nao filtra de verdade nesta versao)
-- 2025 nao existe neste catalogo (pula de 2024 pra 2026); 2026 e o ano
-  corrente e vem incompleto -- por isso usamos 2024, o ultimo ano fechado.
-"""
+# sync_sih_sus.py
 import asyncio
 import logging
 import os

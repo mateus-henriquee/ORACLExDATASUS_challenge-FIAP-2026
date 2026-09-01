@@ -1,0 +1,17 @@
+{
+  "mateus@datamind.com": [
+    {
+      "id": "1788277395864",
+      "titulo": "Matues",
+      "descricao": "legal",
+      "campos": {
+        "dim": "municipio",
+        "metricas": [
+          "internacoes",
+          "custo"
+        ]
+      },
+      "criado_em": "01/09/2026 12:43"
+    }
+  ]
+}

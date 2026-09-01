@@ -18,7 +18,7 @@
   --text-faint: #63606f;
   --accent: #8d5ccc;
   --accent-hover: #746fd9;
-  --accent-soft: rgba(141, 92, 204, 0.14);
+  --accent-soft: rgba(141,92,204,0.14);
   --green: #6fbf73;
   --red: #d9695f;
   --radius-lg: 16px;
@@ -28,201 +28,86 @@
   --sans: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
 }
 * { box-sizing: border-box; }
-body {
-  margin: 0;
-  font-family: var(--sans);
-  background: var(--bg-main);
-  color: var(--text-primary);
-  height: 100vh;
-  overflow: hidden;
-}
+body { margin: 0; font-family: var(--sans); background: var(--bg-main); color: var(--text-primary); height: 100vh; overflow: hidden; }
 .app { display: flex; height: 100vh; }
 
-/* ---------- Sidebar ---------- */
-.sidebar {
-  width: 250px;
-  flex-shrink: 0;
-  background: var(--bg-sidebar);
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  padding: 18px 14px;
-}
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 6px 22px 6px;
-}
+/* Sidebar */
+.sidebar { width: 250px; flex-shrink: 0; background: var(--bg-sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 18px 14px; }
+.brand { display: flex; align-items: center; gap: 8px; padding: 4px 6px 22px 6px; }
 .brand-mark { color: var(--accent); font-size: 20px; }
 .brand-name { font-family: var(--serif); font-size: 16px; font-weight: 600; }
 .brand-sub { font-size: 11px; color: var(--text-faint); margin-left: auto; }
 
-.nav-label {
-  margin: 4px 6px 8px 6px;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  color: var(--text-faint);
-  font-weight: 600;
-}
-.nav-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 10px;
-  border-radius: var(--radius-sm);
-  color: var(--text-muted);
-  font-size: 13.5px;
-  cursor: pointer;
-  margin-bottom: 2px;
-}
+.nav-label { margin: 4px 6px 8px 6px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-faint); font-weight: 600; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 10px; border-radius: var(--radius-sm); color: var(--text-muted); font-size: 13.5px; cursor: pointer; margin-bottom: 2px; }
 .nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
 .nav-item:hover { background: var(--bg-card); color: var(--text-primary); }
-.nav-item.active {
-  background: var(--accent-soft);
-  color: var(--text-primary);
-  font-weight: 600;
-  border-left: 2px solid var(--accent);
-  padding-left: 8px;
-}
+.nav-item.active { background: var(--accent-soft); color: var(--text-primary); font-weight: 600; border-left: 2px solid var(--accent); padding-left: 8px; }
 
-.filters {
-  margin-top: 22px;
-  padding-top: 18px;
-  border-top: 1px solid var(--border);
-}
+.filters { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--border); }
 .filter-group { margin-bottom: 14px; }
-.filter-group label {
-  display: block;
-  font-size: 11px;
-  color: var(--text-faint);
-  margin-bottom: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-.filter-group select,
-.filter-group input {
-  width: 100%;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text-primary);
-  font-family: var(--sans);
-  font-size: 13px;
-  padding: 8px 10px;
-  outline: none;
-}
-.filter-group select:focus,
-.filter-group input:focus { border-color: var(--accent); }
+.filter-group label { display: block; font-size: 11px; color: var(--text-faint); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+.filter-group select, .filter-group input { width: 100%; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-family: var(--sans); font-size: 13px; padding: 8px 10px; outline: none; }
+.filter-group select:focus, .filter-group input:focus { border-color: var(--accent); }
 .search-wrap { position: relative; }
-.search-wrap svg {
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 14px;
-  height: 14px;
-  color: var(--text-faint);
-}
+.search-wrap svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: var(--text-faint); }
 .search-wrap input { padding-left: 30px; }
 
 .sidebar-spacer { flex: 1; }
-
-.logout-btn {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 10px;
-  border-radius: var(--radius-sm);
-  color: var(--text-muted);
-  font-size: 13.5px;
-  cursor: pointer;
-  border-top: 1px solid var(--border);
-  margin-top: 10px;
-  padding-top: 14px;
-}
+.logout-btn { display: flex; align-items: center; gap: 10px; padding: 10px 10px; border-radius: var(--radius-sm); color: var(--text-muted); font-size: 13.5px; cursor: pointer; border-top: 1px solid var(--border); margin-top: 10px; padding-top: 14px; }
 .logout-btn svg { width: 18px; height: 18px; }
 .logout-btn:hover { color: var(--red); }
 
-/* ---------- Main ---------- */
+/* Main */
 .main { flex: 1; overflow-y: auto; padding: 28px 32px; }
+.main::-webkit-scrollbar { width: 8px; }
+.main::-webkit-scrollbar-track { background: var(--bg-main); }
+.main::-webkit-scrollbar-thumb { background: #761dbb; border-radius: 8px; }
+
 .main-header { margin-bottom: 24px; }
-.main-header h1 {
-  font-family: var(--serif);
-  font-size: 22px;
-  font-weight: 600;
-  margin: 0 0 4px 0;
-}
+.main-header h1 { font-family: var(--serif); font-size: 22px; font-weight: 600; margin: 0 0 4px 0; }
 .main-header p { margin: 0; color: var(--text-muted); font-size: 13.5px; }
 
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
-  margin-bottom: 20px;
-}
-.kpi-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 16px 18px;
-}
+/* KPIs */
+.kpi-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 20px; }
+.kpi-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 18px; }
 .kpi-label { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
 .kpi-value { font-family: var(--serif); font-size: 24px; font-weight: 600; margin-bottom: 6px; }
-.kpi-trend { font-size: 12px; display: flex; align-items: center; gap: 4px; }
-.kpi-trend.up { color: var(--green); }
-.kpi-trend.down { color: var(--red); }
+.kpi-trend { font-size: 12px; color: var(--text-muted); }
 
-.charts-grid {
-  display: grid;
-  grid-template-columns: 1.3fr 1fr;
-  gap: 14px;
-  margin-bottom: 20px;
-}
-.chart-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 18px 20px;
-}
+/* Charts */
+.charts-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 14px; margin-bottom: 20px; }
+.chart-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px 20px; }
 .chart-card h3 { font-family: var(--serif); font-size: 15px; font-weight: 600; margin: 0 0 2px 0; }
 .chart-card .sub { font-size: 12px; color: var(--text-muted); margin: 0 0 12px 0; }
 .chart-box { position: relative; height: 240px; }
 
-.table-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 18px 20px;
-}
+/* Tabela */
+.table-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px 20px; }
 .table-card h3 { font-family: var(--serif); font-size: 15px; font-weight: 600; margin: 0 0 14px 0; }
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
-th {
-  text-align: left;
-  color: var(--text-faint);
-  font-weight: 600;
-  font-size: 11.5px;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  padding: 8px 10px;
-  border-bottom: 1px solid var(--border);
-}
+th { text-align: left; color: var(--text-faint); font-weight: 600; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.4px; padding: 8px 10px; border-bottom: 1px solid var(--border); }
 td { padding: 10px 10px; border-bottom: 1px solid #2b2a27; color: var(--text-primary); }
 tr:last-child td { border-bottom: none; }
-.bar-cell { display: flex; align-items: center; gap: 8px; }
 .bar-track { flex: 1; height: 6px; background: #232220; border-radius: 4px; overflow: hidden; }
 .bar-fill { height: 100%; background: var(--accent); border-radius: 4px; }
 
-.badge-note {
-  display: inline-block;
-  margin-top: 18px;
-  font-size: 11.5px;
-  color: var(--text-faint);
-  padding: 6px 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-}
+/* Badge */
+.badge-note { display: inline-block; margin-top: 18px; font-size: 11.5px; color: var(--text-faint); padding: 6px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+
+/* Chatbot */
+.chatbot-toggle { position: fixed; bottom: 24px; right: 24px; width: 54px; height: 54px; border-radius: 50%; background: var(--accent); color: #fff; border: none; font-size: 22px; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.35); z-index: 50; display: flex; align-items: center; justify-content: center; }
+.chatbot-toggle:hover { background: var(--accent-hover); }
+.chatbot-panel { position: fixed; bottom: 92px; right: 24px; width: 320px; max-height: 440px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: 0 8px 32px rgba(0,0,0,0.45); display: none; flex-direction: column; z-index: 50; overflow: hidden; }
+.chatbot-panel.open { display: flex; }
+.chatbot-header { padding: 12px 14px; border-bottom: 1px solid var(--border); font-family: var(--serif); font-size: 13.5px; font-weight: 600; }
+.chatbot-header .sub { font-size: 11px; color: var(--text-faint); font-family: var(--sans); font-weight: 400; }
+.chatbot-body { flex: 1; overflow-y: auto; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+.chatbot-msg { background: var(--bg-main); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; font-size: 12.5px; line-height: 1.45; }
+.chatbot-questions { padding: 10px 12px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 6px; }
+.chatbot-q-btn { text-align: left; background: var(--bg-main); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 12px; padding: 7px 10px; cursor: pointer; }
+.chatbot-q-btn:hover { border-color: var(--accent); }
+.chatbot-q-btn:disabled { opacity: 0.5; cursor: default; }
 </style>
 </head>
 <body>
@@ -240,22 +125,20 @@ tr:last-child td { border-bottom: none; }
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="5" rx="1.5"/><rect x="13" y="10" width="8" height="11" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/></svg>
       Dashboard analítico
     </div>
-    <div class="nav-item">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M12 20V4M20 20v-7"/></svg>
-      Comparativos
-    </div>
-    <div class="nav-item">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"/><path d="M9 13h6M9 17h6"/></svg>
-      Relatórios
-    </div>
+    <a class="nav-item" href="/comparativos">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M12 20V4M20 20v-7"/></svg>
+  Comparativos
+</a>
+<a class="nav-item" href="/relatorios">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"/></svg>
+  Relatórios
+</a>
 
     <div class="filters">
       <div class="nav-label" style="margin-top:0">Filtros</div>
       <div class="filter-group">
         <label for="f-mes">Mês</label>
-        <select id="f-mes">
-          <option>Todos</option>
-        </select>
+        <select id="f-mes"><option value="">Todos</option></select>
       </div>
       <div class="filter-group">
         <label for="f-hospital">Hospital</label>
@@ -268,9 +151,9 @@ tr:last-child td { border-bottom: none; }
 
     <div class="sidebar-spacer"></div>
 
-    <div class="logout-btn">
+    <div class="logout-btn" id="logout-btn">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
-      Sair
+      <span id="nome-usuario">Sair</span>
     </div>
   </aside>
 
@@ -284,22 +167,22 @@ tr:last-child td { border-bottom: none; }
       <div class="kpi-card">
         <div class="kpi-label">Custo total estimado (AIH)</div>
         <div class="kpi-value" id="kpi-custo-total">—</div>
-        <div class="kpi-trend up">período selecionado</div>
+        <div class="kpi-trend">período selecionado</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">Internações no período</div>
         <div class="kpi-value" id="kpi-internacoes">—</div>
-        <div class="kpi-trend up">período selecionado</div>
+        <div class="kpi-trend">período selecionado</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">Custo médio por internação</div>
         <div class="kpi-value" id="kpi-custo-medio">—</div>
-        <div class="kpi-trend down">período selecionado</div>
+        <div class="kpi-trend">período selecionado</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">Permanência média</div>
         <div class="kpi-value" id="kpi-permanencia">—</div>
-        <div class="kpi-trend down">período selecionado</div>
+        <div class="kpi-trend">período selecionado</div>
       </div>
     </div>
 
@@ -331,175 +214,359 @@ tr:last-child td { border-bottom: none; }
 
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
-<script>
-const API_BASE = "http://localhost:8001";
-const CARD_BG = "#30302e";
-const ACCENT = "#8d5ccc";
-const MUTED = "#9a9587";
-const GRID = "#3a3935";
+<button class="chatbot-toggle" id="chatbot-toggle">💬</button>
+<div class="chatbot-panel" id="chatbot-panel">
+  <div class="chatbot-header">
+    Dúvidas sobre este painel
+    <div class="sub">Respostas calculadas em tempo real</div>
+  </div>
+  <div class="chatbot-body" id="chatbot-body"></div>
+  <div class="chatbot-questions" id="chatbot-questions"></div>
+</div>
 
-function formatarReais(valor) {
-  return "R$ " + (valor / 1e6).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " mi";
+<script>
+// Carrega Chart.js dinamicamente com fallback, sem depender de onload no tag
+function carregarChartJS(callback) {
+  const cdns = [
+    "https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js",
+    "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js",
+    "https://unpkg.com/chart.js@4.4.4/dist/chart.umd.min.js",
+  ];
+  let idx = 0;
+  function tentarProximo() {
+    if (idx >= cdns.length) {
+      document.getElementById("status-badge").textContent = "Erro: Chart.js não carregou (sem internet?)";
+      // mesmo sem graficos, carrega KPIs e tabela
+      callback(false);
+      return;
+    }
+    const s = document.createElement("script");
+    s.src = cdns[idx++];
+    s.onload = () => callback(true);
+    s.onerror = tentarProximo;
+    document.head.appendChild(s);
+  }
+  tentarProximo();
 }
 
-async function carregarKPIs() {
+carregarChartJS(function(chartOk) {
+  iniciarDashboard(chartOk);
+});
+</script>
+<script>
+const API  = "http://localhost:8001";
+const ACC  = "#8d5ccc";
+const MUT  = "#9a9587";
+const GRD  = "#3a3935";
+
+// ── Auth ──
+const token = sessionStorage.getItem("dm_token");
+const perfil = sessionStorage.getItem("dm_perfil");
+if (!token || perfil !== "executivo") window.location.href = "/landing";
+
+const nome = sessionStorage.getItem("dm_nome");
+if (nome) document.getElementById("nome-usuario").textContent = nome + " — Sair";
+
+document.getElementById("logout-btn").addEventListener("click", async () => {
   try {
-    const resp = await fetch(`${API_BASE}/api/kpis`);
-    const d = await resp.json();
-    document.getElementById("kpi-custo-total").textContent = formatarReais(d.custo_total);
-    document.getElementById("kpi-internacoes").textContent = d.total_internacoes.toLocaleString("pt-BR");
-    document.getElementById("kpi-custo-medio").textContent = "R$ " + Math.round(d.custo_medio).toLocaleString("pt-BR");
-    document.getElementById("kpi-permanencia").textContent = d.permanencia_media.toFixed(1).replace(".", ",") + " dias";
-  } catch (e) {
-    console.error("Falha ao carregar KPIs:", e);
-    document.querySelectorAll(".kpi-value").forEach(el => el.textContent = "—");
-  }
+    await fetch(`${API}/auth/logout`, { method:"POST", headers:{"Authorization":`Bearer ${token}`} });
+  } catch(e) {}
+  sessionStorage.clear();
+  window.location.href = "/landing";
+});
+
+function authFetch(url, opts = {}) {
+  opts.headers = { ...(opts.headers||{}), "Authorization": `Bearer ${token}` };
+  return fetch(url, opts);
+}
+
+const charts = {};
+function upsertChart(id, config) {
+  if (charts[id]) charts[id].destroy();
+  const ctx = document.getElementById(id);
+  if (ctx) charts[id] = new Chart(ctx, config);
+}
+
+function fmtMi(v) {
+  return "R$ " + (v/1e6).toLocaleString("pt-BR",{minimumFractionDigits:1,maximumFractionDigits:1}) + " mi";
+}
+
+async function carregarKPIs(comp) {
+  const url = comp ? `${API}/api/kpis?competencia=${comp}` : `${API}/api/kpis`;
+  const d = await fetch(url).then(r=>r.json());
+  document.getElementById("kpi-custo-total").textContent = fmtMi(d.custo_total);
+  document.getElementById("kpi-internacoes").textContent = d.total_internacoes.toLocaleString("pt-BR");
+  document.getElementById("kpi-custo-medio").textContent = "R$ " + Math.round(d.custo_medio).toLocaleString("pt-BR");
+  document.getElementById("kpi-permanencia").textContent = d.permanencia_media.toFixed(1).replace(".",",") + " dias";
 }
 
 async function carregarGraficoLinha() {
-  const box = document.getElementById("chartLinha");
-  try {
-    const resp = await fetch(`${API_BASE}/api/custo-por-mes`);
-    const dados = await resp.json();
-
-    if (!dados.length) {
-      box.parentElement.innerHTML = '<p style="color:var(--text-faint);font-size:13px;">Sem dados no período — rode o sync_sih_sus.py primeiro.</p>';
-      return;
+  const dados = await fetch(`${API}/api/custo-por-mes`).then(r=>r.json());
+  if (!dados.length) return;
+  upsertChart("chartLinha", {
+    type: "line",
+    data: {
+      labels: dados.map(d=>d.competencia),
+      datasets: [{ data: dados.map(d=>d.custo/1e6), borderColor:ACC, backgroundColor:"rgba(141,92,204,0.14)", fill:true, tension:.35, pointRadius:3, pointBackgroundColor:ACC }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{backgroundColor:"#111110",padding:10,cornerRadius:8} },
+      scales:{ x:{ticks:{color:MUT},grid:{display:false}}, y:{ticks:{color:MUT,callback:v=>"R$ "+v+"mi"},grid:{color:GRD}} }
     }
-
-    new Chart(box, {
-      type: "line",
-      data: {
-        labels: dados.map(d => d.competencia),
-        datasets: [{
-          data: dados.map(d => d.custo / 1e6),
-          borderColor: ACCENT,
-          backgroundColor: "rgba(141,92,204,0.14)",
-          fill: true, tension: 0.35, pointRadius: 3, pointBackgroundColor: ACCENT,
-        }],
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false }, tooltip: { backgroundColor: "#111110", padding: 10, cornerRadius: 8 } },
-        scales: {
-          x: { ticks: { color: MUTED }, grid: { display: false } },
-          y: { ticks: { color: MUTED, callback: v => "R$ " + v + "mi" }, grid: { color: GRID } },
-        },
-      },
-    });
-  } catch (e) {
-    console.error("Falha ao carregar grafico de linha:", e);
-  }
+  });
 }
 
 async function carregarGraficoBarra() {
-  const box = document.getElementById("chartBarra");
-  try {
-    const resp = await fetch(`${API_BASE}/api/custo-por-hospital?limite=5`);
-    const dados = await resp.json();
-
-    if (!dados.length) {
-      box.parentElement.innerHTML = '<p style="color:var(--text-faint);font-size:13px;">Sem dados no período — rode o sync_sih_sus.py primeiro.</p>';
-      return;
+  const dados = await fetch(`${API}/api/custo-por-hospital?limite=5`).then(r=>r.json());
+  if (!dados.length) return;
+  upsertChart("chartBarra", {
+    type: "bar",
+    data: {
+      labels: dados.map(d=>d.hospital),
+      datasets: [{ data:dados.map(d=>d.custo/1e6), backgroundColor:ACC, borderRadius:4, maxBarThickness:22 }]
+    },
+    options: {
+      indexAxis:"y", responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{backgroundColor:"#111110",padding:10,cornerRadius:8} },
+      scales:{ x:{ticks:{color:MUT},grid:{color:GRD}}, y:{ticks:{color:MUT,font:{size:11}},grid:{display:false}} }
     }
-
-    new Chart(box, {
-      type: "bar",
-      data: {
-        labels: dados.map(d => d.hospital),
-        datasets: [{ data: dados.map(d => d.custo / 1e6), backgroundColor: ACCENT, borderRadius: 4, maxBarThickness: 22 }],
-      },
-      options: {
-        indexAxis: "y",
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false }, tooltip: { backgroundColor: "#111110", padding: 10, cornerRadius: 8 } },
-        scales: {
-          x: { ticks: { color: MUTED }, grid: { color: GRID } },
-          y: { ticks: { color: MUTED, font: { size: 11 } }, grid: { display: false } },
-        },
-      },
-    });
-  } catch (e) {
-    console.error("Falha ao carregar grafico de barra:", e);
-  }
+  });
 }
 
 async function carregarTabela() {
   const tbody = document.getElementById("tabela-hospitais");
-  try {
-    const resp = await fetch(`${API_BASE}/api/custo-por-hospital?limite=10`);
-    const dados = await resp.json();
-
-    if (!dados.length) {
-      tbody.innerHTML = '<tr><td colspan="5" style="color:var(--text-faint);">Sem dados no período — rode o sync_sih_sus.py primeiro.</td></tr>';
-      return;
-    }
-
-    tbody.innerHTML = "";
-    dados.forEach(h => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${h.hospital}</td>
-        <td>${h.municipio}</td>
-        <td>${h.internacoes.toLocaleString("pt-BR")}</td>
-        <td>${formatarReais(h.custo)}</td>
-        <td style="width:120px"><div class="bar-track"><div class="bar-fill" style="width:${h.pct}%"></div></div></td>
-      `;
-      tbody.appendChild(tr);
-    });
-  } catch (e) {
-    console.error("Falha ao carregar tabela:", e);
-    tbody.innerHTML = '<tr><td colspan="5" style="color:var(--red);">Não foi possível conectar à API (localhost:8001). Confira se o backend está rodando.</td></tr>';
-  }
+  const dados = await fetch(`${API}/api/custo-por-hospital?limite=10`).then(r=>r.json());
+  tbody.innerHTML = "";
+  if (!dados.length) { tbody.innerHTML='<tr><td colspan="5" style="color:var(--text-faint)">Sem dados.</td></tr>'; return; }
+  dados.forEach(h => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${h.hospital}</td><td>${h.municipio}</td><td>${h.internacoes.toLocaleString("pt-BR")}</td><td>${fmtMi(h.custo)}</td><td style="width:120px"><div class="bar-track"><div class="bar-fill" style="width:${h.pct}%"></div></div></td>`;
+    tbody.appendChild(tr);
+  });
 }
 
 async function carregarCompetencias() {
-  try {
-    const resp = await fetch(`${API_BASE}/api/competencias`);
-    const comps = await resp.json();
-    const select = document.getElementById("f-mes");
-    select.innerHTML = '<option value="">Todos</option>';
-    comps.forEach(c => {
-      const opt = document.createElement("option");
-      opt.value = c;
-      opt.textContent = c;
-      select.appendChild(opt);
-    });
-  } catch (e) {
-    console.error("Falha ao carregar competencias:", e);
-  }
+  const comps = await fetch(`${API}/api/competencias`).then(r=>r.json());
+  const sel = document.getElementById("f-mes");
+  sel.innerHTML = '<option value="">Todos</option>';
+  comps.forEach(c => { const o=document.createElement("option"); o.value=o.textContent=c; sel.appendChild(o); });
 }
 
-document.getElementById("f-mes").addEventListener("change", (e) => {
-  fetch(`${API_BASE}/api/kpis?competencia=${e.target.value}`)
-    .then(r => r.json())
-    .then(d => {
-      document.getElementById("kpi-custo-total").textContent = formatarReais(d.custo_total);
-      document.getElementById("kpi-internacoes").textContent = d.total_internacoes.toLocaleString("pt-BR");
-    });
-});
+document.getElementById("f-mes").addEventListener("change", e => carregarKPIs(e.target.value));
 
-let debounceBusca;
-document.getElementById("f-hospital").addEventListener("input", (e) => {
-  clearTimeout(debounceBusca);
-  debounceBusca = setTimeout(async () => {
+let debounce;
+document.getElementById("f-hospital").addEventListener("input", e => {
+  clearTimeout(debounce);
+  debounce = setTimeout(async () => {
     if (e.target.value.length < 2) return;
-    const resp = await fetch(`${API_BASE}/api/hospitais/buscar?q=${encodeURIComponent(e.target.value)}`);
-    const resultados = await resp.json();
-    console.log("Hospitais encontrados:", resultados);
+    fetch(`${API}/api/hospitais/buscar?q=${encodeURIComponent(e.target.value)}`);
   }, 300);
 });
 
-carregarKPIs();
-carregarGraficoLinha();
-carregarGraficoBarra();
-carregarTabela();
-carregarCompetencias();
+async function iniciar() {
+  try {
+    await Promise.all([carregarKPIs(), carregarGraficoLinha(), carregarGraficoBarra(), carregarTabela(), carregarCompetencias()]);
+    document.getElementById("status-badge").textContent = "Conectado à API — dados do Oracle";
+  } catch(e) {
+    document.getElementById("status-badge").textContent = "API offline — rode o backend (localhost:8001)";
+  }
+}
 
-fetch(`${API_BASE}/api/kpis`)
-  .then(() => document.getElementById("status-badge").textContent = "Conectado à API — dados do Oracle")
-  .catch(() => document.getElementById("status-badge").textContent = "API offline — rode o backend (localhost:8001)");
+// Chatbot
+document.getElementById("chatbot-toggle").addEventListener("click", () =>
+  document.getElementById("chatbot-panel").classList.toggle("open"));
+
+function chatbotMsg(texto) {
+  const b = document.getElementById("chatbot-body");
+  const div = document.createElement("div");
+  div.className = "chatbot-msg";
+  div.textContent = texto;
+  b.appendChild(div);
+  b.scrollTop = b.scrollHeight;
+}
+
+async function carregarChatbot() {
+  try {
+    const perguntas = await fetch(`${API}/api/chatbot/perguntas`).then(r=>r.json());
+    const q = document.getElementById("chatbot-questions");
+    q.innerHTML = "";
+    perguntas.forEach(p => {
+      const btn = document.createElement("button");
+      btn.className = "chatbot-q-btn";
+      btn.textContent = p.label;
+      btn.onclick = async () => {
+        chatbotMsg(p.label);
+        btn.disabled = true;
+        try {
+          const data = await fetch(`${API}/api/chatbot/responder?pergunta_id=${encodeURIComponent(p.id)}`).then(r=>r.json());
+          chatbotMsg(data.resposta || "Não consegui calcular agora.");
+        } catch { chatbotMsg("Erro ao consultar o banco."); }
+        finally { btn.disabled = false; }
+      };
+      q.appendChild(btn);
+    });
+    chatbotMsg("Escolha uma das perguntas abaixo.");
+  } catch { chatbotMsg("Chatbot indisponível (API offline)."); }
+}
+
+function iniciarDashboard(chartOk) {
+  if (chartOk) {
+    iniciar();
+  } else {
+    Promise.all([carregarKPIs(), carregarTabela(), carregarCompetencias()])
+      .then(() => {
+        document.getElementById("status-badge").textContent = "Conectado — gráficos indisponíveis (sem internet)";
+      }).catch(() => {
+        document.getElementById("status-badge").textContent = "API offline — rode o backend (localhost:8001)";
+      });
+  }
+  carregarChatbot();
+}
+</script>
+function upsertChart(id, config) {
+  if (charts[id]) charts[id].destroy();
+  const ctx = document.getElementById(id);
+  if (ctx) charts[id] = new Chart(ctx, config);
+}
+
+function fmtMi(v) {
+  return "R$ " + (v/1e6).toLocaleString("pt-BR",{minimumFractionDigits:1,maximumFractionDigits:1}) + " mi";
+}
+
+async function carregarKPIs(comp) {
+  const url = comp ? `${API}/api/kpis?competencia=${comp}` : `${API}/api/kpis`;
+  const d = await fetch(url).then(r=>r.json());
+  document.getElementById("kpi-custo-total").textContent = fmtMi(d.custo_total);
+  document.getElementById("kpi-internacoes").textContent = d.total_internacoes.toLocaleString("pt-BR");
+  document.getElementById("kpi-custo-medio").textContent = "R$ " + Math.round(d.custo_medio).toLocaleString("pt-BR");
+  document.getElementById("kpi-permanencia").textContent = d.permanencia_media.toFixed(1).replace(".",",") + " dias";
+}
+
+async function carregarGraficoLinha() {
+  const dados = await fetch(`${API}/api/custo-por-mes`).then(r=>r.json());
+  if (!dados.length) return;
+  upsertChart("chartLinha", {
+    type: "line",
+    data: {
+      labels: dados.map(d=>d.competencia),
+      datasets: [{ data: dados.map(d=>d.custo/1e6), borderColor:ACC, backgroundColor:"rgba(141,92,204,0.14)", fill:true, tension:.35, pointRadius:3, pointBackgroundColor:ACC }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{backgroundColor:"#111110",padding:10,cornerRadius:8} },
+      scales:{ x:{ticks:{color:MUT},grid:{display:false}}, y:{ticks:{color:MUT,callback:v=>"R$ "+v+"mi"},grid:{color:GRD}} }
+    }
+  });
+}
+
+async function carregarGraficoBarra() {
+  const dados = await fetch(`${API}/api/custo-por-hospital?limite=5`).then(r=>r.json());
+  if (!dados.length) return;
+  upsertChart("chartBarra", {
+    type: "bar",
+    data: {
+      labels: dados.map(d=>d.hospital),
+      datasets: [{ data:dados.map(d=>d.custo/1e6), backgroundColor:ACC, borderRadius:4, maxBarThickness:22 }]
+    },
+    options: {
+      indexAxis:"y", responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{backgroundColor:"#111110",padding:10,cornerRadius:8} },
+      scales:{ x:{ticks:{color:MUT},grid:{color:GRD}}, y:{ticks:{color:MUT,font:{size:11}},grid:{display:false}} }
+    }
+  });
+}
+
+async function carregarTabela() {
+  const tbody = document.getElementById("tabela-hospitais");
+  const dados = await fetch(`${API}/api/custo-por-hospital?limite=10`).then(r=>r.json());
+  tbody.innerHTML = "";
+  if (!dados.length) { tbody.innerHTML='<tr><td colspan="5" style="color:var(--text-faint)">Sem dados.</td></tr>'; return; }
+  dados.forEach(h => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${h.hospital}</td><td>${h.municipio}</td><td>${h.internacoes.toLocaleString("pt-BR")}</td><td>${fmtMi(h.custo)}</td><td style="width:120px"><div class="bar-track"><div class="bar-fill" style="width:${h.pct}%"></div></div></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+async function carregarCompetencias() {
+  const comps = await fetch(`${API}/api/competencias`).then(r=>r.json());
+  const sel = document.getElementById("f-mes");
+  sel.innerHTML = '<option value="">Todos</option>';
+  comps.forEach(c => { const o=document.createElement("option"); o.value=o.textContent=c; sel.appendChild(o); });
+}
+
+document.getElementById("f-mes").addEventListener("change", e => carregarKPIs(e.target.value));
+
+let debounce;
+document.getElementById("f-hospital").addEventListener("input", e => {
+  clearTimeout(debounce);
+  debounce = setTimeout(async () => {
+    if (e.target.value.length < 2) return;
+    fetch(`${API}/api/hospitais/buscar?q=${encodeURIComponent(e.target.value)}`);
+  }, 300);
+});
+
+async function iniciar() {
+  try {
+    await Promise.all([carregarKPIs(), carregarGraficoLinha(), carregarGraficoBarra(), carregarTabela(), carregarCompetencias()]);
+    document.getElementById("status-badge").textContent = "Conectado à API — dados do Oracle";
+  } catch(e) {
+    document.getElementById("status-badge").textContent = "API offline — rode o backend (localhost:8001)";
+  }
+}
+
+// Chatbot
+document.getElementById("chatbot-toggle").addEventListener("click", () =>
+  document.getElementById("chatbot-panel").classList.toggle("open"));
+
+function chatbotMsg(texto) {
+  const b = document.getElementById("chatbot-body");
+  const div = document.createElement("div");
+  div.className = "chatbot-msg";
+  div.textContent = texto;
+  b.appendChild(div);
+  b.scrollTop = b.scrollHeight;
+}
+
+async function carregarChatbot() {
+  try {
+    const perguntas = await fetch(`${API}/api/chatbot/perguntas`).then(r=>r.json());
+    const q = document.getElementById("chatbot-questions");
+    q.innerHTML = "";
+    perguntas.forEach(p => {
+      const btn = document.createElement("button");
+      btn.className = "chatbot-q-btn";
+      btn.textContent = p.label;
+      btn.onclick = async () => {
+        chatbotMsg(p.label);
+        btn.disabled = true;
+        try {
+          const data = await fetch(`${API}/api/chatbot/responder?pergunta_id=${encodeURIComponent(p.id)}`).then(r=>r.json());
+          chatbotMsg(data.resposta || "Não consegui calcular agora.");
+        } catch { chatbotMsg("Erro ao consultar o banco."); }
+        finally { btn.disabled = false; }
+      };
+      q.appendChild(btn);
+    });
+    chatbotMsg("Escolha uma das perguntas abaixo.");
+  } catch { chatbotMsg("Chatbot indisponível (API offline)."); }
+}
+
+function iniciarDashboard(chartOk) {
+  if (chartOk) {
+    iniciar();
+  } else {
+    // sem Chart.js: carrega só KPIs e tabela
+    Promise.all([carregarKPIs(), carregarTabela(), carregarCompetencias()])
+      .then(() => {
+        document.getElementById("status-badge").textContent = "Conectado — gráficos indisponíveis (sem internet)";
+      }).catch(() => {
+        document.getElementById("status-badge").textContent = "API offline — rode o backend (localhost:8001)";
+      });
+  }
+  carregarChatbot();
+}
 </script>
 </body>
 </html>

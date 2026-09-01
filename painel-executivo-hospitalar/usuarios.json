@@ -1,0 +1,27 @@
+{
+  "mateus@datamind.com": {
+    "nome": "Mateus Henrique",
+    "senha": "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9",
+    "perfil": "executivo"
+  },
+  "analista@datamind.com": {
+    "nome": "Analista Demo",
+    "senha": "9cd268397030111adacb4268e51f0dbbb0dbc8c59eb34f8f7d55f72d4c888349",
+    "perfil": "analitico"
+  },
+  "leigo@datamind.com": {
+    "nome": "Usuario Leigo",
+    "senha": "4e2c29c92bfadd7796832dcbd6bd82a0af496d236bf3389542eec5f56c2938a7",
+    "perfil": "leigo"
+  },
+  "mateus@gmail.com": {
+    "nome": "Mateus",
+    "senha": "d04797dfd4e64d4b8a1fba3cf7622f69cfa86734e583461eed20ae3aeaaf6236",
+    "perfil": "leigo"
+  },
+  "ma@gmail.com": {
+    "nome": "Mateus",
+    "senha": "39f89242a5faf8bef6d8da1c12c58028f3f4f42eac88d59f667b4ae661c6cbf9",
+    "perfil": "leigo"
+  }
+}

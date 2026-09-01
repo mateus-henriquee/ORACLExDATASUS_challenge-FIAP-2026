@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comparativos — DataMind</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0d12;--card:#1a1917;--card2:#222120;--border:#3d3b37;--text:#ece8e1;--muted:#9a9587;--faint:#63606f;--accent:#8d5ccc;--accent2:#a87de0;--green:#6fbf73;--red:#d9695f;--r:12px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;}
+
+.sidebar{width:240px;flex-shrink:0;background:#12110f;border-right:1px solid var(--border);display:flex;flex-direction:column;padding:18px 14px;}
+.brand{display:flex;align-items:center;gap:8px;padding-bottom:22px;}
+.brand-mark{color:var(--accent);font-size:20px;}
+.brand-name{font-family:'Source Serif 4',serif;font-size:16px;font-weight:600;}
+.brand-sub{font-size:11px;color:var(--faint);margin-left:auto;}
+.nav-label{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--faint);font-weight:600;margin:4px 6px 8px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;color:var(--muted);font-size:13.5px;cursor:pointer;margin-bottom:2px;text-decoration:none;}
+.nav-item:hover{background:var(--card);color:var(--text);}
+.nav-item.active{background:rgba(141,92,204,.13);color:var(--text);font-weight:600;border-left:2px solid var(--accent);padding-left:8px;}
+.nav-item svg{width:18px;height:18px;flex-shrink:0;}
+.spacer{flex:1;}
+.logout{display:flex;align-items:center;gap:10px;padding:12px 10px 0;border-top:1px solid var(--border);color:var(--muted);font-size:13.5px;cursor:pointer;}
+.logout:hover{color:var(--red);}
+.logout svg{width:18px;height:18px;}
+
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.header{padding:20px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.header h1{font-family:'Source Serif 4',serif;font-size:20px;font-weight:600;}
+.header p{font-size:12px;color:var(--muted);margin-top:3px;}
+.badge{font-size:11px;background:rgba(141,92,204,.13);color:var(--accent);padding:4px 12px;border-radius:20px;border:1px solid rgba(141,92,204,.25);}
+
+.scroll{flex:1;overflow-y:auto;padding:24px 28px 60px;}
+.scroll::-webkit-scrollbar{width:6px;}
+.scroll::-webkit-scrollbar-thumb{background:#761dbb;border-radius:6px;}
+
+/* Controles */
+.controls{display:flex;align-items:center;gap:12px;margin-bottom:24px;flex-wrap:wrap;}
+.ctrl-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+.seg{display:flex;border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.seg button{background:none;border:none;color:var(--muted);font-family:'Inter',sans-serif;font-size:12px;padding:8px 14px;cursor:pointer;border-right:1px solid var(--border);}
+.seg button:last-child{border-right:none;}
+.seg button.active{background:rgba(141,92,204,.13);color:var(--text);font-weight:600;}
+.seg button:hover:not(.active){background:var(--card);color:var(--text);}
+
+.metric-seg{display:flex;border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.metric-seg button{background:none;border:none;color:var(--muted);font-family:'Inter',sans-serif;font-size:12px;padding:8px 14px;cursor:pointer;border-right:1px solid var(--border);}
+.metric-seg button:last-child{border-right:none;}
+.metric-seg button.active{background:rgba(141,92,204,.13);color:var(--text);font-weight:600;}
+.metric-seg button:hover:not(.active){background:var(--card);color:var(--text);}
+
+.top-ctrl{display:flex;align-items:center;gap:8px;}
+.top-ctrl label{font-size:12px;color:var(--muted);}
+.top-ctrl input{width:60px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;padding:7px 10px;outline:none;text-align:center;}
+.top-ctrl input:focus{border-color:var(--accent);}
+
+/* Gráfico de barras animado */
+.chart-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:20px;}
+.chart-title{font-family:'Source Serif 4',serif;font-size:15px;font-weight:600;margin-bottom:4px;}
+.chart-sub{font-size:11px;color:var(--muted);margin-bottom:20px;}
+
+.bar-row{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+.bar-label{font-size:12px;color:var(--muted);width:180px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right;}
+.bar-track{flex:1;height:28px;background:#1e1d1a;border-radius:6px;overflow:hidden;position:relative;}
+.bar-fill{height:100%;border-radius:6px;transition:width .8s cubic-bezier(.22,.9,.35,1);display:flex;align-items:center;padding-left:10px;}
+.bar-val{font-size:11.5px;font-weight:600;color:#fff;white-space:nowrap;}
+.bar-rank{font-size:11px;color:var(--faint);width:24px;text-align:right;flex-shrink:0;}
+
+/* Loader */
+.loading{text-align:center;padding:60px;color:var(--muted);font-size:14px;}
+.dot-anim{display:inline-block;animation:dot 1.4s ease-in-out infinite;}
+@keyframes dot{0%,80%,100%{opacity:0;}40%{opacity:1;}}
+
+/* Cards comparativos */
+.cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;}
+.stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;}
+.stat-val{font-family:'Source Serif 4',serif;font-size:22px;font-weight:600;margin-bottom:3px;}
+.stat-sub{font-size:11px;color:var(--faint);}
+</style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="brand"><span class="brand-mark">✳</span><span class="brand-name">DataMind</span><span class="brand-sub">Executivo</span></div>
+  <div class="nav-label">Navegação</div>
+  <a class="nav-item" href="/dashboard">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="5" rx="1.5"/><rect x="13" y="10" width="8" height="11" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/></svg>Dashboard
+  </a>
+  <a class="nav-item active" href="/comparativos">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M12 20V4M20 20v-7"/></svg>Comparativos
+  </a>
+  <a class="nav-item" href="/relatorios">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"/></svg>Relatórios
+  </a>
+  <div class="spacer"></div>
+  <div class="logout" id="logout-btn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+    <span id="nome-usuario">Sair</span>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="header">
+    <div><h1>Comparativos</h1><p>Compare métricas entre dimensões — dados reais do SIH-SUS</p></div>
+    <span class="badge">Hospitais reais</span>
+  </div>
+  <div class="scroll">
+    <!-- KPIs resumo -->
+    <div class="cards-grid" id="cards-resumo">
+      <div class="stat-card"><div class="stat-label">Total no ranking</div><div class="stat-val" id="r-total">—</div><div class="stat-sub">registros listados</div></div>
+      <div class="stat-card"><div class="stat-label">Maior valor</div><div class="stat-val" id="r-maior">—</div><div class="stat-sub" id="r-maior-label">da métrica selecionada</div></div>
+      <div class="stat-card"><div class="stat-label">Média geral</div><div class="stat-val" id="r-media">—</div><div class="stat-sub" id="r-media-label">da métrica selecionada</div></div>
+    </div>
+
+    <!-- Controles -->
+    <div class="controls">
+      <span class="ctrl-label">Dimensão:</span>
+      <div class="seg" id="seg-dim">
+        <button class="active" data-dim="municipio">Município</button>
+        <button data-dim="hospital">Hospital</button>
+        <button data-dim="faixa_etaria">Faixa etária</button>
+        <button data-dim="competencia">Competência</button>
+      </div>
+      <span class="ctrl-label" style="margin-left:8px">Métrica:</span>
+      <div class="metric-seg" id="seg-metric">
+        <button class="active" data-metric="internacoes">Internações</button>
+        <button data-metric="custo">Custo total</button>
+        <button data-metric="permanencia">Permanência média</button>
+      </div>
+      <div class="top-ctrl">
+        <label>Top</label>
+        <input type="number" id="top-input" value="10" min="3" max="30">
+      </div>
+    </div>
+
+    <!-- Gráfico -->
+    <div class="chart-wrap">
+      <div class="chart-title" id="chart-title">Municípios por internações</div>
+      <div class="chart-sub" id="chart-sub">Hospitais com atendimento hospitalar real — SIH-SUS 2024</div>
+      <div id="chart-body"><div class="loading">Carregando<span class="dot-anim">...</span></div></div>
+    </div>
+  </div>
+</main>
+
+<script>
+const API = 'http://localhost:8001';
+const token = sessionStorage.getItem('dm_token');
+const perfil = sessionStorage.getItem('dm_perfil');
+if (!token || perfil !== 'executivo') window.location.href = '/landing';
+
+const nome = sessionStorage.getItem('dm_nome');
+if (nome) document.getElementById('nome-usuario').textContent = nome + ' — Sair';
+
+document.getElementById('logout-btn').addEventListener('click', async () => {
+  try { await fetch(`${API}/auth/logout`, {method:'POST',headers:{'Authorization':`Bearer ${token}`}}); } catch(e){}
+  sessionStorage.clear(); window.location.href = '/landing';
+});
+
+let dim = 'municipio', metric = 'internacoes', topN = 10;
+let dados = [];
+
+const TITULOS = {
+  municipio:'Municípios', hospital:'Hospitais', faixa_etaria:'Faixas etárias', competencia:'Competências'
+};
+const METRICAS = {
+  internacoes: {label:'Internações', fmt: v => v.toLocaleString('pt-BR')},
+  custo:       {label:'Custo total', fmt: v => 'R$ '+(v/1e6).toLocaleString('pt-BR',{minimumFractionDigits:1})+' mi'},
+  permanencia: {label:'Permanência média', fmt: v => v.toFixed(1).replace('.',',')+' dias'},
+};
+
+function fmtVal(v) { return METRICAS[metric].fmt(v); }
+
+async function carregar() {
+  document.getElementById('chart-body').innerHTML = '<div class="loading">Carregando<span class="dot-anim">...</span></div>';
+  try {
+    const r = await fetch(`${API}/api/comparativos?dim=${dim}&top=${topN}`);
+    dados = await r.json();
+    renderizar();
+  } catch(e) {
+    document.getElementById('chart-body').innerHTML = '<div class="loading" style="color:#d9695f">API offline. Rode o backend.</div>';
+  }
+}
+
+function renderizar() {
+  if (!dados.length) { document.getElementById('chart-body').innerHTML = '<div class="loading">Sem dados.</div>'; return; }
+
+  const vals = dados.map(d => d[metric]);
+  const max  = Math.max(...vals);
+  const total = vals.reduce((a,b)=>a+b,0);
+  const media = total / vals.length;
+
+  document.getElementById('r-total').textContent   = dados.length;
+  document.getElementById('r-maior').textContent   = fmtVal(max);
+  document.getElementById('r-media').textContent   = fmtVal(media);
+  document.getElementById('r-maior-label').textContent = METRICAS[metric].label + ' (1º lugar)';
+  document.getElementById('r-media-label').textContent  = 'Média — ' + METRICAS[metric].label;
+
+  document.getElementById('chart-title').textContent = `${TITULOS[dim]} por ${METRICAS[metric].label.toLowerCase()}`;
+
+  const cores = ['#8d5ccc','#a87de0','#c4a3eb','#746fd9','#6fbf73','#e6a832','#d9695f','#4C8BF5','#f5a04c','#4cf5b0'];
+
+  const html = dados.map((d,i) => {
+    const v = d[metric];
+    const pct = max > 0 ? (v/max)*100 : 0;
+    const cor = cores[i % cores.length];
+    return `
+      <div class="bar-row">
+        <span class="bar-rank">${i+1}</span>
+        <span class="bar-label" title="${d.label}">${d.label}</span>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:${pct}%;background:${cor}">
+            <span class="bar-val">${fmtVal(v)}</span>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('chart-body').innerHTML = html;
+
+  // Anima as barras
+  setTimeout(() => {
+    document.querySelectorAll('.bar-fill').forEach((el, i) => {
+      el.style.width = '0%';
+      const pct = dados[i] ? (dados[i][metric]/max*100) : 0;
+      setTimeout(() => { el.style.width = pct + '%'; }, i * 40);
+    });
+  }, 10);
+}
+
+// Eventos
+document.querySelectorAll('#seg-dim button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#seg-dim button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    dim = btn.dataset.dim;
+    carregar();
+  });
+});
+
+document.querySelectorAll('#seg-metric button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#seg-metric button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    metric = btn.dataset.metric;
+    renderizar();
+  });
+});
+
+let debounce;
+document.getElementById('top-input').addEventListener('input', e => {
+  clearTimeout(debounce);
+  debounce = setTimeout(() => {
+    topN = Math.max(3, Math.min(30, parseInt(e.target.value)||10));
+    carregar();
+  }, 500);
+});
+
+carregar();
+</script>
+</body>
+</html>

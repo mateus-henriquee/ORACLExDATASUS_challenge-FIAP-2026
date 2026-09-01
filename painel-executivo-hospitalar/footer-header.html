@@ -1,0 +1,274 @@
+<!--
+  ╔══════════════════════════════════════════════════════╗
+  ║  HEADER + FOOTER — copiar e colar na landing.html   ║
+  ╚══════════════════════════════════════════════════════╝
+
+  1. HEADER: substitua o bloco <header ...> ... </header> existente
+  2. FOOTER CSS: cole dentro do <style> existente
+  3. FOOTER HTML: cole antes do </body>
+-->
+
+<!-- ══════════════════
+     1. HEADER
+     Substitua o <header> inteiro pelo bloco abaixo
+     ══════════════════ -->
+<header id="siteHeader">
+  <div class="logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+    </div>
+    DataMind
+  </div>
+  <nav>
+    <a href="#como-funciona">Como funciona</a>
+    <a href="#flowPin">Fluxo</a>
+    <a href="#quem-somos">Quem somos</a>
+    <a href="#numeros">Números</a>
+    <a href="#stack">Tecnologia</a>
+    <a href="#faq">FAQ</a>
+  </nav>
+  <button class="cta-btn" id="openAuthBtn">Começar grátis</button>
+</header>
+
+<!-- ══════════════════
+     Adicione os IDs nas seções novas para os links do nav funcionarem.
+     Nas seções que você colou, adicione os ids:
+       - Seção números:    <section id="numeros" ...>
+       - Seção stack:      <section id="stack">
+       - Seção FAQ:        <section id="faq" ...>
+     ══════════════════ -->
+
+
+<!-- ══════════════════
+     2. FOOTER CSS
+     Cole dentro do <style> existente antes do </style>
+     ══════════════════ -->
+<style id="footer-css">
+footer {
+  background: #080b0f;
+  border-top: 1px solid rgba(255,255,255,0.07);
+  padding: 80px 60px 0;
+  position: relative;
+  overflow: hidden;
+}
+footer::before {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 320px;
+  background: linear-gradient(to top, rgba(141,92,204,0.04), transparent);
+  pointer-events: none;
+}
+
+.footer-top {
+  display: grid;
+  grid-template-columns: 1.4fr repeat(4, 1fr);
+  gap: 48px;
+  margin-bottom: 64px;
+}
+
+.footer-brand {}
+.footer-brand .logo {
+  margin-bottom: 16px;
+  font-size: 18px;
+}
+.footer-brand p {
+  font-size: 13.5px;
+  color: var(--text-dim);
+  line-height: 1.65;
+  max-width: 260px;
+  margin-bottom: 24px;
+}
+.footer-social {
+  display: flex;
+  gap: 10px;
+}
+.footer-social a {
+  width: 36px; height: 36px;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: border-color .2s, color .2s, background .2s;
+}
+.footer-social a:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(141,92,204,.08);
+}
+.footer-social svg { width: 16px; height: 16px; }
+
+.footer-col {}
+.footer-col-title {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text);
+  margin-bottom: 20px;
+}
+.footer-col ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.footer-col ul li a {
+  font-size: 13.5px;
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color .2s;
+}
+.footer-col ul li a:hover { color: var(--accent-2); }
+
+.footer-divider {
+  border: none;
+  border-top: 1px solid rgba(255,255,255,0.07);
+}
+
+.footer-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 0;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.footer-copy {
+  font-size: 12.5px;
+  color: var(--text-dim);
+}
+.footer-copy span { color: var(--accent-2); }
+.footer-links {
+  display: flex;
+  gap: 24px;
+}
+.footer-links a {
+  font-size: 12.5px;
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color .2s;
+}
+.footer-links a:hover { color: var(--text); }
+
+/* Nome grande no fundo */
+.footer-wordmark {
+  text-align: center;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(60px, 12vw, 160px);
+  font-weight: 700;
+  letter-spacing: -.04em;
+  background: linear-gradient(to bottom, rgba(141,92,204,0.15), transparent);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  line-height: 1;
+  padding: 20px 0 0;
+  user-select: none;
+  pointer-events: none;
+}
+
+@media (max-width: 900px) {
+  footer { padding: 60px 24px 0; }
+  .footer-top { grid-template-columns: 1fr 1fr; gap: 32px; }
+  .footer-brand { grid-column: 1 / -1; }
+  .footer-wordmark { font-size: clamp(48px, 16vw, 100px); }
+}
+</style>
+
+
+<!-- ══════════════════
+     3. FOOTER HTML
+     Cole antes do </body>
+     ══════════════════ -->
+<footer>
+  <div class="footer-top">
+
+    <!-- Marca -->
+    <div class="footer-brand">
+      <div class="logo">
+        <div class="logo-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        </div>
+        DataMind
+      </div>
+      <p>Plataforma de análise de internações hospitalares do SUS — dados reais do governo federal, visualizados em tempo real.</p>
+      <div class="footer-social">
+        <a href="#" title="GitHub">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2z"/></svg>
+        </a>
+        <a href="#" title="LinkedIn">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+        </a>
+        <a href="#" title="Instagram">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- Produto -->
+    <div class="footer-col">
+      <div class="footer-col-title">Produto</div>
+      <ul>
+        <li><a href="#como-funciona">Como funciona</a></li>
+        <li><a href="#flowPin">Fluxo de dados</a></li>
+        <li><a href="#stack">Tecnologia</a></li>
+        <li><a href="#numeros">Números</a></li>
+        <li><a href="#" onclick="document.getElementById('openAuthBtn').click();return false;">Começar grátis</a></li>
+      </ul>
+    </div>
+
+    <!-- Plataforma -->
+    <div class="footer-col">
+      <div class="footer-col-title">Plataforma</div>
+      <ul>
+        <li><a href="http://localhost:8001/dashboard">Dashboard Executivo</a></li>
+        <li><a href="http://localhost:8001/analitico">Dashboard Analítico</a></li>
+        <li><a href="http://localhost:8000">IA Conversacional</a></li>
+        <li><a href="http://localhost:8001/comparativos">Comparativos</a></li>
+        <li><a href="http://localhost:8001/relatorios">Relatórios</a></li>
+      </ul>
+    </div>
+
+    <!-- Dados -->
+    <div class="footer-col">
+      <div class="footer-col-title">Fontes de dados</div>
+      <ul>
+        <li><a href="https://datasus.saude.gov.br" target="_blank">DATASUS</a></li>
+        <li><a href="https://cnes.datasus.gov.br" target="_blank">CNES / DEMAS</a></li>
+        <li><a href="https://servicodados.ibge.gov.br" target="_blank">IBGE API</a></li>
+        <li><a href="https://github.com/RenatoKR/SIGTAP" target="_blank">SIGTAP</a></li>
+        <li><a href="https://github.com/AlertaDengue/PySUS" target="_blank">pysus</a></li>
+      </ul>
+    </div>
+
+    <!-- Sobre -->
+    <div class="footer-col">
+      <div class="footer-col-title">Sobre</div>
+      <ul>
+        <li><a href="#quem-somos">Quem somos</a></li>
+        <li><a href="#faq">FAQ</a></li>
+        <li><a href="https://www.fiap.com.br" target="_blank">FIAP</a></li>
+        <li><a href="#" onclick="document.getElementById('openAuthBtn').click();return false;">Login</a></li>
+      </ul>
+    </div>
+
+  </div>
+
+  <hr class="footer-divider">
+
+  <div class="footer-bottom">
+    <p class="footer-copy">
+      © 2024 <span>DataMind</span>. Projeto acadêmico — FIAP · Modern Data Architecture & Engineering.
+      Dados oficiais do Ministério da Saúde.
+    </p>
+    <div class="footer-links">
+      <a href="#faq">FAQ</a>
+      <a href="#quem-somos">Sobre</a>
+      <a href="https://datasus.saude.gov.br" target="_blank">DATASUS</a>
+    </div>
+  </div>
+
+  <div class="footer-wordmark">DataMind</div>
+</footer>
