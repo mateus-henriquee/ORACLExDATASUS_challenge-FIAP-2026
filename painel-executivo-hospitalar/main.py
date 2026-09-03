@@ -30,6 +30,7 @@ ORACLE_DSN = os.getenv("ORACLE_DSN")
 
 app = FastAPI(title="Painel Executivo - API")
 
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],

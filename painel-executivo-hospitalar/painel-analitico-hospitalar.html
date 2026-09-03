@@ -29,6 +29,14 @@
   --sans:  "Inter", -apple-system, sans-serif;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
+#loading-screen {position: fixed; inset: 0; z-index: 9999;background: #0a0d12;display: flex; align-items: center; justify-content: center;transition: opacity .5s ease;}
+#loading-screen.hide { opacity: 0; pointer-events: none; }
+.loader-wrap { display: flex; flex-direction: column; align-items: center; gap: 28px; }
+.loader {width: 40px; height: 30px;--c: no-repeat linear-gradient(#8d5ccc 0 0);background:  var(--c) 0    100%/8px 30px,  var(--c) 50%  100%/8px 20px,  var(--c) 100% 100%/8px 10px;position: relative; clip-path: inset(-100% 0);}
+.loader:before {content: "";position: absolute; width: 8px; height: 8px;border-radius: 50%; background: #a87de0;left: -16px; top: 0;animation: l5-1 2s linear infinite, l5-2 0.5s cubic-bezier(0,200,.8,200) infinite;}
+@keyframes l5-1 {0%   { left: -16px; transform: translateY(-8px); }100% { left: calc(100% + 8px); transform: translateY(22px); }}
+@keyframes l5-2 { 100% { top: -0.1px; } }
+.loader-label {font-family: 'Source Serif 4', serif; font-size: 18px; font-weight: 600; color: #ece8e1; letter-spacing: .05em;}
 body { font-family: var(--sans); background: var(--bg-main); color: var(--text-primary); height: 100vh; overflow: hidden; }
 .app { display: flex; height: 100vh; }
 
@@ -174,6 +182,15 @@ body { font-family: var(--sans); background: var(--bg-main); color: var(--text-p
 .scroll-area::-webkit-scrollbar-thumb { background: #761dbb; border-radius: 8px; }
 </style>
 </head>
+
+<!-- LOADING SCREEN -->
+<div id="loading-screen">
+  <div class="loader-wrap">
+    <div class="loader"></div>
+    <p class="loader-label">DataMind</p>
+  </div>
+</div>
+
 <body>
 <div class="app">
 
@@ -190,17 +207,14 @@ body { font-family: var(--sans); background: var(--bg-main); color: var(--text-p
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="5" rx="1.5"/><rect x="13" y="10" width="8" height="11" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/></svg>
       Visão geral
     </div>
-    <div class="nav-item">
-      <a href="/tendencias" class="nav-item" style="text-decoration:none;color:inherit">
+    <a href="/tendencias" class="nav-item" style="text-decoration:none;color:inherit"><div class="nav-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 4-4"/></svg>
       Tendências
-      </a>
-    </div>
-    <div class="nav-item">
-      <a href="/capacidade"class="nav-item" style="text-decoration:none;color:inherit">
+    </div></a>
+    <a href="/capacidade"class="nav-item" style="text-decoration:none;color:inherit"><div class="nav-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l5 3"/></svg>
-      Capacidade</a>
-    </div>
+      Capacidade
+    </div></a>
 
     <div class="filter-section">
       <div class="nav-label" style="margin-top:0">Filtros</div>
@@ -369,6 +383,13 @@ body { font-family: var(--sans); background: var(--bg-main); color: var(--text-p
   <div class="chatbot-btns" id="chatbot-btns"></div>
 </div>
 
+<script>
+  setTimeout(() => {
+  const s = document.getElementById('loading-screen');
+  s.classList.add('hide');
+  setTimeout(() => s.remove(), 500);
+}, 5000);
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"
         onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js';document.head.appendChild(s);"></script>
 <script>
@@ -572,28 +593,123 @@ function addMsg(texto) {
   msgs.scrollTop = msgs.scrollHeight;
 }
 
-async function initChatbot() {
-  const r = await fetch(API + "/api/chatbot/perguntas");
-  const perguntas = await r.json();
+// 8 perguntas analíticas — só 5 aparecem por vez; ao clicar, a pergunta some e entra outra
+const PERGUNTAS_ANALITICAS = [
+  {
+    id: "faixa_mais_internacoes",
+    label: "Qual faixa etária tem mais internações?",
+    query: async () => {
+      const d = await fetch(`${API}/api/analise/faixa-etaria`).then(r=>r.json());
+      if (!d.length) return "Sem dados.";
+      const top = d.sort((a,b)=>b.qtd-a.qtd)[0];
+      return `A faixa ${top.faixa_etaria} anos lidera com ${top.qtd.toLocaleString('pt-BR')} internações.`;
+    }
+  },
+  {
+    id: "municipio_mais_custo",
+    label: "Qual município tem maior custo total?",
+    query: async () => {
+      const d = await fetch(`${API}/api/analise/municipios-top?limite=1`).then(r=>r.json());
+      if (!d.length) return "Sem dados.";
+      const m = d[0];
+      return `${m.municipio} lidera com R$ ${(m.custo/1e6).toFixed(1)} mi em internações.`;
+    }
+  },
+  {
+    id: "proporcao_sexo",
+    label: "Qual a proporção entre sexo masculino e feminino?",
+    query: async () => {
+      const d = await fetch(`${API}/api/analise/sexo`).then(r=>r.json());
+      const m = d.find(x=>x.sexo==='M')?.qtd||0;
+      const f = d.find(x=>x.sexo==='F')?.qtd||0;
+      const total = m+f||1;
+      return `Masculino: ${(m/total*100).toFixed(1)}% | Feminino: ${(f/total*100).toFixed(1)}%`;
+    }
+  },
+  {
+    id: "mes_pico",
+    label: "Qual mês teve mais internações?",
+    query: async () => {
+      const d = await fetch(`${API}/api/custo-por-mes`).then(r=>r.json());
+      if (!d.length) return "Sem dados.";
+      const top = d.sort((a,b)=>b.internacoes-a.internacoes)[0];
+      const c = top.competencia;
+      return `O mês de pico foi ${c.slice(4,6)}/${c.slice(0,4)} com ${top.internacoes.toLocaleString('pt-BR')} internações.`;
+    }
+  },
+  {
+    id: "permanencia_media",
+    label: "Qual a permanência média geral?",
+    query: async () => {
+      const d = await fetch(`${API}/api/kpis`).then(r=>r.json());
+      return `A permanência média é de ${d.permanencia_media.toFixed(1)} dias por internação.`;
+    }
+  },
+  {
+    id: "top5_municipios",
+    label: "Quais os 5 municípios com mais internações?",
+    query: async () => {
+      const d = await fetch(`${API}/api/analise/municipios-top?limite=5`).then(r=>r.json());
+      return d.map((m,i)=>`${i+1}. ${m.municipio}: ${m.internacoes.toLocaleString('pt-BR')}`).join(' | ');
+    }
+  },
+  {
+    id: "custo_medio",
+    label: "Qual o custo médio por internação?",
+    query: async () => {
+      const d = await fetch(`${API}/api/kpis`).then(r=>r.json());
+      return `O custo médio por internação é R$ ${Math.round(d.custo_medio).toLocaleString('pt-BR')}.`;
+    }
+  },
+  {
+    id: "faixa_mais_cara",
+    label: "Qual faixa etária gera mais custo?",
+    query: async () => {
+      const d = await fetch(`${API}/api/comparativos?dim=faixa_etaria&top=1`).then(r=>r.json());
+      if (!d.length) return "Sem dados.";
+      return `A faixa ${d[0].label} anos gera o maior custo: R$ ${(d[0].custo/1e6).toFixed(1)} mi.`;
+    }
+  },
+];
+
+let perguntasRestantes = [...PERGUNTAS_ANALITICAS];
+
+function embaralhar(arr) {
+  for (let i = arr.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]] = [arr[j],arr[i]];
+  }
+  return arr;
+}
+
+function renderBotoes() {
   btns.innerHTML = "";
-  perguntas.forEach(p => {
+  const visiveis = perguntasRestantes.slice(0, 5);
+  visiveis.forEach(p => {
     const b = document.createElement("button");
     b.className = "chatbot-btn";
     b.textContent = p.label;
     b.onclick = async () => {
       addMsg(p.label);
       b.disabled = true;
+      // Remove esta pergunta e adiciona próxima disponível
+      perguntasRestantes = perguntasRestantes.filter(x => x.id !== p.id);
+      if (perguntasRestantes.length === 0) {
+        perguntasRestantes = embaralhar([...PERGUNTAS_ANALITICAS]);
+      }
       try {
-        const rr = await fetch(`${API}/api/chatbot/responder?pergunta_id=${encodeURIComponent(p.id)}`);
-        const data = await rr.json();
-        addMsg(data.resposta || "Não consegui calcular agora.");
+        const resposta = await p.query();
+        addMsg(resposta);
       } catch { addMsg("Erro ao consultar o banco."); }
-      finally { b.disabled = false; }
+      renderBotoes();
     };
     btns.appendChild(b);
   });
-  if (!msgs.children.length) addMsg("Escolha uma das perguntas para ver a resposta calculada ao vivo.");
 }
+
+embaralhar(perguntasRestantes);
+renderBotoes();
+addMsg("Escolha uma pergunta para ver a resposta calculada ao vivo com dados reais.");
 
 initChatbot().catch(() => addMsg("Chatbot indisponível (API offline)."));
 </script>

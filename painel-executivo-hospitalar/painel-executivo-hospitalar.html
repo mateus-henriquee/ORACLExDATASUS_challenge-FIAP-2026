@@ -28,6 +28,42 @@
   --sans: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
 }
 * { box-sizing: border-box; }
+
+#loading-screen {
+  position: fixed; inset: 0; z-index: 9999;
+  background: #0a0d12;
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity .5s ease;
+}
+#loading-screen.hide { opacity: 0; pointer-events: none; }
+.loader-wrap { display: flex; flex-direction: column; align-items: center; gap: 28px; }
+.loader {
+  width: 40px; height: 30px;
+  --c: no-repeat linear-gradient(#8d5ccc 0 0);
+  background:
+    var(--c) 0    100%/8px 30px,
+    var(--c) 50%  100%/8px 20px,
+    var(--c) 100% 100%/8px 10px;
+  position: relative; clip-path: inset(-100% 0);
+}
+.loader:before {
+  content: "";
+  position: absolute; width: 8px; height: 8px;
+  border-radius: 50%; background: #a87de0;
+  left: -16px; top: 0;
+  animation: l5-1 2s linear infinite, l5-2 0.5s cubic-bezier(0,200,.8,200) infinite;
+}
+@keyframes l5-1 {
+  0%   { left: -16px; transform: translateY(-8px); }
+  100% { left: calc(100% + 8px); transform: translateY(22px); }
+}
+@keyframes l5-2 { 100% { top: -0.1px; } }
+.loader-label {
+  font-family: 'Source Serif 4', serif;
+  font-size: 18px; font-weight: 600;
+  color: #ece8e1; letter-spacing: .05em;
+}
+
 body { margin: 0; font-family: var(--sans); background: var(--bg-main); color: var(--text-primary); height: 100vh; overflow: hidden; }
 .app { display: flex; height: 100vh; }
 
@@ -110,6 +146,15 @@ tr:last-child td { border-bottom: none; }
 .chatbot-q-btn:disabled { opacity: 0.5; cursor: default; }
 </style>
 </head>
+
+<!-- LOADING SCREEN -->
+<div id="loading-screen">
+  <div class="loader-wrap">
+    <div class="loader"></div>
+    <p class="loader-label">DataMind</p>
+  </div>
+</div>
+
 <body>
 <div class="app">
 
@@ -233,6 +278,13 @@ tr:last-child td { border-bottom: none; }
   <div class="chatbot-questions" id="chatbot-questions"></div>
 </div>
 
+<script>
+  setTimeout(() => {
+  const s = document.getElementById('loading-screen');
+  s.classList.add('hide');
+  setTimeout(() => s.remove(), 500);
+}, 10000);
+</script>
 <script>
 // Configuração e Constantes Globais
 const API = "http://localhost:8001";
