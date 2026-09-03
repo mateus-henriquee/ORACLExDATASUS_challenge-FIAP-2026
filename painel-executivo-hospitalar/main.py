@@ -16,6 +16,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 import oracledb
+from pydantic import BaseModel
 from fastapi import FastAPI, HTTPException, Depends, Form, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -100,6 +101,17 @@ def login(username: str = Form(...), password: str = Form(...)):
 def me(sessao=Depends(_validar_token)):
     return {"usuario": sessao["usuario"], "nome": sessao["nome"], "perfil": sessao["perfil"]}
 
+@app.get("/tendencias")
+def tendencias():
+    f = _DIR / "painel-tendencias.html"
+    if not f.exists(): raise HTTPException(status_code=404, detail="painel-tendencias.html nao encontrado")
+    return FileResponse(str(f))
+
+@app.get("/capacidade")
+def capacidade():
+    f = _DIR / "painel-capacidade.html"
+    if not f.exists(): raise HTTPException(status_code=404, detail="painel-capacidade.html nao encontrado")
+    return FileResponse(str(f))
 
 @app.post("/auth/logout")
 def logout(sessao=Depends(_validar_token), creds: HTTPAuthorizationCredentials = Depends(bearer)):
@@ -152,22 +164,25 @@ def query(sql: str, params: dict = None) -> list[dict]:
 
 @app.get("/api/kpis")
 def get_kpis(competencia: str | None = None, sexo: str | None = None,
-             municipio: str | None = None, faixa_etaria: str | None = None):
+             municipio: str | None = None, faixa_etaria: str | None = None,
+             uf: str | None = None):
     conds = ["h.POSSUI_ATEND_HOSPITALAR = 1"]
     params = {}
-    if competencia:  conds.append("f.COMPETENCIA = :comp");      params["comp"] = competencia
-    if sexo:         conds.append("f.SEXO = :sexo");              params["sexo"] = sexo
-    if faixa_etaria: conds.append("f.FAIXA_ETARIA = :faixa");    params["faixa"] = faixa_etaria
+    if competencia:  conds.append("f.COMPETENCIA = :comp");   params["comp"] = competencia
+    if sexo:         conds.append("f.SEXO = :sexo");           params["sexo"] = sexo
+    if faixa_etaria: conds.append("f.FAIXA_ETARIA = :faixa"); params["faixa"] = faixa_etaria
+    if uf:           conds.append("m.UF = :uf");               params["uf"] = uf
     where = "WHERE " + " AND ".join(conds)
     sql = f"""
         SELECT
-            NVL(SUM(f.VALOR_TOTAL), 0)          AS custo_total,
-            COUNT(*)                             AS total_internacoes,
-            NVL(AVG(f.VALOR_TOTAL), 0)          AS custo_medio,
-            NVL(AVG(f.DIAS_PERMANENCIA), 0)     AS permanencia_media,
-            COUNT(DISTINCT f.COD_IBGE)           AS municipios_distintos
+            NVL(SUM(f.VALOR_TOTAL), 0)      AS custo_total,
+            COUNT(*)                         AS total_internacoes,
+            NVL(AVG(f.VALOR_TOTAL), 0)      AS custo_medio,
+            NVL(AVG(f.DIAS_PERMANENCIA), 0) AS permanencia_media,
+            COUNT(DISTINCT f.COD_IBGE)       AS municipios_distintos
         FROM FATO_INTERNACAO f
-        JOIN DIM_HOSPITAL h ON f.COD_CNES = h.COD_CNES
+        JOIN DIM_HOSPITAL h  ON f.COD_CNES = h.COD_CNES
+        JOIN DIM_MUNICIPIO m ON f.COD_IBGE  = m.COD_IBGE
         {where}
     """
     resultado = query(sql, params)
@@ -182,18 +197,23 @@ def get_kpis(competencia: str | None = None, sexo: str | None = None,
 
 
 @app.get("/api/custo-por-mes")
-def custo_por_mes():
-    sql = """
+def custo_por_mes(uf: str | None = None):
+    conds = ["h.POSSUI_ATEND_HOSPITALAR = 1"]
+    params = {}
+    if uf: conds.append("m.UF = :uf"); params["uf"] = uf
+    where = "WHERE " + " AND ".join(conds)
+    sql = f"""
         SELECT f.COMPETENCIA AS competencia,
                SUM(f.VALOR_TOTAL)      AS custo,
                COUNT(*)                AS internacoes,
                AVG(f.DIAS_PERMANENCIA) AS permanencia_media
         FROM FATO_INTERNACAO f
-        JOIN DIM_HOSPITAL h ON f.COD_CNES = h.COD_CNES
-        WHERE h.POSSUI_ATEND_HOSPITALAR = 1
+        JOIN DIM_HOSPITAL h  ON f.COD_CNES = h.COD_CNES
+        JOIN DIM_MUNICIPIO m ON f.COD_IBGE  = m.COD_IBGE
+        {where}
         GROUP BY f.COMPETENCIA ORDER BY f.COMPETENCIA
     """
-    linhas = query(sql)
+    linhas = query(sql, params)
     return [{"competencia":r["competencia"],"custo":float(r["custo"] or 0),
              "internacoes":int(r["internacoes"] or 0),"permanencia_media":float(r["permanencia_media"] or 0)}
             for r in linhas]
@@ -273,21 +293,32 @@ def hospitais_mapa():
 
 
 @app.get("/api/competencias")
-def listar_competencias():
-    """Preenche o dropdown de mes com as competencias que ja tem dado carregado."""
-    sql = "SELECT DISTINCT COMPETENCIA AS competencia FROM FATO_INTERNACAO ORDER BY COMPETENCIA"
-    return [r["competencia"] for r in query(sql)]
+def listar_competencias(uf: str | None = None):
+    params = {}
+    where = ""
+    if uf:
+        where = "JOIN DIM_MUNICIPIO m ON f.COD_IBGE = m.COD_IBGE WHERE m.UF = :uf"
+        params["uf"] = uf
+    sql = f"SELECT DISTINCT f.COMPETENCIA AS competencia FROM FATO_INTERNACAO f {where} ORDER BY f.COMPETENCIA"
+    return [r["competencia"] for r in query(sql, params)]
+
+
+@app.get("/api/ufs")
+def listar_ufs():
+    sql = "SELECT DISTINCT UF FROM DIM_MUNICIPIO WHERE UF IS NOT NULL ORDER BY UF"
+    return [r["uf"] for r in query(sql)]
 
 
 @app.get("/api/analise/sexo")
 def analise_sexo(competencia: str | None = None, sexo: str | None = None,
-                 municipio: str | None = None, faixa_etaria: str | None = None):
+                 municipio: str | None = None, faixa_etaria: str | None = None,
+                 uf: str | None = None):
     conds, params = [], {}
-    if competencia: conds.append("f.COMPETENCIA = :comp"); params["comp"] = competencia
-    if sexo:        conds.append("f.SEXO = :sexo");        params["sexo"] = sexo
+    if competencia:  conds.append("f.COMPETENCIA = :comp");    params["comp"] = competencia
+    if sexo:         conds.append("f.SEXO = :sexo");           params["sexo"] = sexo
     if faixa_etaria: conds.append("f.FAIXA_ETARIA = :faixa"); params["faixa"] = faixa_etaria
-    if municipio:
-        conds.append("UPPER(m.NOME) LIKE UPPER(:mun)"); params["mun"] = f"%{municipio}%"
+    if municipio:    conds.append("UPPER(m.NOME) LIKE UPPER(:mun)"); params["mun"] = f"%{municipio}%"
+    if uf:           conds.append("m.UF = :uf");               params["uf"] = uf
     where = ("WHERE " + " AND ".join(conds)) if conds else ""
     sql = f"""
         SELECT f.SEXO AS sexo, COUNT(*) AS qtd
@@ -301,13 +332,15 @@ def analise_sexo(competencia: str | None = None, sexo: str | None = None,
 
 @app.get("/api/analise/faixa-etaria")
 def analise_faixa_etaria(competencia: str | None = None, sexo: str | None = None,
-                         municipio: str | None = None, faixa_etaria: str | None = None):
+                         municipio: str | None = None, faixa_etaria: str | None = None,
+                         uf: str | None = None):
     conds, params = [], {}
     if competencia: conds.append("f.COMPETENCIA = :comp"); params["comp"] = competencia
     if sexo:        conds.append("f.SEXO = :sexo");        params["sexo"] = sexo
     if faixa_etaria: conds.append("f.FAIXA_ETARIA = :faixa"); params["faixa"] = faixa_etaria
     if municipio:
         conds.append("UPPER(m.NOME) LIKE UPPER(:mun)"); params["mun"] = f"%{municipio}%"
+    if uf: conds.append("m.UF = :uf"); params["uf"] = uf
     where = ("WHERE " + " AND ".join(conds)) if conds else ""
     sql = f"""
         SELECT f.FAIXA_ETARIA AS faixa_etaria, COUNT(*) AS qtd
@@ -321,11 +354,13 @@ def analise_faixa_etaria(competencia: str | None = None, sexo: str | None = None
 
 @app.get("/api/analise/municipios-top")
 def analise_municipios_top(limite: int = 10, competencia: str | None = None,
-                           sexo: str | None = None, faixa_etaria: str | None = None):
+                           sexo: str | None = None, faixa_etaria: str | None = None,
+                           uf: str | None = None):
     conds, params = [], {"limite": limite}
     if competencia:  conds.append("f.COMPETENCIA = :comp");  params["comp"] = competencia
     if sexo:         conds.append("f.SEXO = :sexo");          params["sexo"] = sexo
     if faixa_etaria: conds.append("f.FAIXA_ETARIA = :faixa"); params["faixa"] = faixa_etaria
+    if uf: conds.append("m.UF = :uf"); params["uf"] = uf
     where = ("WHERE " + " AND ".join(conds)) if conds else ""
     sql = f"""
         SELECT m.NOME AS municipio, COUNT(*) AS internacoes, SUM(f.VALOR_TOTAL) AS custo
@@ -489,10 +524,13 @@ def listar_relatorios(token: str | None = None):
         raise HTTPException(status_code=401, detail="Sessao expirada.")
     return _ler_relatorios().get(sessao["usuario"], [])
 
+class RelatorioBody(BaseModel):
+    titulo: str
+    descricao: str = ""
+    campos: dict
+
 @app.post("/api/relatorios")
-def criar_relatorio(titulo: str = Form(...), descricao: str = Form(...),
-                    campos: str = Form(...),
-                    token: str = Form(...)):
+def criar_relatorio(body: RelatorioBody, token: str | None = None):
     if not token or token not in SESSOES:
         raise HTTPException(status_code=401, detail="Nao autenticado.")
     sessao = SESSOES[token]
@@ -501,8 +539,8 @@ def criar_relatorio(titulo: str = Form(...), descricao: str = Form(...),
     usuario = sessao["usuario"]
     todos = _ler_relatorios()
     lista = todos.get(usuario, [])
-    novo = {"id": str(int(_time.time()*1000)), "titulo": titulo, "descricao": descricao,
-            "campos": json.loads(campos), "criado_em": _time.strftime("%d/%m/%Y %H:%M")}
+    novo = {"id": str(int(_time.time()*1000)), "titulo": body.titulo, "descricao": body.descricao,
+            "campos": body.campos, "criado_em": _time.strftime("%d/%m/%Y %H:%M")}
     lista.append(novo)
     todos[usuario] = lista
     _salvar_relatorios(todos)

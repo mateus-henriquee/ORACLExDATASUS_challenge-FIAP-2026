@@ -191,12 +191,15 @@ body { font-family: var(--sans); background: var(--bg-main); color: var(--text-p
       Visão geral
     </div>
     <div class="nav-item">
+      <a href="/tendencias" class="nav-item" style="text-decoration:none;color:inherit">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 4-4"/></svg>
       Tendências
+      </a>
     </div>
     <div class="nav-item">
+      <a href="/capacidade"class="nav-item" style="text-decoration:none;color:inherit">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l5 3"/></svg>
-      Capacidade
+      Capacidade</a>
     </div>
 
     <div class="filter-section">
@@ -527,11 +530,12 @@ async function carregarRanking() {
 }
 
 async function carregarCompetencias() {
-  const r = await fetch(API + "/api/competencias");
+  const uf = document.getElementById("f-uf")?.value||"";
+  const r = await fetch(API + "/api/competencias" + (uf ? "?uf="+uf : ""));
   const comps = await r.json();
   const sel = document.getElementById("f-competencia");
   sel.innerHTML = '<option value="">Todas</option>';
-  comps.forEach(c => { const o = document.createElement("option"); o.value = o.textContent = c; sel.appendChild(o); });
+  comps.forEach(c => { const o = document.createElement("option"); o.value = c; o.textContent = c ? c.slice(4,6)+'/'+c.slice(0,4) : c; sel.appendChild(o); });
 }
 
 async function carregarTudo() {

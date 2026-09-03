@@ -137,6 +137,15 @@ tr:last-child td { border-bottom: none; }
     <div class="filters">
       <div class="nav-label" style="margin-top:0">Filtros</div>
       <div class="filter-group">
+        <label for="f-uf">Estado</label>
+        <select id="f-uf">
+          <option value="">Todos</option>
+          <option value="SP">São Paulo (SP)</option>
+          <option value="RJ">Rio de Janeiro (RJ)</option>
+          <option value="MG">Minas Gerais (MG)</option>
+        </select>
+      </div>
+      <div class="filter-group">
         <label for="f-mes">Mês</label>
         <select id="f-mes"><option value="">Todos</option></select>
       </div>
@@ -225,7 +234,52 @@ tr:last-child td { border-bottom: none; }
 </div>
 
 <script>
-// Carrega Chart.js dinamicamente com fallback, sem depender de onload no tag
+// Configuração e Constantes Globais
+const API = "http://localhost:8001";
+const ACC = "#8d5ccc";
+const MUT = "#9a9587";
+const GRD = "#3a3935";
+const charts = {};
+let debounceTimer = null;
+
+// ── Autenticação ──
+const token = sessionStorage.getItem("dm_token");
+const perfil = sessionStorage.getItem("dm_perfil");
+
+if (!token || perfil !== "executivo") {
+  window.location.href = "/landing";
+}
+
+const nome = sessionStorage.getItem("dm_nome");
+if (nome) {
+  const nomeEl = document.getElementById("nome-usuario");
+  if (nomeEl) nomeEl.textContent = nome + " — Sair";
+}
+
+const logoutBtn = document.getElementById("logout-btn");
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", async () => {
+    try {
+      await authFetch(`${API}/auth/logout`, { method: "POST" });
+    } catch (e) {
+      console.error(e);
+    }
+    sessionStorage.clear();
+    window.location.href = "/landing";
+  });
+}
+
+// Wrapper para requisições autenticadas
+function authFetch(url, opts = {}) {
+  opts.headers = {
+    ...(opts.headers || {}),
+    "Authorization": `Bearer ${token}`,
+    "Content-Type": "application/json"
+  };
+  return fetch(url, opts);
+}
+
+// ── Utilitários ──
 function carregarChartJS(callback) {
   const cdns = [
     "https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js",
@@ -233,10 +287,11 @@ function carregarChartJS(callback) {
     "https://unpkg.com/chart.js@4.4.4/dist/chart.umd.min.js",
   ];
   let idx = 0;
+
   function tentarProximo() {
     if (idx >= cdns.length) {
-      document.getElementById("status-badge").textContent = "Erro: Chart.js não carregou (sem internet?)";
-      // mesmo sem graficos, carrega KPIs e tabela
+      const badge = document.getElementById("status-badge");
+      if (badge) badge.textContent = "Erro: Chart.js não carregou (sem internet?)";
       callback(false);
       return;
     }
@@ -249,324 +304,240 @@ function carregarChartJS(callback) {
   tentarProximo();
 }
 
+function upsertChart(id, config) {
+  if (charts[id]) charts[id].destroy();
+  const ctx = document.getElementById(id);
+  if (ctx) charts[id] = new Chart(ctx, config);
+}
+
+function fmtMi(v) {
+  const valor = v || 0;
+  return "R$ " + (valor / 1e6).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " mi";
+}
+
+// ── Requisições da API ──
+async function carregarKPIs(comp) {
+  const uf = document.getElementById("f-uf")?.value || "";
+  const params = new URLSearchParams();
+  if (comp) params.append("competencia", comp);
+  if (uf) params.append("uf", uf);
+
+  const url = `${API}/api/kpis${params.toString() ? "?" + params.toString() : ""}`;
+  const res = await authFetch(url);
+  if (!res.ok) throw new Error("Erro ao carregar KPIs");
+  const d = await res.json();
+
+  document.getElementById("kpi-custo-total").textContent = fmtMi(d.custo_total);
+  document.getElementById("kpi-internacoes").textContent = (d.total_internacoes || 0).toLocaleString("pt-BR");
+  document.getElementById("kpi-custo-medio").textContent = "R$ " + Math.round(d.custo_medio || 0).toLocaleString("pt-BR");
+  document.getElementById("kpi-permanencia").textContent = (d.permanencia_media || 0).toFixed(1).replace(".", ",") + " dias";
+}
+
+async function carregarGraficoLinha() {
+  const res = await authFetch(`${API}/api/custo-por-mes`);
+  if (!res.ok) return;
+  const dados = await res.json();
+  if (!dados || !dados.length) return;
+
+  upsertChart("chartLinha", {
+    type: "line",
+    data: {
+      labels: dados.map(d => d.competencia),
+      datasets: [{
+        data: dados.map(d => d.custo / 1e6),
+        borderColor: ACC,
+        backgroundColor: "rgba(141,92,204,0.14)",
+        fill: true,
+        tension: .35,
+        pointRadius: 3,
+        pointBackgroundColor: ACC
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { backgroundColor: "#111110", padding: 10, cornerRadius: 8 } },
+      scales: {
+        x: { ticks: { color: MUT }, grid: { display: false } },
+        y: { ticks: { color: MUT, callback: v => "R$ " + v + "mi" }, grid: { color: GRD } }
+      }
+    }
+  });
+}
+
+async function carregarGraficoBarra() {
+  const res = await authFetch(`${API}/api/custo-por-hospital?limite=5`);
+  if (!res.ok) return;
+  const dados = await res.json();
+  if (!dados || !dados.length) return;
+
+  upsertChart("chartBarra", {
+    type: "bar",
+    data: {
+      labels: dados.map(d => d.hospital),
+      datasets: [{ data: dados.map(d => d.custo / 1e6), backgroundColor: ACC, borderRadius: 4, maxBarThickness: 22 }]
+    },
+    options: {
+      indexAxis: "y",
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { backgroundColor: "#111110", padding: 10, cornerRadius: 8 } },
+      scales: {
+        x: { ticks: { color: MUT }, grid: { color: GRD } },
+        y: { ticks: { color: MUT, font: { size: 11 } }, grid: { display: false } }
+      }
+    }
+  });
+}
+
+async function carregarTabela() {
+  const tbody = document.getElementById("tabela-hospitais");
+  if (!tbody) return;
+
+  const res = await authFetch(`${API}/api/custo-por-hospital?limite=10`);
+  if (!res.ok) return;
+  const dados = await res.json();
+  tbody.innerHTML = "";
+
+  if (!dados || !dados.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="color:var(--text-faint)">Sem dados.</td></tr>';
+    return;
+  }
+
+  dados.forEach(h => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${h.hospital}</td>
+      <td>${h.municipio}</td>
+      <td>${(h.internacoes || 0).toLocaleString("pt-BR")}</td>
+      <td>${fmtMi(h.custo)}</td>
+      <td style="width:120px"><div class="bar-track"><div class="bar-fill" style="width:${h.pct || 0}%"></div></div></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+async function carregarCompetencias() {
+  const uf = document.getElementById("f-uf")?.value || "";
+  const res = await authFetch(`${API}/api/competencias${uf ? "?uf=" + uf : ""}`);
+  if (!res.ok) return;
+  const comps = await res.json();
+  const sel = document.getElementById("f-mes");
+  if (!sel) return;
+
+  sel.innerHTML = '<option value="">Todos</option>';
+  comps.forEach(c => {
+    const o = document.createElement("option");
+    o.value = c;
+    o.textContent = c ? c.slice(4, 6) + '/' + c.slice(0, 4) : c;
+    sel.appendChild(o);
+  });
+}
+
+// ── Chatbot ──
+const chatbotToggle = document.getElementById("chatbot-toggle");
+if (chatbotToggle) {
+  chatbotToggle.addEventListener("click", () => {
+    document.getElementById("chatbot-panel")?.classList.toggle("open");
+  });
+}
+
+function chatbotMsg(texto) {
+  const b = document.getElementById("chatbot-body");
+  if (!b) return;
+  const div = document.createElement("div");
+  div.className = "chatbot-msg";
+  div.textContent = texto;
+  b.appendChild(div);
+  b.scrollTop = b.scrollHeight;
+}
+
+async function carregarChatbot() {
+  try {
+    const res = await authFetch(`${API}/api/chatbot/perguntas`);
+    if (!res.ok) throw new Error();
+    const perguntas = await res.json();
+    const q = document.getElementById("chatbot-questions");
+    if (!q) return;
+
+    q.innerHTML = "";
+    perguntas.forEach(p => {
+      const btn = document.createElement("button");
+      btn.className = "chatbot-q-btn";
+      btn.textContent = p.label;
+      btn.onclick = async () => {
+        chatbotMsg(p.label);
+        btn.disabled = true;
+        try {
+          const resp = await authFetch(`${API}/api/chatbot/responder?pergunta_id=${encodeURIComponent(p.id)}`);
+          const data = await resp.json();
+          chatbotMsg(data.resposta || "Não consegui calcular agora.");
+        } catch {
+          chatbotMsg("Erro ao consultar o banco.");
+        } finally {
+          btn.disabled = false;
+        }
+      };
+      q.appendChild(btn);
+    });
+    chatbotMsg("Escolha uma das perguntas abaixo.");
+  } catch {
+    chatbotMsg("Chatbot indisponível (API offline).");
+  }
+}
+
+// ── Inicialização do Dashboard ──
+async function iniciar() {
+  try {
+    await Promise.all([carregarKPIs(), carregarGraficoLinha(), carregarGraficoBarra(), carregarTabela(), carregarCompetencias()]);
+    const badge = document.getElementById("status-badge");
+    if (badge) badge.textContent = "Conectado à API — dados do Oracle";
+  } catch (e) {
+    const badge = document.getElementById("status-badge");
+    if (badge) badge.textContent = "API offline — rode o backend (localhost:8001)";
+  }
+}
+
+function iniciarDashboard(chartOk) {
+  if (chartOk) {
+    iniciar();
+  } else {
+    Promise.all([carregarKPIs(), carregarTabela(), carregarCompetencias()])
+      .then(() => {
+        const badge = document.getElementById("status-badge");
+        if (badge) badge.textContent = "Conectado — gráficos indisponíveis (sem internet)";
+      }).catch(() => {
+        const badge = document.getElementById("status-badge");
+        if (badge) badge.textContent = "API offline — rode o backend (localhost:8001)";
+      });
+  }
+  carregarChatbot();
+}
+
+// ── Event Listeners ──
+document.getElementById("f-mes")?.addEventListener("change", e => carregarKPIs(e.target.value));
+
+document.getElementById("f-uf")?.addEventListener("change", () => {
+  const mes = document.getElementById("f-mes")?.value || "";
+  carregarKPIs(mes);
+  carregarCompetencias();
+  carregarGraficoLinha();
+  carregarGraficoBarra();
+  carregarTabela();
+});
+
+document.getElementById("f-hospital")?.addEventListener("input", e => {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(async () => {
+    if (e.target.value.length < 2) return;
+    authFetch(`${API}/api/hospitais/buscar?q=${encodeURIComponent(e.target.value)}`);
+  }, 300);
+});
+
+// Execução Inicial
 carregarChartJS(function(chartOk) {
   iniciarDashboard(chartOk);
 });
-</script>
-<script>
-const API  = "http://localhost:8001";
-const ACC  = "#8d5ccc";
-const MUT  = "#9a9587";
-const GRD  = "#3a3935";
-
-// ── Auth ──
-const token = sessionStorage.getItem("dm_token");
-const perfil = sessionStorage.getItem("dm_perfil");
-if (!token || perfil !== "executivo") window.location.href = "/landing";
-
-const nome = sessionStorage.getItem("dm_nome");
-if (nome) document.getElementById("nome-usuario").textContent = nome + " — Sair";
-
-document.getElementById("logout-btn").addEventListener("click", async () => {
-  try {
-    await fetch(`${API}/auth/logout`, { method:"POST", headers:{"Authorization":`Bearer ${token}`} });
-  } catch(e) {}
-  sessionStorage.clear();
-  window.location.href = "/landing";
-});
-
-function authFetch(url, opts = {}) {
-  opts.headers = { ...(opts.headers||{}), "Authorization": `Bearer ${token}` };
-  return fetch(url, opts);
-}
-
-const charts = {};
-function upsertChart(id, config) {
-  if (charts[id]) charts[id].destroy();
-  const ctx = document.getElementById(id);
-  if (ctx) charts[id] = new Chart(ctx, config);
-}
-
-function fmtMi(v) {
-  return "R$ " + (v/1e6).toLocaleString("pt-BR",{minimumFractionDigits:1,maximumFractionDigits:1}) + " mi";
-}
-
-async function carregarKPIs(comp) {
-  const url = comp ? `${API}/api/kpis?competencia=${comp}` : `${API}/api/kpis`;
-  const d = await fetch(url).then(r=>r.json());
-  document.getElementById("kpi-custo-total").textContent = fmtMi(d.custo_total);
-  document.getElementById("kpi-internacoes").textContent = d.total_internacoes.toLocaleString("pt-BR");
-  document.getElementById("kpi-custo-medio").textContent = "R$ " + Math.round(d.custo_medio).toLocaleString("pt-BR");
-  document.getElementById("kpi-permanencia").textContent = d.permanencia_media.toFixed(1).replace(".",",") + " dias";
-}
-
-async function carregarGraficoLinha() {
-  const dados = await fetch(`${API}/api/custo-por-mes`).then(r=>r.json());
-  if (!dados.length) return;
-  upsertChart("chartLinha", {
-    type: "line",
-    data: {
-      labels: dados.map(d=>d.competencia),
-      datasets: [{ data: dados.map(d=>d.custo/1e6), borderColor:ACC, backgroundColor:"rgba(141,92,204,0.14)", fill:true, tension:.35, pointRadius:3, pointBackgroundColor:ACC }]
-    },
-    options: {
-      responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:false}, tooltip:{backgroundColor:"#111110",padding:10,cornerRadius:8} },
-      scales:{ x:{ticks:{color:MUT},grid:{display:false}}, y:{ticks:{color:MUT,callback:v=>"R$ "+v+"mi"},grid:{color:GRD}} }
-    }
-  });
-}
-
-async function carregarGraficoBarra() {
-  const dados = await fetch(`${API}/api/custo-por-hospital?limite=5`).then(r=>r.json());
-  if (!dados.length) return;
-  upsertChart("chartBarra", {
-    type: "bar",
-    data: {
-      labels: dados.map(d=>d.hospital),
-      datasets: [{ data:dados.map(d=>d.custo/1e6), backgroundColor:ACC, borderRadius:4, maxBarThickness:22 }]
-    },
-    options: {
-      indexAxis:"y", responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:false}, tooltip:{backgroundColor:"#111110",padding:10,cornerRadius:8} },
-      scales:{ x:{ticks:{color:MUT},grid:{color:GRD}}, y:{ticks:{color:MUT,font:{size:11}},grid:{display:false}} }
-    }
-  });
-}
-
-async function carregarTabela() {
-  const tbody = document.getElementById("tabela-hospitais");
-  const dados = await fetch(`${API}/api/custo-por-hospital?limite=10`).then(r=>r.json());
-  tbody.innerHTML = "";
-  if (!dados.length) { tbody.innerHTML='<tr><td colspan="5" style="color:var(--text-faint)">Sem dados.</td></tr>'; return; }
-  dados.forEach(h => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${h.hospital}</td><td>${h.municipio}</td><td>${h.internacoes.toLocaleString("pt-BR")}</td><td>${fmtMi(h.custo)}</td><td style="width:120px"><div class="bar-track"><div class="bar-fill" style="width:${h.pct}%"></div></div></td>`;
-    tbody.appendChild(tr);
-  });
-}
-
-async function carregarCompetencias() {
-  const comps = await fetch(`${API}/api/competencias`).then(r=>r.json());
-  const sel = document.getElementById("f-mes");
-  sel.innerHTML = '<option value="">Todos</option>';
-  comps.forEach(c => { const o=document.createElement("option"); o.value=o.textContent=c; sel.appendChild(o); });
-}
-
-document.getElementById("f-mes").addEventListener("change", e => carregarKPIs(e.target.value));
-
-let debounce;
-document.getElementById("f-hospital").addEventListener("input", e => {
-  clearTimeout(debounce);
-  debounce = setTimeout(async () => {
-    if (e.target.value.length < 2) return;
-    fetch(`${API}/api/hospitais/buscar?q=${encodeURIComponent(e.target.value)}`);
-  }, 300);
-});
-
-async function iniciar() {
-  try {
-    await Promise.all([carregarKPIs(), carregarGraficoLinha(), carregarGraficoBarra(), carregarTabela(), carregarCompetencias()]);
-    document.getElementById("status-badge").textContent = "Conectado à API — dados do Oracle";
-  } catch(e) {
-    document.getElementById("status-badge").textContent = "API offline — rode o backend (localhost:8001)";
-  }
-}
-
-// Chatbot
-document.getElementById("chatbot-toggle").addEventListener("click", () =>
-  document.getElementById("chatbot-panel").classList.toggle("open"));
-
-function chatbotMsg(texto) {
-  const b = document.getElementById("chatbot-body");
-  const div = document.createElement("div");
-  div.className = "chatbot-msg";
-  div.textContent = texto;
-  b.appendChild(div);
-  b.scrollTop = b.scrollHeight;
-}
-
-async function carregarChatbot() {
-  try {
-    const perguntas = await fetch(`${API}/api/chatbot/perguntas`).then(r=>r.json());
-    const q = document.getElementById("chatbot-questions");
-    q.innerHTML = "";
-    perguntas.forEach(p => {
-      const btn = document.createElement("button");
-      btn.className = "chatbot-q-btn";
-      btn.textContent = p.label;
-      btn.onclick = async () => {
-        chatbotMsg(p.label);
-        btn.disabled = true;
-        try {
-          const data = await fetch(`${API}/api/chatbot/responder?pergunta_id=${encodeURIComponent(p.id)}`).then(r=>r.json());
-          chatbotMsg(data.resposta || "Não consegui calcular agora.");
-        } catch { chatbotMsg("Erro ao consultar o banco."); }
-        finally { btn.disabled = false; }
-      };
-      q.appendChild(btn);
-    });
-    chatbotMsg("Escolha uma das perguntas abaixo.");
-  } catch { chatbotMsg("Chatbot indisponível (API offline)."); }
-}
-
-function iniciarDashboard(chartOk) {
-  if (chartOk) {
-    iniciar();
-  } else {
-    Promise.all([carregarKPIs(), carregarTabela(), carregarCompetencias()])
-      .then(() => {
-        document.getElementById("status-badge").textContent = "Conectado — gráficos indisponíveis (sem internet)";
-      }).catch(() => {
-        document.getElementById("status-badge").textContent = "API offline — rode o backend (localhost:8001)";
-      });
-  }
-  carregarChatbot();
-}
-</script>
-function upsertChart(id, config) {
-  if (charts[id]) charts[id].destroy();
-  const ctx = document.getElementById(id);
-  if (ctx) charts[id] = new Chart(ctx, config);
-}
-
-function fmtMi(v) {
-  return "R$ " + (v/1e6).toLocaleString("pt-BR",{minimumFractionDigits:1,maximumFractionDigits:1}) + " mi";
-}
-
-async function carregarKPIs(comp) {
-  const url = comp ? `${API}/api/kpis?competencia=${comp}` : `${API}/api/kpis`;
-  const d = await fetch(url).then(r=>r.json());
-  document.getElementById("kpi-custo-total").textContent = fmtMi(d.custo_total);
-  document.getElementById("kpi-internacoes").textContent = d.total_internacoes.toLocaleString("pt-BR");
-  document.getElementById("kpi-custo-medio").textContent = "R$ " + Math.round(d.custo_medio).toLocaleString("pt-BR");
-  document.getElementById("kpi-permanencia").textContent = d.permanencia_media.toFixed(1).replace(".",",") + " dias";
-}
-
-async function carregarGraficoLinha() {
-  const dados = await fetch(`${API}/api/custo-por-mes`).then(r=>r.json());
-  if (!dados.length) return;
-  upsertChart("chartLinha", {
-    type: "line",
-    data: {
-      labels: dados.map(d=>d.competencia),
-      datasets: [{ data: dados.map(d=>d.custo/1e6), borderColor:ACC, backgroundColor:"rgba(141,92,204,0.14)", fill:true, tension:.35, pointRadius:3, pointBackgroundColor:ACC }]
-    },
-    options: {
-      responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:false}, tooltip:{backgroundColor:"#111110",padding:10,cornerRadius:8} },
-      scales:{ x:{ticks:{color:MUT},grid:{display:false}}, y:{ticks:{color:MUT,callback:v=>"R$ "+v+"mi"},grid:{color:GRD}} }
-    }
-  });
-}
-
-async function carregarGraficoBarra() {
-  const dados = await fetch(`${API}/api/custo-por-hospital?limite=5`).then(r=>r.json());
-  if (!dados.length) return;
-  upsertChart("chartBarra", {
-    type: "bar",
-    data: {
-      labels: dados.map(d=>d.hospital),
-      datasets: [{ data:dados.map(d=>d.custo/1e6), backgroundColor:ACC, borderRadius:4, maxBarThickness:22 }]
-    },
-    options: {
-      indexAxis:"y", responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:false}, tooltip:{backgroundColor:"#111110",padding:10,cornerRadius:8} },
-      scales:{ x:{ticks:{color:MUT},grid:{color:GRD}}, y:{ticks:{color:MUT,font:{size:11}},grid:{display:false}} }
-    }
-  });
-}
-
-async function carregarTabela() {
-  const tbody = document.getElementById("tabela-hospitais");
-  const dados = await fetch(`${API}/api/custo-por-hospital?limite=10`).then(r=>r.json());
-  tbody.innerHTML = "";
-  if (!dados.length) { tbody.innerHTML='<tr><td colspan="5" style="color:var(--text-faint)">Sem dados.</td></tr>'; return; }
-  dados.forEach(h => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${h.hospital}</td><td>${h.municipio}</td><td>${h.internacoes.toLocaleString("pt-BR")}</td><td>${fmtMi(h.custo)}</td><td style="width:120px"><div class="bar-track"><div class="bar-fill" style="width:${h.pct}%"></div></div></td>`;
-    tbody.appendChild(tr);
-  });
-}
-
-async function carregarCompetencias() {
-  const comps = await fetch(`${API}/api/competencias`).then(r=>r.json());
-  const sel = document.getElementById("f-mes");
-  sel.innerHTML = '<option value="">Todos</option>';
-  comps.forEach(c => { const o=document.createElement("option"); o.value=o.textContent=c; sel.appendChild(o); });
-}
-
-document.getElementById("f-mes").addEventListener("change", e => carregarKPIs(e.target.value));
-
-let debounce;
-document.getElementById("f-hospital").addEventListener("input", e => {
-  clearTimeout(debounce);
-  debounce = setTimeout(async () => {
-    if (e.target.value.length < 2) return;
-    fetch(`${API}/api/hospitais/buscar?q=${encodeURIComponent(e.target.value)}`);
-  }, 300);
-});
-
-async function iniciar() {
-  try {
-    await Promise.all([carregarKPIs(), carregarGraficoLinha(), carregarGraficoBarra(), carregarTabela(), carregarCompetencias()]);
-    document.getElementById("status-badge").textContent = "Conectado à API — dados do Oracle";
-  } catch(e) {
-    document.getElementById("status-badge").textContent = "API offline — rode o backend (localhost:8001)";
-  }
-}
-
-// Chatbot
-document.getElementById("chatbot-toggle").addEventListener("click", () =>
-  document.getElementById("chatbot-panel").classList.toggle("open"));
-
-function chatbotMsg(texto) {
-  const b = document.getElementById("chatbot-body");
-  const div = document.createElement("div");
-  div.className = "chatbot-msg";
-  div.textContent = texto;
-  b.appendChild(div);
-  b.scrollTop = b.scrollHeight;
-}
-
-async function carregarChatbot() {
-  try {
-    const perguntas = await fetch(`${API}/api/chatbot/perguntas`).then(r=>r.json());
-    const q = document.getElementById("chatbot-questions");
-    q.innerHTML = "";
-    perguntas.forEach(p => {
-      const btn = document.createElement("button");
-      btn.className = "chatbot-q-btn";
-      btn.textContent = p.label;
-      btn.onclick = async () => {
-        chatbotMsg(p.label);
-        btn.disabled = true;
-        try {
-          const data = await fetch(`${API}/api/chatbot/responder?pergunta_id=${encodeURIComponent(p.id)}`).then(r=>r.json());
-          chatbotMsg(data.resposta || "Não consegui calcular agora.");
-        } catch { chatbotMsg("Erro ao consultar o banco."); }
-        finally { btn.disabled = false; }
-      };
-      q.appendChild(btn);
-    });
-    chatbotMsg("Escolha uma das perguntas abaixo.");
-  } catch { chatbotMsg("Chatbot indisponível (API offline)."); }
-}
-
-function iniciarDashboard(chartOk) {
-  if (chartOk) {
-    iniciar();
-  } else {
-    // sem Chart.js: carrega só KPIs e tabela
-    Promise.all([carregarKPIs(), carregarTabela(), carregarCompetencias()])
-      .then(() => {
-        document.getElementById("status-badge").textContent = "Conectado — gráficos indisponíveis (sem internet)";
-      }).catch(() => {
-        document.getElementById("status-badge").textContent = "API offline — rode o backend (localhost:8001)";
-      });
-  }
-  carregarChatbot();
-}
 </script>
 </body>
 </html>

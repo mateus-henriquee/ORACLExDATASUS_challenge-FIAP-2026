@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Capacidade — DataMind</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0d12;--card:#1a1917;--border:#3d3b37;--text:#ece8e1;--muted:#9a9587;--faint:#63606f;--accent:#8d5ccc;--accent2:#a87de0;--green:#6fbf73;--red:#d9695f;--amber:#e6a832;--r:12px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;}
+.sidebar{width:240px;flex-shrink:0;background:#12110f;border-right:1px solid var(--border);display:flex;flex-direction:column;padding:18px 14px;position:fixed;height:100vh;overflow-y:auto;}
+.brand{display:flex;align-items:center;gap:8px;padding-bottom:22px;}
+.brand-mark{color:var(--accent);font-size:20px;}
+.brand-name{font-family:'Source Serif 4',serif;font-size:16px;font-weight:600;}
+.brand-sub{font-size:11px;color:var(--faint);margin-left:auto;}
+.nav-label{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--faint);font-weight:600;margin:4px 6px 8px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;color:var(--muted);font-size:13.5px;cursor:pointer;margin-bottom:2px;text-decoration:none;}
+.nav-item:hover{background:var(--card);color:var(--text);}
+.nav-item.active{background:rgba(141,92,204,.13);color:var(--text);font-weight:600;border-left:2px solid var(--accent);padding-left:8px;}
+.nav-item svg{width:18px;height:18px;flex-shrink:0;}
+.spacer{flex:1;}
+.logout{display:flex;align-items:center;gap:10px;padding:12px 10px 0;border-top:1px solid var(--border);color:var(--muted);font-size:13.5px;cursor:pointer;}
+.logout:hover{color:var(--red);}
+.logout svg{width:18px;height:18px;}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;margin-left:240px;}
+.header{padding:20px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+.header-left h1{font-family:'Source Serif 4',serif;font-size:20px;font-weight:600;}
+.header-left p{font-size:12px;color:var(--muted);margin-top:3px;}
+.scroll{flex:1;overflow-y:auto;padding:24px 28px 60px;}
+.scroll::-webkit-scrollbar{width:6px;}
+.scroll::-webkit-scrollbar-thumb{background:#761dbb;border-radius:6px;}
+
+/* KPIs */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:18px;position:relative;overflow:hidden;}
+.kpi-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;}
+.kpi-val{font-family:'Source Serif 4',serif;font-size:24px;font-weight:600;margin-bottom:4px;}
+.kpi-sub{font-size:11px;color:var(--faint);}
+
+/* Gauge */
+.gauges{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px;}
+.gauge-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:22px;text-align:center;}
+.gauge-card h3{font-family:'Source Serif 4',serif;font-size:14px;font-weight:600;margin-bottom:4px;}
+.gauge-card .gauge-sub{font-size:11px;color:var(--muted);margin-bottom:16px;}
+.gauge-wrap{position:relative;width:140px;height:80px;margin:0 auto;}
+.gauge-svg{width:100%;height:100%;}
+.gauge-label{position:absolute;bottom:0;left:50%;transform:translateX(-50%);font-family:'Source Serif 4',serif;font-size:22px;font-weight:700;}
+.gauge-desc{font-size:11px;color:var(--muted);margin-top:12px;}
+
+/* Cards grid */
+.cards-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:20px;}
+.card-title{font-family:'Source Serif 4',serif;font-size:14px;font-weight:600;margin-bottom:4px;}
+.card-sub{font-size:11px;color:var(--muted);margin-bottom:16px;}
+.chart-box{position:relative;height:260px;}
+
+/* Ranking pressão */
+.rank-table{width:100%;border-collapse:collapse;font-size:12px;}
+.rank-table th{text-align:left;color:var(--faint);font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;padding:8px 10px;border-bottom:1px solid var(--border);}
+.rank-table td{padding:10px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--text);}
+.rank-table tr:last-child td{border-bottom:none;}
+.rank-table tr:hover td{background:rgba(141,92,204,.04);}
+.bar-mini{height:6px;background:#1e1d1a;border-radius:3px;overflow:hidden;width:100%;}
+.bar-mini-fill{height:100%;border-radius:3px;transition:width .6s ease;}
+.badge-pressure{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600;}
+.badge-alta{background:rgba(217,105,95,.15);color:var(--red);}
+.badge-media{background:rgba(230,168,50,.15);color:var(--amber);}
+.badge-baixa{background:rgba(111,191,115,.15);color:var(--green);}
+
+/* Distribuição horizontal */
+.dist-bars{display:flex;flex-direction:column;gap:10px;}
+.dist-row{display:flex;align-items:center;gap:10px;}
+.dist-label{font-size:12px;color:var(--muted);width:140px;flex-shrink:0;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.dist-track{flex:1;height:22px;background:#1e1d1a;border-radius:5px;overflow:hidden;position:relative;}
+.dist-fill{height:100%;border-radius:5px;display:flex;align-items:center;padding-left:8px;transition:width .8s cubic-bezier(.22,.9,.35,1);}
+.dist-val{font-size:10.5px;font-weight:600;color:#fff;white-space:nowrap;}
+.dist-rank{font-size:10px;color:var(--faint);width:20px;text-align:right;flex-shrink:0;}
+
+/* Alerta cards */
+.alertas{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:24px;}
+.alerta-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:18px;display:flex;gap:14px;align-items:flex-start;transition:border-color .2s;}
+.alerta-card:hover{border-color:rgba(141,92,204,.4);}
+.alerta-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.alerta-icon.red{background:rgba(217,105,95,.12);}
+.alerta-icon.amber{background:rgba(230,168,50,.12);}
+.alerta-icon.green{background:rgba(111,191,115,.12);}
+.alerta-icon.purple{background:rgba(141,92,204,.12);}
+.alerta-title{font-size:13px;font-weight:600;margin-bottom:4px;}
+.alerta-desc{font-size:12px;color:var(--muted);line-height:1.5;}
+
+@media(max-width:1000px){
+  .kpis{grid-template-columns:repeat(2,1fr);}
+  .gauges{grid-template-columns:1fr;}
+  .cards-2{grid-template-columns:1fr;}
+  .alertas{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="brand"><span class="brand-mark">✳</span><span class="brand-name">DataMind</span><span class="brand-sub">Analítico</span></div>
+  <div class="nav-label">Visualizações</div>
+  <a class="nav-item" href="/analitico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="5" rx="1.5"/><rect x="13" y="10" width="8" height="11" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/></svg>Visão geral</a>
+  <a class="nav-item" href="/tendencias"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 4-4"/></svg>Tendências</a>
+  <a class="nav-item active" href="/capacidade"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l5 3"/></svg>Capacidade</a>
+  <div class="spacer"></div>
+  <div class="logout" id="logout-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg><span id="nome-usuario">Sair</span></div>
+</aside>
+
+<main class="main">
+  <div class="header">
+    <div class="header-left">
+      <h1>Capacidade Hospitalar</h1>
+      <p>Pressão assistencial e distribuição de carga — SIH-SUS 2024 · SP</p>
+    </div>
+  </div>
+  <div class="scroll">
+
+    <!-- KPIs -->
+    <div class="kpis" id="kpis">
+      <div class="kpi"><div class="kpi-label">Hospitais ativos</div><div class="kpi-val" id="k-hospitais">—</div><div class="kpi-sub">com ao menos 1 internação</div></div>
+      <div class="kpi"><div class="kpi-label">Internações / hospital</div><div class="kpi-val" id="k-media-hosp">—</div><div class="kpi-sub">média por estabelecimento</div></div>
+      <div class="kpi"><div class="kpi-label">Permanência média</div><div class="kpi-val" id="k-perm">—</div><div class="kpi-sub">dias por internação</div></div>
+      <div class="kpi"><div class="kpi-label">Concentração top 10</div><div class="kpi-val" id="k-conc">—</div><div class="kpi-sub">do total de internações</div></div>
+    </div>
+
+    <!-- Gauges de pressão -->
+    <div class="gauges" id="gauges">
+      <div class="gauge-card">
+        <h3>Pressão geral</h3>
+        <div class="gauge-sub">Volume vs capacidade estimada</div>
+        <div class="gauge-wrap"><svg class="gauge-svg" viewBox="0 0 120 70"><path d="M10 65 A50 50 0 0 1 110 65" fill="none" stroke="#1e1d1a" stroke-width="10" stroke-linecap="round"/><path id="g-geral" d="M10 65 A50 50 0 0 1 110 65" fill="none" stroke="#8d5ccc" stroke-width="10" stroke-linecap="round" stroke-dasharray="157" stroke-dashoffset="157"/></svg><div class="gauge-label" id="g-geral-val">—</div></div>
+        <div class="gauge-desc" id="g-geral-desc">Calculando...</div>
+      </div>
+      <div class="gauge-card">
+        <h3>Concentração geográfica</h3>
+        <div class="gauge-sub">Internações nos 5 maiores municípios</div>
+        <div class="gauge-wrap"><svg class="gauge-svg" viewBox="0 0 120 70"><path d="M10 65 A50 50 0 0 1 110 65" fill="none" stroke="#1e1d1a" stroke-width="10" stroke-linecap="round"/><path id="g-geo" d="M10 65 A50 50 0 0 1 110 65" fill="none" stroke="#e6a832" stroke-width="10" stroke-linecap="round" stroke-dasharray="157" stroke-dashoffset="157"/></svg><div class="gauge-label" id="g-geo-val">—</div></div>
+        <div class="gauge-desc" id="g-geo-desc">Calculando...</div>
+      </div>
+      <div class="gauge-card">
+        <h3>Sazonalidade</h3>
+        <div class="gauge-sub">Variação entre mês mínimo e máximo</div>
+        <div class="gauge-wrap"><svg class="gauge-svg" viewBox="0 0 120 70"><path d="M10 65 A50 50 0 0 1 110 65" fill="none" stroke="#1e1d1a" stroke-width="10" stroke-linecap="round"/><path id="g-saz" d="M10 65 A50 50 0 0 1 110 65" fill="none" stroke="#6fbf73" stroke-width="10" stroke-linecap="round" stroke-dasharray="157" stroke-dashoffset="157"/></svg><div class="gauge-label" id="g-saz-val">—</div></div>
+        <div class="gauge-desc" id="g-saz-desc">Calculando...</div>
+      </div>
+    </div>
+
+    <!-- Alertas automáticos -->
+    <div class="alertas" id="alertas"></div>
+
+    <!-- Gráficos lado a lado -->
+    <div class="cards-2">
+      <div class="card">
+        <div class="card-title">Carga por hospital — Top 10</div>
+        <div class="card-sub">Internações acumuladas por estabelecimento</div>
+        <div class="chart-box"><canvas id="chart-carga"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Distribuição por faixa etária</div>
+        <div class="card-sub">Pressão assistencial por grupo demográfico</div>
+        <div class="chart-box"><canvas id="chart-faixa"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Ranking de pressão por município -->
+    <div class="card" style="margin-bottom:24px">
+      <div class="card-title">Ranking de pressão por município</div>
+      <div class="card-sub">Municípios ordenados por volume de internações — barra proporcional ao máximo</div>
+      <table class="rank-table" style="margin-top:14px">
+        <thead><tr><th>#</th><th>Município</th><th>Internações</th><th>Custo</th><th>Pressão</th><th>Nível</th></tr></thead>
+        <tbody id="rank-body"><tr><td colspan="6" style="color:var(--muted)">Carregando...</td></tr></tbody>
+      </table>
+    </div>
+
+    <!-- Distribuição por sexo -->
+    <div class="cards-2">
+      <div class="card">
+        <div class="card-title">Distribuição por sexo</div>
+        <div class="card-sub">Proporção de internações por gênero</div>
+        <div class="chart-box"><canvas id="chart-sexo"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Custo por competência</div>
+        <div class="card-sub">Evolução do custo total mês a mês</div>
+        <div class="chart-box"><canvas id="chart-custo"></canvas></div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"
+  onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js';s.onload=function(){iniciar()};document.head.appendChild(s);"
+  onload="iniciar()"></script>
+<script>
+const API = 'http://localhost:8001';
+const token = sessionStorage.getItem('dm_token');
+const perfil = sessionStorage.getItem('dm_perfil');
+if (!token || perfil !== 'analitico') window.location.href = '/landing';
+const nome = sessionStorage.getItem('dm_nome');
+if (nome) document.getElementById('nome-usuario').textContent = nome + ' — Sair';
+document.getElementById('logout-btn').addEventListener('click', async () => {
+  try { await fetch(`${API}/auth/logout`,{method:'POST',headers:{'Authorization':`Bearer ${token}`}}); } catch(e){}
+  sessionStorage.clear(); window.location.href = '/landing';
+});
+
+const ACC='#8d5ccc',GRN='#6fbf73',AMB='#e6a832',RED='#d9695f',MUT='#9a9587',GRD='#3a3935';
+const PAL=[ACC,'#a87de0','#c4a3eb','#e0c9f5',GRN,AMB,RED,'#4C8BF5','#f5a04c','#4cf5b0'];
+let charts={};
+function upsert(id,cfg){if(charts[id])charts[id].destroy();const c=document.getElementById(id);if(c)charts[id]=new Chart(c,cfg);}
+function fN(n){return Number(n).toLocaleString('pt-BR');}
+function fMi(n){return'R$ '+(n/1e6).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+' mi';}
+
+function setGauge(id, pct, color) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const total = 157;
+  const offset = total * (1 - Math.min(pct/100, 1));
+  el.style.transition = 'stroke-dashoffset 1.2s ease';
+  el.style.stroke = color;
+  setTimeout(() => { el.setAttribute('stroke-dashoffset', offset); }, 100);
+}
+
+async function iniciar() {
+  let hospitais=[], meses=[], faixas=[], municipios=[], sexos=[];
+  try {
+    [hospitais, meses, faixas, municipios, sexos] = await Promise.all([
+      fetch(`${API}/api/custo-por-hospital?limite=10`).then(r=>r.json()),
+      fetch(`${API}/api/custo-por-mes`).then(r=>r.json()),
+      fetch(`${API}/api/analise/faixa-etaria`).then(r=>r.json()),
+      fetch(`${API}/api/analise/municipios-top?limite=15`).then(r=>r.json()),
+      fetch(`${API}/api/analise/sexo`).then(r=>r.json()),
+    ]);
+  } catch(e) { console.error('Erro:', e); return; }
+
+  // KPIs
+  const totalInt = meses.reduce((a,d)=>a+d.internacoes,0);
+  const numHosp = hospitais.length;
+  const mediaHosp = numHosp ? Math.round(totalInt / numHosp) : 0;
+  const permMedia = meses.length ? (meses.reduce((a,d)=>a+d.permanencia_media,0)/meses.length) : 0;
+  const top10int = hospitais.reduce((a,h)=>a+h.internacoes,0);
+  const concPct = totalInt ? (top10int/totalInt*100) : 0;
+
+  document.getElementById('k-hospitais').textContent = fN(numHosp);
+  document.getElementById('k-media-hosp').textContent = fN(mediaHosp);
+  document.getElementById('k-perm').textContent = permMedia.toFixed(1).replace('.',',') + ' dias';
+  document.getElementById('k-conc').textContent = concPct.toFixed(1) + '%';
+
+  // Gauges
+  const pressaoGeral = Math.min(100, concPct * 1.3);
+  setGauge('g-geral', pressaoGeral, pressaoGeral > 70 ? RED : pressaoGeral > 40 ? AMB : GRN);
+  document.getElementById('g-geral-val').textContent = pressaoGeral.toFixed(0) + '%';
+  document.getElementById('g-geral-desc').textContent = pressaoGeral > 70 ? 'Alta concentração — poucos hospitais absorvem a maior carga' : pressaoGeral > 40 ? 'Concentração moderada' : 'Carga bem distribuída';
+
+  if (municipios.length >= 5) {
+    const top5int = municipios.slice(0,5).reduce((a,m)=>a+m.internacoes,0);
+    const geoPct = totalInt ? (top5int/totalInt*100) : 0;
+    setGauge('g-geo', geoPct, geoPct > 60 ? AMB : GRN);
+    document.getElementById('g-geo-val').textContent = geoPct.toFixed(0) + '%';
+    document.getElementById('g-geo-desc').textContent = `Os 5 maiores municípios concentram ${geoPct.toFixed(1)}% das internações`;
+  }
+
+  if (meses.length >= 2) {
+    const maxM = Math.max(...meses.map(m=>m.internacoes));
+    const minM = Math.min(...meses.map(m=>m.internacoes));
+    const sazPct = minM ? ((maxM-minM)/minM*100) : 0;
+    const sazNorm = Math.min(100, sazPct * 2);
+    setGauge('g-saz', sazNorm, sazPct > 30 ? RED : sazPct > 15 ? AMB : GRN);
+    document.getElementById('g-saz-val').textContent = sazPct.toFixed(0) + '%';
+    document.getElementById('g-saz-desc').textContent = `Variação de ${fN(minM)} a ${fN(maxM)} internações/mês`;
+  }
+
+  // Alertas automáticos
+  const alertas = [];
+  if (concPct > 50) alertas.push({icon:'⚠️',cls:'red',title:`Top 10 concentra ${concPct.toFixed(0)}%`,desc:'Poucos hospitais absorvem mais da metade das internações. Risco de sobrecarga localizada.'});
+  if (permMedia > 5) alertas.push({icon:'🕐',cls:'amber',title:`Permanência média de ${permMedia.toFixed(1)} dias`,desc:'Acima da referência de 5 dias — pode indicar casos de maior complexidade ou demora na alta.'});
+  if (municipios.length >= 2) {
+    const ratio = municipios[0].internacoes / (municipios[1].internacoes||1);
+    if (ratio > 3) alertas.push({icon:'📍',cls:'amber',title:`${municipios[0].municipio} tem ${ratio.toFixed(0)}x mais que o 2º`,desc:'Concentração extrema no município líder — desbalanceamento regional.'});
+  }
+  alertas.push({icon:'✅',cls:'green',title:`${fN(totalInt)} internações processadas`,desc:`Dados de ${meses.length} competências carregados com sucesso no Oracle.`});
+
+  document.getElementById('alertas').innerHTML = alertas.map(a => `
+    <div class="alerta-card">
+      <div class="alerta-icon ${a.cls}">${a.icon}</div>
+      <div><div class="alerta-title">${a.title}</div><div class="alerta-desc">${a.desc}</div></div>
+    </div>
+  `).join('');
+
+  // Gráfico carga hospital
+  upsert('chart-carga', {
+    type:'bar',
+    data:{
+      labels: hospitais.map(h=>h.hospital),
+      datasets:[{data:hospitais.map(h=>h.internacoes),backgroundColor:ACC,borderRadius:4,maxBarThickness:20}]
+    },
+    options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'#111110',padding:10,cornerRadius:8}},
+      scales:{x:{ticks:{color:MUT},grid:{color:GRD}},y:{ticks:{color:MUT,font:{size:10}},grid:{display:false}}}
+    }
+  });
+
+  // Gráfico faixa etária
+  upsert('chart-faixa', {
+    type:'doughnut',
+    data:{
+      labels: faixas.map(f=>f.faixa_etaria),
+      datasets:[{data:faixas.map(f=>f.qtd),backgroundColor:PAL,borderWidth:0}]
+    },
+    options:{responsive:true,maintainAspectRatio:false,cutout:'55%',
+      plugins:{legend:{display:true,position:'bottom',labels:{color:MUT,boxWidth:10,padding:8,font:{size:10}}},
+        tooltip:{backgroundColor:'#111110',padding:10,cornerRadius:8}}
+    }
+  });
+
+  // Ranking pressão município
+  const maxMunInt = municipios.length ? municipios[0].internacoes : 1;
+  document.getElementById('rank-body').innerHTML = municipios.map((m,i) => {
+    const pct = (m.internacoes/maxMunInt*100);
+    const nivel = pct > 60 ? 'Alta' : pct > 30 ? 'Média' : 'Baixa';
+    const cls = pct > 60 ? 'alta' : pct > 30 ? 'media' : 'baixa';
+    const cor = pct > 60 ? RED : pct > 30 ? AMB : GRN;
+    return `<tr>
+      <td style="color:var(--faint);font-size:11px">${i+1}</td>
+      <td>${m.municipio}</td>
+      <td>${fN(m.internacoes)}</td>
+      <td>${fMi(m.custo)}</td>
+      <td><div class="bar-mini"><div class="bar-mini-fill" style="width:${pct}%;background:${cor}"></div></div></td>
+      <td><span class="badge-pressure badge-${cls}">${nivel}</span></td>
+    </tr>`;
+  }).join('');
+
+  // Gráfico sexo
+  upsert('chart-sexo', {
+    type:'pie',
+    data:{
+      labels: sexos.map(s=>s.sexo==='M'?'Masculino':s.sexo==='F'?'Feminino':s.sexo),
+      datasets:[{data:sexos.map(s=>s.qtd),backgroundColor:[ACC,GRN,AMB,RED]}]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:true,position:'bottom',labels:{color:MUT,boxWidth:12,padding:12}},
+        tooltip:{backgroundColor:'#111110',padding:10,cornerRadius:8}}
+    }
+  });
+
+  // Gráfico custo por mês
+  upsert('chart-custo', {
+    type:'line',
+    data:{
+      labels: meses.map(m=>{const c=m.competencia;return c?c.slice(4,6)+'/'+c.slice(0,4):c;}),
+      datasets:[{data:meses.map(m=>m.custo/1e6),borderColor:ACC,backgroundColor:'rgba(141,92,204,.12)',fill:true,tension:.4,pointRadius:5,pointBackgroundColor:ACC,pointHoverRadius:8}]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'#111110',padding:10,cornerRadius:8,callbacks:{label:ctx=>'R$ '+ctx.raw.toFixed(1)+' mi'}}},
+      scales:{x:{ticks:{color:MUT},grid:{display:false}},y:{ticks:{color:MUT,callback:v=>'R$ '+v+'mi'},grid:{color:GRD}}}
+    }
+  });
+}
+</script>
+</body>
+</html>

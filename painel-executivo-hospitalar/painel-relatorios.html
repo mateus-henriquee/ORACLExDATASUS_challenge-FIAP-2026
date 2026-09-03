@@ -37,6 +37,16 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .scroll::-webkit-scrollbar{width:6px;}
 .scroll::-webkit-scrollbar-thumb{background:#761dbb;border-radius:6px;}
 
+.btn-download {
+  display: flex; align-items: center; gap: 5px;
+  background: none; border: 1px solid var(--border);
+  border-radius: 8px; color: var(--muted);
+  font-size: 12px; padding: 7px 10px; cursor: pointer;
+  transition: border-color .15s, color .15s;
+}
+.btn-download:hover { border-color: #6fbf73; color: #6fbf73; }
+.btn-download.pdf:hover { border-color: #d9695f; color: #d9695f; }
+
 /* Cards de relatório */
 .relatorios-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;}
 
@@ -192,6 +202,67 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
   let relatorios = [];
 
+  async function baixarCSV(id) {
+  const rel = relatorios.find(r => r.id === id);
+  if (!rel) return;
+  const dim = rel.campos?.dim || 'municipio';
+  const mets = rel.campos?.metricas || ['internacoes'];
+  try {
+    const r = await fetch(`${API}/api/comparativos?dim=${dim}&top=50`);
+    const dados = await r.json();
+    const DIMS = {municipio:'Município',hospital:'Hospital',faixa_etaria:'Faixa etária',competencia:'Competência'};
+    const LABELS = {internacoes:'Internações',custo:'Custo total (R$)',permanencia:'Permanência média (dias)'};
+    const header = [DIMS[dim]||dim, ...mets.map(m=>LABELS[m]||m)].join(',');
+    const rows = dados.map(d => [
+      `"${d.label}"`,
+      ...mets.map(m => m==='custo' ? d.custo.toFixed(2) : m==='permanencia' ? d.permanencia.toFixed(1) : d.internacoes)
+    ].join(','));
+    const csv = [header, ...rows].join('\n');
+    const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `relatorio_${rel.titulo.replace(/\s+/g,'_')}.csv`;
+    a.click();
+  } catch(e) { alert('Erro ao gerar CSV.'); }
+}
+
+async function baixarPDF(id) {
+  const rel = relatorios.find(r => r.id === id);
+  if (!rel) return;
+  const dim = rel.campos?.dim || 'municipio';
+  const mets = rel.campos?.metricas || ['internacoes'];
+  try {
+    const r = await fetch(`${API}/api/comparativos?dim=${dim}&top=50`);
+    const dados = await r.json();
+    const DIMS = {municipio:'Município',hospital:'Hospital',faixa_etaria:'Faixa etária',competencia:'Competência'};
+    const LABELS = {internacoes:'Internações',custo:'Custo total (R$)',permanencia:'Permanência média (dias)'};
+    const fmtVal = (m,v) => m==='custo'?'R$ '+(v/1e6).toFixed(1)+' mi':m==='permanencia'?v.toFixed(1)+' dias':v.toLocaleString('pt-BR');
+    const linhas = dados.map((d,i) => `
+      <tr style="background:${i%2===0?'#1a1917':'#111010'}">
+        <td style="padding:8px 12px;border-bottom:1px solid #2b2a27;color:#ece8e1">${d.label}</td>
+        ${mets.map(m=>`<td style="padding:8px 12px;border-bottom:1px solid #2b2a27;color:#ece8e1;text-align:right">${fmtVal(m,d[m])}</td>`).join('')}
+      </tr>`).join('');
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+      <title>${rel.titulo}</title>
+      <style>body{font-family:Arial,sans-serif;background:#0a0d12;color:#ece8e1;padding:40px}
+      h1{font-size:22px;margin-bottom:4px}p{color:#9a9587;font-size:13px;margin-bottom:24px}
+      table{width:100%;border-collapse:collapse}th{background:#8d5ccc;color:#fff;padding:10px 12px;text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+      </style></head><body>
+      <h1>${rel.titulo}</h1>
+      <p>${rel.descricao || ''} &nbsp;·&nbsp; Gerado em ${new Date().toLocaleDateString('pt-BR')} &nbsp;·&nbsp; DataMind</p>
+      <table><thead><tr>
+        <th>${DIMS[dim]||dim}</th>
+        ${mets.map(m=>`<th style="text-align:right">${LABELS[m]||m}</th>`).join('')}
+      </tr></thead><tbody>${linhas}</tbody></table>
+      </body></html>`;
+    const blob = new Blob([html], {type:'text/html'});
+    const win = window.open('');
+    win.document.write(html);
+    win.document.close();
+    setTimeout(() => { win.print(); }, 500);
+  } catch(e) { alert('Erro ao gerar PDF.'); }
+}
+
   async function carregar() {
     try {
       const r = await fetch(`${API}/api/relatorios?token=${encodeURIComponent(token)}`);
@@ -228,17 +299,24 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         <div class="rel-desc">${d}</div>
         <div class="rel-campos">${mets.map(c=>`<span class="rel-campo">${CAMPOS_LABEL[c]||c}</span>`).join('')}</div>
         <div class="rel-acoes">
-          <button class="btn-expandir" onclick="toggleDados('${rel.id}')">Ver dados</button>
-          <button class="btn-excluir" onclick="excluir('${rel.id}')">Excluir</button>
+            <button class="btn-expandir" onclick="toggleDados('${rel.id}')">Ver dados</button>
+            <button class="btn-download" onclick="baixarCSV('${rel.id}')" title="Baixar CSV">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="12" x2="12" y2="18"/><polyline points="9 15 12 18 15 15"/></svg>
+              CSV
+            </button>
+            <button class="btn-download pdf" onclick="baixarPDF('${rel.id}')" title="Baixar PDF">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 13h6M9 17h6M9 9h1"/></svg>
+              PDF
+            </button>
+            <button class="btn-excluir" onclick="excluir('${rel.id}')">Excluir</button>
         </div>
-        <div class="rel-dados" id="dados-${rel.id}">
-          <div class="loading-dados">Carregando dados...</div>
-        </div>
+        <!-- DIV ADICIONADA ABAIXO -->
+        <div class="rel-dados" id="dados-${rel.id}"></div>
       </div>
     `;
     }).join('');
-  } // <-- Chave adicionada para fechar a função renderGrid()
-
+  }
+  
   async function toggleDados(id) {
     const el = document.getElementById(`dados-${id}`);
     const rel = relatorios.find(r => r.id === id);
@@ -291,8 +369,11 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     const btn = document.getElementById('btn-criar');
     btn.disabled = true; btn.textContent = 'Criando...';
     try {
-      const body = new URLSearchParams({titulo, descricao: desc, campos: JSON.stringify({dim, metricas}), token});
-      const r = await fetch(`${API}/api/relatorios`, {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body});
+      const r = await fetch(`${API}/api/relatorios?token=${encodeURIComponent(token)}`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({titulo, descricao: desc, campos: {dim, metricas}})
+      });
       const novo = await r.json();
       relatorios.unshift(novo);
       renderGrid();
