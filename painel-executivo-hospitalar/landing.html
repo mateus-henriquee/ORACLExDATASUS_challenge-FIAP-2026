@@ -122,6 +122,17 @@
     max-width:1400px;
     margin:0 auto;
   }
+
+.perfil-gif img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  filter: grayscale(1) brightness(1);
+  transition: filter .4s ease, opacity .4s ease;
+}
+.perfil-card:hover .perfil-gif img {
+  filter: grayscale(0) brightness(1);
+}
+
   .eyebrow{
     font-family:'JetBrains Mono',monospace;
     font-size:12px;letter-spacing:0.14em;
@@ -1162,6 +1173,137 @@
   .stack-step { border-radius: 16px !important; margin-right: 0 !important; }
   .stack-arrow { display: none; }
 }
+
+/* ── Seção Perfis ── */
+.perfis-section {
+  padding: 120px 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.perfis-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; letter-spacing: .14em;
+  color: var(--accent); text-transform: uppercase;
+  margin-bottom: 16px; text-align: center;
+}
+.perfis-titulo {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 700; letter-spacing: -.03em;
+  margin-bottom: 12px; text-align: center;
+}
+.perfis-sub {
+  font-size: 15px; color: var(--text-dim);
+  text-align: center; max-width: 520px;
+  margin: 0 auto 64px; line-height: 1.6;
+}
+.perfis-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+.perfil-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color .3s ease, box-shadow .3s ease, transform .3s ease;
+  position: relative;
+}
+.perfil-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 40px rgba(141,92,204,0.25), 0 0 0 1px rgba(141,92,204,0.3);
+  transform: translateY(-6px);
+}
+.perfil-gif {
+  width: 100%;
+  height: 200px;
+  background: #0d0f14;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+.perfil-gif-anim {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.35;
+  transition: opacity .3s ease;
+}
+.perfil-card:hover .perfil-gif-anim { opacity: 0.7; }
+.perfil-gif-icon {
+  font-size: 64px;
+  animation: float 3s ease-in-out infinite;
+  filter: grayscale(1) brightness(0.6);
+  transition: filter .3s ease;
+}
+.perfil-card:hover .perfil-gif-icon {
+  filter: grayscale(0) brightness(1);
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+.perfil-card:nth-child(2) .perfil-gif-icon { animation-delay: .5s; }
+.perfil-card:nth-child(3) .perfil-gif-icon { animation-delay: 1s; }
+
+.perfil-badge {
+  position: absolute;
+  top: 14px; right: 14px;
+  font-size: 10px; letter-spacing: .08em; text-transform: uppercase;
+  padding: 4px 10px; border-radius: 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+}
+.perfil-badge.exec { background: rgba(141,92,204,.2); color: var(--accent2); border: 1px solid rgba(141,92,204,.3); }
+.perfil-badge.anal { background: rgba(79,172,254,.15); color: #4facfe; border: 1px solid rgba(79,172,254,.3); }
+.perfil-badge.leig { background: rgba(111,191,115,.15); color: #6fbf73; border: 1px solid rgba(111,191,115,.3); }
+
+.perfil-body {
+  padding: 24px;
+}
+.perfil-nome {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 18px; font-weight: 700;
+  margin-bottom: 8px;
+}
+.perfil-desc {
+  font-size: 13.5px; color: var(--text-dim);
+  line-height: 1.6; margin-bottom: 16px;
+}
+.perfil-features {
+  display: flex; flex-direction: column; gap: 8px;
+}
+.perfil-feature {
+  display: flex; align-items: flex-start; gap: 8px;
+  font-size: 12.5px; color: var(--text-dim);
+}
+.perfil-feature::before {
+  content: '→';
+  color: var(--accent);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.perfil-cta {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 20px;
+  font-size: 12px; font-weight: 600;
+  color: var(--accent2);
+  letter-spacing: .05em;
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: opacity .3s ease, transform .3s ease;
+}
+.perfil-card:hover .perfil-cta { opacity: 1; transform: translateX(0); }
+
+@media (max-width: 900px) {
+  .perfis-grid { grid-template-columns: 1fr; }
+}
 </style>
 <style id="footer-css">
 footer {
@@ -1320,10 +1462,10 @@ footer::before {
 <section class="hero">
   <div class="hero-left">
     <div class="eyebrow">Pipeline de dados</div>
-    <h1>Transforme dados<br>sem escrever <span>uma linha</span> de script.</h1>
+    <h1>Inteligência hospitalar<br>com dados <span>reais do SUS</span></h1>
     <p class="subtitle">
-      Converta e valide arquivos entre CSV, JSON e Oracle SQL em segundos.
-      Sem código, sem retrabalho — só o dado certo, no formato certo.
+      Análise de milhões de internações hospitalares do SIH-SUS em tempo real.
+      Dashboards interativos, IA conversacional e pipeline automático de dados tudo em um só lugar.
     </p>
 
     <div class="formats" id="formatos">
@@ -1334,7 +1476,7 @@ footer::before {
             <path d="M6 18h36M6 28h36M18 8v32M30 8v32" stroke="#8d5ccc" stroke-width="1.4" opacity="0.6"/>
           </svg>
         </div>
-        <div class="format-label">CSV</div>
+        <div class="format-label">SIH-SUS</div>
       </div>
       <div class="format-block">
         <div class="format-icon">
@@ -1343,7 +1485,7 @@ footer::before {
             <path d="M30 6c5 0 6 3 6 7v4c0 3 1 4 4 4-3 0-4 1-4 4v4c0 4-1 7-6 7" stroke="#a78bfa" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
-        <div class="format-label">JSON</div>
+        <div class="format-label">Oracle XE</div>
       </div>
       <div class="format-block">
         <div class="format-icon">
@@ -1353,7 +1495,7 @@ footer::before {
             <path d="M8 24v13c0 3.3 7.2 6 16 6s16-2.7 16-6V24" stroke="#8d5ccc" stroke-width="2"/>
           </svg>
         </div>
-        <div class="format-label">ORACLE SQL</div>
+        <div class="format-label">IA Local</div>
       </div>
     </div>
   </div>
@@ -1362,14 +1504,14 @@ footer::before {
     <div class="video-panel" id="videoPanel">
       <div class="video-chrome">
         <div class="dot"></div><div class="dot"></div><div class="dot"></div>
-        <div class="video-chrome-label">demo — vendas_2026.csv</div>
+        <div class="video-chrome-label">painel — internacoes_sp_2025.parquet</div>
       </div>
       <div class="video-body">
         <div class="demo-grid"></div>
         <div class="demo-stream">
-          <div class="stream-row"><b>CSV</b> vendas_2026.csv <span>→</span> lido</div>
-          <div class="stream-row alt"><b>JSON</b> gerando schema <span>→</span> ok</div>
-          <div class="stream-row"><b>ORACLE</b> INSERT INTO vendas <span>→</span> 12.480 linhas</div>
+          <div class="stream-row"><b>DATASUS</b> SIH-SUS SP/202506 <span>→</span> baixado</div>
+          <div class="stream-row alt"><b>ETL</b> 240.714 registros <span>→</span> transformados</div>
+          <div class="stream-row"><b>ORACLE</b> MERGE INTO FATO_INTERNACAO <span>→</span> 240.714 linhas</div>
         </div>
         <div class="play-btn">
           <svg viewBox="0 0 24 24" fill="#0A0D12"><path d="M6 4l14 8-14 8V4z"/></svg>
@@ -1391,32 +1533,32 @@ footer::before {
     <div class="step-row right">
       <div class="step-card">
         <span class="step-num">01</span>
-        <h3>Envie seu arquivo</h3>
-        <p>Arraste um CSV, JSON ou script SQL para a plataforma. Sem configuração, sem instalação.</p>
+        <h3>Acesse a plataforma</h3>
+        <p>Entre com seu perfil: Executivo, Analítico ou Leigo — e explore os dados do SUS prontos para análise.</p>
       </div>
     </div>
 
     <div class="step-row left">
       <div class="step-card">
         <span class="step-num">02</span>
-        <h3>Fluxo identifica o formato</h3>
-        <p>Detecção automática de schema, tipos de dados e delimitadores — o Fluxo entende o arquivo sozinho.</p>
+        <h3>Dados carregados automaticamente</h3>
+        <p>O pipeline busca dados reais do DATASUS via pysus, transforma e carrega no Oracle XE automaticamente a cada mês.</p>
       </div>
     </div>
 
     <div class="step-row right">
       <div class="step-card">
         <span class="step-num">03</span>
-        <h3>Conversão e validação</h3>
-        <p>Cada linha é validada e convertida entre CSV, JSON e Oracle SQL sem perda de dados.</p>
+        <h3>Análise em tempo real</h3>
+        <p>Queries otimizadas com índices no Oracle retornam milhões de registros em menos de 1 segundo.</p>
       </div>
     </div>
 
     <div class="step-row left">
       <div class="step-card">
         <span class="step-num">04</span>
-        <h3>Exporte para onde precisar</h3>
-        <p>Baixe o resultado ou envie direto para o banco de dados. Pronto para uso em produção.</p>
+        <h3>Insights e relatórios</h3>
+        <p>Gere relatórios por município, hospital, faixa etária ou período. Exporte em PDF ou CSV com um clique.</p>
       </div>
     </div>
   </div>
@@ -1436,8 +1578,8 @@ footer::before {
           <svg viewBox="0 0 24 24" fill="none"><path d="M12 4v11m0-11l-4 4m4-4l4 4M5 17v2a1 1 0 001 1h12a1 1 0 001-1v-2" stroke="#8d5ccc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
         <div class="flow-stage">Etapa 01</div>
-        <h3>Upload</h3>
-        <p>O usuário envia o arquivo de origem — CSV, JSON ou uma consulta SQL existente.</p>
+        <h3>Coleta</h3>
+        <p>O pipeline busca automaticamente os arquivos do SIH-SUS no DATASUS via API pysus.</p>
       </div>
 
       <div class="flow-panel">
@@ -1445,8 +1587,8 @@ footer::before {
           <svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h10" stroke="#8d5ccc" stroke-width="1.8" stroke-linecap="round"/></svg>
         </div>
         <div class="flow-stage">Etapa 02</div>
-        <h3>Leitura</h3>
-        <p>O Fluxo faz o parsing do conteúdo e mapeia colunas, chaves e tipos automaticamente.</p>
+        <h3>Transformação</h3>
+        <p>Os dados brutos são limpos, deduplicados por AIH e enriquecidos com faixa etária e sexo.</p>
       </div>
 
       <div class="flow-panel">
@@ -1454,8 +1596,8 @@ footer::before {
           <svg viewBox="0 0 24 24" fill="none"><path d="M17 3l4 4-4 4M7 21l-4-4 4-4M3 7h14M21 17H7" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
         <div class="flow-stage">Etapa 03</div>
-        <h3>Transformação</h3>
-        <p>Os dados são reestruturados para o formato de destino, mantendo relações e integridade.</p>
+        <h3>Data Lake</h3>
+        <p>Os arquivos .parquet são armazenados no OCI Object Storage como camada de histórico.</p>
       </div>
 
       <div class="flow-panel">
@@ -1463,8 +1605,8 @@ footer::before {
           <svg viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="#8d5ccc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
         <div class="flow-stage">Etapa 04</div>
-        <h3>Validação</h3>
-        <p>Cada registro passa por checagem de consistência antes de seguir para a saída final.</p>
+        <h3>Carga no Oracle</h3>
+        <p>Staging + MERGE SQL garante idempotência — nunca duplica registros mesmo rodando várias vezes.</p>
       </div>
 
       <div class="flow-panel">
@@ -1472,8 +1614,8 @@ footer::before {
           <svg viewBox="0 0 24 24" fill="none"><ellipse cx="12" cy="6" rx="8" ry="3" stroke="#a78bfa" stroke-width="1.8"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6" stroke="#a78bfa" stroke-width="1.8"/><path d="M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6" stroke="#a78bfa" stroke-width="1.8"/></svg>
         </div>
         <div class="flow-stage">Etapa 05</div>
-        <h3>Entrega</h3>
-        <p>Arquivo pronto para download ou já inserido diretamente no seu banco Oracle.</p>
+        <h3>Dashboard</h3>
+        <p>FastAPI serve os dados em tempo real para os três perfis de usuário com autenticação por sessão.</p>
 
         <div class="flow-recap" id="flowRecap">
           <span class="flow-recap-label">Fluxo completo</span>
@@ -1497,6 +1639,77 @@ footer::before {
       <div class="flow-dot"></div>
       <div class="flow-dot"></div>
       <div class="flow-dot"></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ── Seção Perfis ── -->
+<section style="background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); .perfil-card:hover .perfil-gif img { opacity: 0.9; }">
+  <div class="perfis-section">
+    <p class="perfis-eyebrow">Três perfis, uma plataforma</p>
+    <h2 class="perfis-titulo">Para quem é o DataMind?</h2>
+    <p class="perfis-sub">Cada perfil acessa uma visão personalizada dos dados do SUS — do estratégico ao conversacional.</p>
+ 
+    <div class="perfis-grid">
+ 
+      <!-- Executivo -->
+      <div class="perfil-card" onclick="document.getElementById('openAuthBtn').click()">
+        <div class="perfil-gif">
+  <img src="assets/prev-executivo.gif" alt="Preview Executivo" style="width:100%;height:100%;object-fit:cover;opacity:0.5;transition:opacity .3s;">
+</div>
+        <span class="perfil-badge exec">Executivo</span>
+        <div class="perfil-body">
+          <div class="perfil-nome">Visão estratégica</div>
+          <div class="perfil-desc">Para gestores e diretores que precisam de KPIs financeiros, comparativos entre hospitais e municípios, e relatórios prontos para apresentação.</div>
+          <div class="perfil-features">
+            <div class="perfil-feature">Dashboard financeiro com custo total e permanência média</div>
+            <div class="perfil-feature">Comparativos por município, hospital e faixa etária</div>
+            <div class="perfil-feature">Geração de relatórios em PDF e CSV</div>
+            <div class="perfil-feature">Chatbot com respostas calculadas ao vivo</div>
+          </div>
+          <div class="perfil-cta">Acessar como Executivo →</div>
+        </div>
+      </div>
+ 
+      <!-- Analítico -->
+      <div class="perfil-card" onclick="document.getElementById('openAuthBtn').click()">
+       <div class="perfil-gif">
+  <img src="assets/prev-analitico.gif" alt="Preview Analítico" style="width:100%;height:100%;object-fit:cover;opacity:0.5;transition:opacity .3s;">
+</div>
+        <span class="perfil-badge anal">Analítico</span>
+        <div class="perfil-body">
+          <div class="perfil-nome">Análise profunda</div>
+          <div class="perfil-desc">Para analistas de dados e pesquisadores que querem explorar tendências, distribuições demográficas e padrões sazonais com gráficos interativos.</div>
+          <div class="perfil-features">
+            <div class="perfil-feature">6 gráficos interativos: linha, pizza, rosca, radar e barras</div>
+            <div class="perfil-feature">Filtros por competência, sexo, faixa etária e município</div>
+            <div class="perfil-feature">Tendências temporais e heatmap demográfico</div>
+            <div class="perfil-feature">Comparador de municípios lado a lado</div>
+          </div>
+          <div class="perfil-cta">Acessar como Analítico →</div>
+        </div>
+      </div>
+ 
+      <!-- Leigo -->
+      <div class="perfil-card" onclick="document.getElementById('openAuthBtn').click()">
+        <div class="perfil-gif">
+  <img src="assets/prev-padrao.gif" alt="Preview Padrão" style="width:100%;height:100%;object-fit:cover;opacity:0.5;transition:opacity .3s;">
+</div>
+        <span class="perfil-badge leig">Padrão</span>
+        <div class="perfil-body">
+          <div class="perfil-nome">IA conversacional</div>
+          <div class="perfil-desc">Para cidadãos e profissionais de saúde que querem entender os dados do SUS sem precisar de conhecimento técnico.</div>
+          <div class="perfil-features">
+            <div class="perfil-feature">IA local 100% offline — sem enviar dados para a internet</div>
+            <div class="perfil-feature">Perguntas em linguagem natural sobre internações</div>
+            <div class="perfil-feature">Geração automática de SQL e gráficos</div>
+            <div class="perfil-feature">Histórico de conversa isolado por usuário</div>
+          </div>
+          <div class="perfil-cta">Acessar como Padrão →</div>
+        </div>
+      </div>
+ 
     </div>
   </div>
 </section>

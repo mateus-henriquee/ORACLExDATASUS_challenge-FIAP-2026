@@ -167,6 +167,17 @@ def query(sql: str, params: dict = None) -> list[dict]:
 def get_kpis(competencia: str | None = None, sexo: str | None = None,
              municipio: str | None = None, faixa_etaria: str | None = None,
              uf: str | None = None):
+    # Com filtros: usa FATO_INTERNACAO. Sem filtros: usa MV_KPIS (rápido)
+    if not any([competencia, sexo, municipio, faixa_etaria, uf]):
+        r = query("SELECT * FROM MV_KPIS")
+        if r:
+            d = r[0]
+            return {"custo_total": float(d["custo_total"] or 0),
+                    "total_internacoes": int(d["total_internacoes"] or 0),
+                    "custo_medio": float(d["custo_medio"] or 0),
+                    "permanencia_media": float(d["perm_media"] or 0),
+                    "municipios_distintos": int(d["municipios_distintos"] or 0)}
+    # Com filtros — query dinâmica
     conds = ["h.POSSUI_ATEND_HOSPITALAR = 1"]
     params = {}
     if competencia:  conds.append("f.COMPETENCIA = :comp");   params["comp"] = competencia
@@ -175,72 +186,46 @@ def get_kpis(competencia: str | None = None, sexo: str | None = None,
     if uf:           conds.append("m.UF = :uf");               params["uf"] = uf
     where = "WHERE " + " AND ".join(conds)
     sql = f"""
-        SELECT
-            NVL(SUM(f.VALOR_TOTAL), 0)      AS custo_total,
-            COUNT(*)                         AS total_internacoes,
-            NVL(AVG(f.VALOR_TOTAL), 0)      AS custo_medio,
-            NVL(AVG(f.DIAS_PERMANENCIA), 0) AS permanencia_media,
-            COUNT(DISTINCT f.COD_IBGE)       AS municipios_distintos
+        SELECT NVL(SUM(f.VALOR_TOTAL),0) AS custo_total, COUNT(*) AS total_internacoes,
+               NVL(AVG(f.VALOR_TOTAL),0) AS custo_medio, NVL(AVG(f.DIAS_PERMANENCIA),0) AS permanencia_media,
+               COUNT(DISTINCT f.COD_IBGE) AS municipios_distintos
         FROM FATO_INTERNACAO f
         JOIN DIM_HOSPITAL h  ON f.COD_CNES = h.COD_CNES
         JOIN DIM_MUNICIPIO m ON f.COD_IBGE  = m.COD_IBGE
         {where}
     """
-    resultado = query(sql, params)
-    linha = resultado[0] if resultado else {}
-    return {
-        "custo_total":          float(linha.get("custo_total") or 0),
-        "total_internacoes":    int(linha.get("total_internacoes") or 0),
-        "custo_medio":          float(linha.get("custo_medio") or 0),
-        "permanencia_media":    float(linha.get("permanencia_media") or 0),
-        "municipios_distintos": int(linha.get("municipios_distintos") or 0),
-    }
-
+    d = query(sql, params)
+    if not d: return {}
+    return {"custo_total": float(d[0]["custo_total"] or 0),
+            "total_internacoes": int(d[0]["total_internacoes"] or 0),
+            "custo_medio": float(d[0]["custo_medio"] or 0),
+            "permanencia_media": float(d[0]["permanencia_media"] or 0),
+            "municipios_distintos": int(d[0]["municipios_distintos"] or 0)}
 
 @app.get("/api/custo-por-mes")
 def custo_por_mes(uf: str | None = None):
-    conds = ["h.POSSUI_ATEND_HOSPITALAR = 1"]
-    params = {}
-    if uf: conds.append("m.UF = :uf"); params["uf"] = uf
-    where = "WHERE " + " AND ".join(conds)
-    sql = f"""
-        SELECT f.COMPETENCIA AS competencia,
-               SUM(f.VALOR_TOTAL)      AS custo,
-               COUNT(*)                AS internacoes,
-               AVG(f.DIAS_PERMANENCIA) AS permanencia_media
-        FROM FATO_INTERNACAO f
-        JOIN DIM_HOSPITAL h  ON f.COD_CNES = h.COD_CNES
-        JOIN DIM_MUNICIPIO m ON f.COD_IBGE  = m.COD_IBGE
-        {where}
-        GROUP BY f.COMPETENCIA ORDER BY f.COMPETENCIA
-    """
-    linhas = query(sql, params)
-    return [{"competencia":r["competencia"],"custo":float(r["custo"] or 0),
-             "internacoes":int(r["internacoes"] or 0),"permanencia_media":float(r["permanencia_media"] or 0)}
+    # Usa MV_COMPETENCIA — pré-calculada, sem full scan
+    sql = "SELECT COMPETENCIA, INTERNACOES, CUSTO_TOTAL, CUSTO_MEDIO, PERM_MEDIA FROM MV_COMPETENCIA ORDER BY COMPETENCIA"
+    linhas = query(sql)
+    return [{"competencia": r["competencia"], "custo": float(r["custo_total"] or 0),
+             "internacoes": int(r["internacoes"] or 0), "permanencia_media": float(r["perm_media"] or 0)}
             for r in linhas]
-
 
 @app.get("/api/custo-por-hospital")
 def custo_por_hospital(limite: int = 5):
+    # Usa MV_HOSPITAL — pré-calculada
     sql = """
-        SELECT h.NOME AS hospital, m.NOME AS municipio,
-               COUNT(*) AS internacoes, SUM(f.VALOR_TOTAL) AS custo
-        FROM FATO_INTERNACAO f
-        JOIN DIM_HOSPITAL h ON f.COD_CNES = h.COD_CNES
-        JOIN DIM_MUNICIPIO m ON f.COD_IBGE = m.COD_IBGE
-        WHERE h.POSSUI_ATEND_HOSPITALAR = 1
-        GROUP BY h.NOME, m.NOME
-        ORDER BY SUM(f.VALOR_TOTAL) DESC
+        SELECT HOSPITAL, MUNICIPIO, INTERNACOES, CUSTO_TOTAL AS custo,
+               ROUND(INTERNACOES * 100.0 / SUM(INTERNACOES) OVER (), 1) AS pct
+        FROM MV_HOSPITAL
+        ORDER BY INTERNACOES DESC
         FETCH FIRST :limite ROWS ONLY
     """
     linhas = query(sql, {"limite": limite})
-    if not linhas: return []
-    maior_custo = max(float(r["custo"] or 0) for r in linhas)
-    return [{"hospital":r["hospital"],"municipio":r["municipio"],"internacoes":int(r["internacoes"] or 0),
-             "custo":float(r["custo"] or 0),
-             "pct":round((float(r["custo"] or 0)/maior_custo)*100,1) if maior_custo else 0}
+    return [{"hospital": r["hospital"], "municipio": r["municipio"],
+             "internacoes": int(r["internacoes"] or 0), "custo": float(r["custo"] or 0),
+             "pct": float(r["pct"] or 0)}
             for r in linhas]
-
 
 @app.get("/api/hospitais/mapa")
 def hospitais_mapa():
@@ -314,88 +299,27 @@ def listar_ufs():
 def analise_sexo(competencia: str | None = None, sexo: str | None = None,
                  municipio: str | None = None, faixa_etaria: str | None = None,
                  uf: str | None = None):
-    conds, params = [], {}
-    if competencia:  conds.append("f.COMPETENCIA = :comp");    params["comp"] = competencia
-    if sexo:         conds.append("f.SEXO = :sexo");           params["sexo"] = sexo
-    if faixa_etaria: conds.append("f.FAIXA_ETARIA = :faixa"); params["faixa"] = faixa_etaria
-    if municipio:    conds.append("UPPER(m.NOME) LIKE UPPER(:mun)"); params["mun"] = f"%{municipio}%"
-    if uf:           conds.append("m.UF = :uf");               params["uf"] = uf
-    where = ("WHERE " + " AND ".join(conds)) if conds else ""
-    sql = f"""
-        SELECT f.SEXO AS sexo, COUNT(*) AS qtd
-        FROM FATO_INTERNACAO f
-        JOIN DIM_MUNICIPIO m ON f.COD_IBGE = m.COD_IBGE
-        {where}
-        GROUP BY f.SEXO ORDER BY qtd DESC
-    """
-    return [{"sexo": r["sexo"], "qtd": int(r["qtd"])} for r in query(sql, params)]
-
+    # Usa MV_SEXO — sem filtros avançados (MV não suporta filtros dinâmicos)
+    linhas = query("SELECT SEXO, INTERNACOES AS qtd FROM MV_SEXO ORDER BY INTERNACOES DESC")
+    return [{"sexo": r["sexo"], "qtd": int(r["qtd"] or 0)} for r in linhas]
 
 @app.get("/api/analise/faixa-etaria")
 def analise_faixa_etaria(competencia: str | None = None, sexo: str | None = None,
                          municipio: str | None = None, faixa_etaria: str | None = None,
                          uf: str | None = None):
-    conds, params = [], {}
-    if competencia: conds.append("f.COMPETENCIA = :comp"); params["comp"] = competencia
-    if sexo:        conds.append("f.SEXO = :sexo");        params["sexo"] = sexo
-    if faixa_etaria: conds.append("f.FAIXA_ETARIA = :faixa"); params["faixa"] = faixa_etaria
-    if municipio:
-        conds.append("UPPER(m.NOME) LIKE UPPER(:mun)"); params["mun"] = f"%{municipio}%"
-    if uf: conds.append("m.UF = :uf"); params["uf"] = uf
-    where = ("WHERE " + " AND ".join(conds)) if conds else ""
-    sql = f"""
-        SELECT f.FAIXA_ETARIA AS faixa_etaria, COUNT(*) AS qtd
-        FROM FATO_INTERNACAO f
-        JOIN DIM_MUNICIPIO m ON f.COD_IBGE = m.COD_IBGE
-        {where}
-        GROUP BY f.FAIXA_ETARIA ORDER BY qtd DESC
-    """
-    return [{"faixa_etaria": r["faixa_etaria"], "qtd": int(r["qtd"])} for r in query(sql, params)]
-
+    # Usa MV_FAIXA_ETARIA
+    linhas = query("SELECT FAIXA_ETARIA, INTERNACOES AS qtd FROM MV_FAIXA_ETARIA ORDER BY INTERNACOES DESC")
+    return [{"faixa_etaria": r["faixa_etaria"], "qtd": int(r["qtd"] or 0)} for r in linhas]
 
 @app.get("/api/analise/municipios-top")
 def analise_municipios_top(limite: int = 10, competencia: str | None = None,
                            sexo: str | None = None, faixa_etaria: str | None = None,
                            uf: str | None = None):
-    conds, params = [], {"limite": limite}
-    if competencia:  conds.append("f.COMPETENCIA = :comp");  params["comp"] = competencia
-    if sexo:         conds.append("f.SEXO = :sexo");          params["sexo"] = sexo
-    if faixa_etaria: conds.append("f.FAIXA_ETARIA = :faixa"); params["faixa"] = faixa_etaria
-    if uf: conds.append("m.UF = :uf"); params["uf"] = uf
-    where = ("WHERE " + " AND ".join(conds)) if conds else ""
-    sql = f"""
-        SELECT m.NOME AS municipio, COUNT(*) AS internacoes, SUM(f.VALOR_TOTAL) AS custo
-        FROM FATO_INTERNACAO f
-        JOIN DIM_MUNICIPIO m ON f.COD_IBGE = m.COD_IBGE
-        {where}
-        GROUP BY m.NOME
-        ORDER BY internacoes DESC
-        FETCH FIRST :limite ROWS ONLY
-    """
-    return [
-        {"municipio": r["municipio"], "internacoes": int(r["internacoes"]),
-         "custo": float(r["custo"] or 0)}
-        for r in query(sql, params)
-    ]
-
-
-# ---------- Chatbot restrito (sem IA -- botao -> SQL real -> resposta) ----------
-
-def fmt_real(valor: float) -> str:
-    """Formata numero no padrao brasileiro: R$ 1.234.567,89"""
-    texto = f"{valor:,.2f}"
-    texto = texto.replace(",", "X").replace(".", ",").replace("X", ".")
-    return f"R$ {texto}"
-
-
-PERGUNTAS_PRONTAS = [
-    {"id": "mes_maior_custo", "label": "Qual mês teve o maior custo?"},
-    {"id": "hospital_maior_custo", "label": "Qual hospital teve o maior custo?"},
-    {"id": "permanencia_media", "label": "Qual a permanência média das internações?"},
-    {"id": "custo_medio_internacao", "label": "Qual o custo médio por internação?"},
-    {"id": "total_internacoes", "label": "Quantas internações no total?"},
-]
-
+    # Usa MV_MUNICIPIO
+    sql = "SELECT MUNICIPIO, INTERNACOES, CUSTO_TOTAL AS custo FROM MV_MUNICIPIO ORDER BY INTERNACOES DESC FETCH FIRST :limite ROWS ONLY"
+    linhas = query(sql, {"limite": limite})
+    return [{"municipio": r["municipio"], "internacoes": int(r["internacoes"] or 0),
+             "custo": float(r["custo"] or 0)} for r in linhas]
 
 @app.get("/api/chatbot/perguntas")
 def listar_perguntas():
@@ -562,58 +486,27 @@ def excluir_relatorio(relatorio_id: str, token: str | None = None):
 
 # --- Comparativos ---
 @app.get("/api/comparativos")
-def comparativos(dim: str = "municipio", top: int = 10):  # noqa
+def comparativos(dim: str = "municipio", top: int = 10):
     if dim not in ("municipio","hospital","faixa_etaria","competencia"):
         dim = "municipio"
-
-    if dim == "municipio":
-        sql = """
-            SELECT NVL(m.NOME, TO_CHAR(f.COD_IBGE)) AS label,
-                   COUNT(*) AS internacoes,
-                   SUM(f.VALOR_TOTAL) AS custo,
-                   AVG(f.DIAS_PERMANENCIA) AS permanencia
-            FROM FATO_INTERNACAO f
-            LEFT JOIN DIM_MUNICIPIO m ON f.COD_IBGE = m.COD_IBGE
-            GROUP BY NVL(m.NOME, TO_CHAR(f.COD_IBGE))
-            ORDER BY COUNT(*) DESC
-            FETCH FIRST :top ROWS ONLY
-        """
-    elif dim == "hospital":
-        sql = """
-            SELECT NVL(h.NOME, TO_CHAR(f.COD_CNES)) AS label,
-                   COUNT(*) AS internacoes,
-                   SUM(f.VALOR_TOTAL) AS custo,
-                   AVG(f.DIAS_PERMANENCIA) AS permanencia
-            FROM FATO_INTERNACAO f
-            LEFT JOIN DIM_HOSPITAL h ON f.COD_CNES = h.COD_CNES
-            GROUP BY NVL(h.NOME, TO_CHAR(f.COD_CNES))
-            ORDER BY COUNT(*) DESC
-            FETCH FIRST :top ROWS ONLY
-        """
-    elif dim == "faixa_etaria":
-        sql = """
-            SELECT NVL(f.FAIXA_ETARIA, 'N/D') AS label,
-                   COUNT(*) AS internacoes,
-                   SUM(f.VALOR_TOTAL) AS custo,
-                   AVG(f.DIAS_PERMANENCIA) AS permanencia
-            FROM FATO_INTERNACAO f
-            GROUP BY NVL(f.FAIXA_ETARIA, 'N/D')
-            ORDER BY COUNT(*) DESC
-            FETCH FIRST :top ROWS ONLY
-        """
-    else:  # competencia
-        sql = """
-            SELECT f.COMPETENCIA AS label, COUNT(*) AS internacoes,
-                   SUM(f.VALOR_TOTAL) AS custo, AVG(f.DIAS_PERMANENCIA) AS permanencia
-            FROM FATO_INTERNACAO f
-            JOIN DIM_HOSPITAL h ON f.COD_CNES = h.COD_CNES
-            GROUP BY f.COMPETENCIA ORDER BY f.COMPETENCIA
-            FETCH FIRST :top ROWS ONLY
-        """
+    MV_MAP = {
+        "municipio":   ("SELECT MUNICIPIO AS label, INTERNACOES AS internacoes, CUSTO_TOTAL AS custo, PERM_MEDIA AS permanencia FROM MV_MUNICIPIO ORDER BY INTERNACOES DESC FETCH FIRST :top ROWS ONLY", "internacoes"),
+        "hospital":    ("SELECT HOSPITAL AS label, INTERNACOES AS internacoes, CUSTO_TOTAL AS custo, PERM_MEDIA AS permanencia FROM MV_HOSPITAL ORDER BY INTERNACOES DESC FETCH FIRST :top ROWS ONLY", "internacoes"),
+        "faixa_etaria":("SELECT FAIXA_ETARIA AS label, INTERNACOES AS internacoes, CUSTO_TOTAL AS custo, PERM_MEDIA AS permanencia FROM MV_FAIXA_ETARIA ORDER BY INTERNACOES DESC FETCH FIRST :top ROWS ONLY", "internacoes"),
+        "competencia": ("SELECT COMPETENCIA AS label, INTERNACOES AS internacoes, CUSTO_TOTAL AS custo, PERM_MEDIA AS permanencia FROM MV_COMPETENCIA ORDER BY COMPETENCIA FETCH FIRST :top ROWS ONLY", "internacoes"),
+    }
+    sql, _ = MV_MAP[dim]
     linhas = query(sql, {"top": top})
-    return [{"label":r["label"],"internacoes":int(r["internacoes"] or 0),
-             "custo":float(r["custo"] or 0),"permanencia":float(r["permanencia"] or 0)}
+    return [{"label": r["label"], "internacoes": int(r["internacoes"] or 0),
+             "custo": float(r["custo"] or 0), "permanencia": float(r["permanencia"] or 0)}
             for r in linhas]
+
+@app.get("/assets/{filename}")
+def servir_asset(filename: str):
+    f = _DIR / "assets" / filename
+    if not f.exists():
+        raise HTTPException(status_code=404, detail=f"Asset nao encontrado: {filename}")
+    return FileResponse(str(f))
 
 
 if __name__ == "__main__":
