@@ -1,3 +1,4 @@
+# main.py da IA — usa Materialized Views para respostas rápidas
 import json
 import logging
 import re
@@ -29,9 +30,8 @@ PLOT_KEYWORDS = ["grafico", "gráfico", "plot", "plotar", "visualiza", "chart"]
 
 AUTH_API = "http://localhost:8001"
 
+
 def _usuario_do_token(authorization: str | None) -> str:
-    """Valida o token contra a API de autenticacao (porta 8001) e retorna o username.
-    Se nao houver token valido, retorna 'anonimo'."""
     if not authorization or not authorization.startswith("Bearer "):
         return "anonimo"
     token = authorization.split(" ", 1)[1]
@@ -46,25 +46,26 @@ def _usuario_do_token(authorization: str | None) -> str:
     except Exception:
         return "anonimo"
 
-# ---------- Fonte de dados (Oracle e o padrao; CSV e opcional) ----------
+
+# ──────────────────────────────────────────────────────────────────────────────
+#  QUERIES NAS MVS — rápidas, sem full table scan
+# ──────────────────────────────────────────────────────────────────────────────
+
+# Query padrão para carregar o DataFrame base do chat
+# Usa MV_MUNICIPIO + MV_COMPETENCIA para ser leve
+SQL_BASE_DF = """
+    SELECT
+        m.MUNICIPIO,
+        m.INTERNACOES,
+        m.CUSTO_TOTAL,
+        m.CUSTO_MEDIO,
+        m.PERM_MEDIA
+    FROM MV_MUNICIPIO m
+    ORDER BY m.INTERNACOES DESC
+    FETCH FIRST 1000 ROWS ONLY
+"""
 
 FONTES_PATH = DATA_DIR / "fontes.json"
-
-# Consulta padrao usada quando a fonte e o Oracle. Traz os nomes ja resolvidos
-# (municipio, hospital) para o usuario leigo nao precisar lidar com codigos.
-SQL_ORACLE_PADRAO = """
-    SELECT
-        m.NOME              AS MUNICIPIO,
-        h.NOME              AS HOSPITAL,
-        f.COMPETENCIA       AS COMPETENCIA,
-        f.SEXO              AS SEXO,
-        f.FAIXA_ETARIA      AS FAIXA_ETARIA,
-        f.DIAS_PERMANENCIA  AS DIAS_PERMANENCIA,
-        f.VALOR_TOTAL       AS VALOR_TOTAL
-    FROM FATO_INTERNACAO f
-    JOIN DIM_MUNICIPIO m ON f.COD_IBGE = m.COD_IBGE
-    JOIN DIM_HOSPITAL  h ON f.COD_CNES = h.COD_CNES
-"""
 
 
 def _ler_fontes() -> dict:
@@ -87,27 +88,33 @@ def set_fonte(chat_id: int, tipo: str):
 
 
 def csv_do_chat(chat_id: int):
-    """Devolve o caminho do ultimo CSV enviado neste chat, se houver."""
     arquivos = sorted(UPLOADS_DIR.glob(f"raw_{chat_id}_*"))
     return arquivos[-1] if arquivos else None
 
 
 def carregar_do_oracle(chat_id: int):
-    logger.info("Carregando dados do Oracle para o chat %s...", chat_id)
-    df = oracle_connector.query_to_dataframe(SQL_ORACLE_PADRAO)
+    logger.info("Carregando dados do Oracle (MV) para o chat %s...", chat_id)
+    df = oracle_connector.query_to_dataframe(SQL_BASE_DF)
     rag.index_dataframe(chat_id, df)
     set_fonte(chat_id, "oracle")
-    logger.info("Oracle carregado: %d linhas.", len(df))
+    logger.info("Oracle MV carregado: %d linhas.", len(df))
     return df
 
 
 def garantir_dados(chat_id: int):
-    """Devolve o DataFrame do chat. Se ainda nao houver nada carregado,
-    busca automaticamente do Oracle (fonte padrao do perfil leigo)."""
     df = rag.load_dataframe(chat_id)
     if df is not None:
         return df
     return carregar_do_oracle(chat_id)
+
+
+def _executar_mv(sql: str) -> pd.DataFrame | None:
+    """Executa uma query nas MVs e retorna o DataFrame."""
+    try:
+        return oracle_connector.query_to_dataframe(sql)
+    except Exception as e:
+        logger.warning("Falha ao consultar MV: %s", e)
+        return None
 
 
 @app.on_event("startup")
@@ -151,7 +158,7 @@ def history(chat_id: int):
     return db.get_history(chat_id)
 
 
-# ---------- Ingestão de dados ----------
+# ---------- Ingestão ----------
 
 @app.post("/chats/{chat_id}/upload_csv")
 async def upload_csv(chat_id: int, file: UploadFile = File(...)):
@@ -174,7 +181,6 @@ def load_oracle(chat_id: int, sql: str = Form(...)):
 
 @app.get("/chats/{chat_id}/fonte")
 def ler_fonte(chat_id: int):
-    """Diz qual fonte esta ativa e se existe um CSV disponivel para trocar."""
     return {
         "tipo": get_fonte(chat_id),
         "csv_disponivel": csv_do_chat(chat_id) is not None,
@@ -183,43 +189,37 @@ def ler_fonte(chat_id: int):
 
 @app.post("/chats/{chat_id}/fonte")
 def trocar_fonte(chat_id: int, tipo: str = Form(...)):
-    """Troca entre os dados do Oracle e o CSV enviado pelo usuario."""
     if tipo not in ("oracle", "csv"):
-        raise HTTPException(status_code=400, detail="Fonte invalida. Use 'oracle' ou 'csv'.")
-
+        raise HTTPException(status_code=400, detail="Fonte invalida.")
     try:
         if tipo == "oracle":
             df = carregar_do_oracle(chat_id)
         else:
             caminho = csv_do_chat(chat_id)
             if caminho is None:
-                raise HTTPException(status_code=400, detail="Nenhum CSV foi enviado neste chat ainda.")
+                raise HTTPException(status_code=400, detail="Nenhum CSV enviado ainda.")
             df = pd.read_csv(caminho)
             rag.index_dataframe(chat_id, df)
             set_fonte(chat_id, "csv")
     except HTTPException:
         raise
     except Exception as e:
-        logger.error("Falha ao trocar fonte: %s", traceback.format_exc())
-        raise HTTPException(status_code=500, detail=f"Nao foi possivel carregar a fonte '{tipo}': {e}")
-
+        raise HTTPException(status_code=500, detail=f"Nao foi possivel carregar '{tipo}': {e}")
     return {"ok": True, "tipo": tipo, "linhas": len(df), "colunas": list(df.columns)}
 
 
-# ---------- Chat / perguntas ----------
+# ---------- Chat ----------
 
 @app.post("/chats/{chat_id}/message")
 def send_message(chat_id: int, question: str = Form(...)):
     hist = db.get_history(chat_id)
     db.add_message(chat_id, "user", question)
 
-    wants_plot = any(k in question.lower() for k in PLOT_KEYWORDS)
+    wants_plot   = any(k in question.lower() for k in PLOT_KEYWORDS)
     plot_filename = None
     table_filename = None
-    chart_data = None
+    chart_data    = None
 
-    # Fonte padrao e o Oracle: se nada foi carregado ainda neste chat,
-    # busca automaticamente do banco antes de responder.
     df = None
     erro_dados = None
     try:
@@ -228,49 +228,46 @@ def send_message(chat_id: int, question: str = Form(...)):
         logger.error("Falha ao carregar dados: %s", traceback.format_exc())
         erro_dados = str(e)
 
-    rag_context = rag.retrieve(chat_id, question)
+    rag_context = rag.retrieve(chat_id, question) if df is not None else []
 
-    # Se a fonte for Oracle e nao for pedido de grafico, tenta gerar SQL dinamico.
-    # O modelo gera a query, Python executa no Oracle e usa o resultado como contexto.
-    # Isso permite responder qualquer agregacao (ranking, media, contagem por grupo)
-    # que o RAG simples nao consegue, porque o RAG so ve linhas brutas, nao agregadas.
-    sql_resultado = None
+    # ── Roteador de intenção rápido (substitui generate_sql pesado) ──
+    mv_contexto = None
     if not wants_plot and get_fonte(chat_id) == "oracle" and df is not None:
-        try:
-            sql = llm.generate_sql(question)
-            if sql:
-                logger.info("SQL gerado pelo modelo:\n%s", sql)
-                # substitui o alias DADOS pelo subselect da query padrao
-                sql_exec = sql.replace(
-                    "FROM DADOS",
-                    f"FROM ({SQL_ORACLE_PADRAO.strip()}) DADOS",
-                )
-                df_sql = oracle_connector.query_to_dataframe(sql_exec)
-                if not df_sql.empty:
-                    linhas = df_sql.head(20).to_string(index=False)
-                    sql_resultado = [
-                        f"Resultado da consulta SQL para responder a pergunta ({len(df_sql)} linhas):\n{linhas}"
-                    ]
-                    logger.info("SQL executado com sucesso: %d linhas retornadas.", len(df_sql))
-        except Exception as e:
-            logger.warning("Falha ao executar SQL dinamico: %s", e)
-            # nao propaga o erro: cai silenciosamente pro RAG normal
+        intencao = llm.rotear_intencao(question)
+        if intencao:
+            logger.info("Intenção detectada: %s | SQL: %s", intencao["nome"], intencao["sql"])
+            df_mv = _executar_mv(intencao["sql"])
+            if df_mv is not None and not df_mv.empty:
+                linhas = df_mv.head(15).to_string(index=False)
+                mv_contexto = [
+                    f"Dados pré-calculados ({intencao['descricao']}) — {len(df_mv)} registros:\n{linhas}"
+                ]
+                logger.info("MV consultada com sucesso: %d linhas.", len(df_mv))
 
-    contexto_final = (sql_resultado or rag_context)
+    contexto_final = mv_contexto or rag_context
 
     try:
         if df is None:
             answer = (
                 "Nao consegui acessar os dados do Oracle agora. "
-                f"Detalhe tecnico: {erro_dados}. "
-                "Confira se o banco esta rodando, ou envie um CSV para analisar."
+                f"Detalhe: {erro_dados}. "
+                "Confira se o banco esta rodando."
             )
         elif wants_plot:
-            spec = llm.suggest_plot_spec(list(df.columns), question)
-            if not spec or spec.get("x") not in df.columns:
+            # Para plots, usa a MV mais adequada baseada na intenção
+            intencao = llm.rotear_intencao(question)
+            df_plot = df  # fallback: df base
+
+            if intencao and get_fonte(chat_id) == "oracle":
+                df_mv = _executar_mv(intencao["sql"])
+                if df_mv is not None and not df_mv.empty:
+                    df_plot = df_mv
+
+            spec = llm.suggest_plot_spec(list(df_plot.columns), question)
+            if not spec or spec.get("x") not in df_plot.columns:
                 answer = (
                     "Nao identifiquei quais colunas usar. "
-                    f"As colunas disponiveis sao: {', '.join(df.columns)}."
+                    f"Colunas disponíveis: {', '.join(df_plot.columns)}."
                 )
             else:
                 ptype = spec.get("type", "bar")
@@ -278,37 +275,34 @@ def send_message(chat_id: int, question: str = Form(...)):
                 aggf = spec.get("agg", "count")
 
                 if ptype == "hist":
-                    plot_filename = Path(plots.hist_plot(df, x, title=title)).name
+                    plot_filename = Path(plots.hist_plot(df_plot, x, title=title)).name
                 elif ptype == "scatter":
-                    plot_filename = Path(plots.scatter_plot(df, x, y, title=title)).name
+                    plot_filename = Path(plots.scatter_plot(df_plot, x, y, title=title)).name
                 elif ptype == "line":
-                    agg_df = plots.prepare_plot_data(df, x, y, aggf, is_temporal_ok=True)
+                    agg_df = plots.prepare_plot_data(df_plot, x, y, aggf, is_temporal_ok=True)
                     plot_filename = Path(plots.line_plot(agg_df, "categoria", "valor", title=title)).name
                     resumo = ", ".join(f"{r.categoria}: {r.valor}" for r in agg_df.itertuples())
-                    contexto_final = contexto_final + [f"Dados exatos do grafico gerado agora: {resumo}."]
+                    contexto_final = contexto_final + [f"Dados exatos do grafico: {resumo}."]
                 else:
-                    # grafico de barra: interativo (Chart.js), sem gerar imagem
-                    agg_df = plots.prepare_plot_data(df, x, y, aggf, is_temporal_ok=False)
+                    agg_df = plots.prepare_plot_data(df_plot, x, y, aggf, is_temporal_ok=False)
                     value_label = y if (y and aggf != "count") else "Contagem"
-                    chart_title = title or f"{x} por categoria"
                     chart_data = json.dumps({
-                        "title": chart_title,
+                        "title": title or f"{x} por categoria",
                         "subtitle": value_label,
                         "value_label": value_label,
                         "labels": agg_df["categoria"].tolist(),
                         "values": agg_df["valor"].tolist(),
                     })
                     resumo = ", ".join(f"{r.categoria}: {r.valor}" for r in agg_df.itertuples())
-                    contexto_final = contexto_final + [
-                        f"Dados exatos do grafico gerado agora, ja ordenados do maior para o menor valor: {resumo}."
-                    ]
+                    contexto_final = contexto_final + [f"Dados do grafico: {resumo}."]
 
                 answer = llm.generate(hist, contexto_final, question)
         else:
             answer = llm.generate(hist, contexto_final, question)
+
     except Exception as e:
         logger.error("Falha ao gerar resposta: %s", traceback.format_exc())
-        answer = f"Erro interno ao gerar a resposta: {e}. Veja o terminal do servidor para o traceback completo."
+        answer = f"Erro interno: {e}."
 
     db.add_message(chat_id, "assistant", answer, plot_filename, table_filename, chart_data)
     return {
