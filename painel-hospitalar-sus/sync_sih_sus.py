@@ -22,6 +22,7 @@ ORACLE_PASSWORD = os.getenv("ORACLE_PASSWORD")
 ORACLE_DSN = os.getenv("ORACLE_DSN")
 
 MAPA_SEXO = {"1": "M", "3": "F"}
+uf_atual = "SP"  # atualizado no loop
 
 
 def competencia_ja_processada(conn, competencia: str) -> bool:

@@ -20,7 +20,7 @@ ORACLE_USER = os.getenv("ORACLE_USER")
 ORACLE_PASSWORD = os.getenv("ORACLE_PASSWORD")
 ORACLE_DSN = os.getenv("ORACLE_DSN")
 
-CODIGO_UF_SP = 35
+CODIGO_UF_SP = 31
 BASE_URL = "https://apidadosabertos.saude.gov.br/cnes/estabelecimentos"
 MAX_PAGINAS = 10000
 TAMANHO_LOTE_GRAVACAO = 1000

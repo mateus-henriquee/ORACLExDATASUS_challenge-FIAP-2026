@@ -1,3 +1,17 @@
 {
-  "mateus@datamind.com": []
+  "mateus@datamind.com": [
+    {
+      "id": "1788486481120",
+      "titulo": "Custo por internações",
+      "descricao": "",
+      "campos": {
+        "dim": "hospital",
+        "metricas": [
+          "internacoes",
+          "custo"
+        ]
+      },
+      "criado_em": "03/09/2026 22:48"
+    }
+  ]
 }
