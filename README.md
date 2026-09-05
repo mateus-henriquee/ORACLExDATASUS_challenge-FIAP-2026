@@ -223,4 +223,5 @@ ANOS = [2025, 2026]    # adicione anos
 
 Se você tiver dúvidas ou sugestões, sinta-se à vontade para abrir uma **issue** ou me enviar um e-mail:
 📧 [mateush.leccese@gmail.com](mailto:mateush.leccese@gmail.com)
-Feito com ❤️ por [Mateus Henrique](https://github.com/mateus-henriquee)
+
+Feito com por [Mateus Henrique](https://github.com/mateus-henriquee) 🚀
