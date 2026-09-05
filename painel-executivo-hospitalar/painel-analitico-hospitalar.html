@@ -220,9 +220,29 @@ body { font-family: var(--sans); background: var(--bg-main); color: var(--text-p
       <div class="nav-label" style="margin-top:0">Filtros</div>
 
       <div class="filter-group">
-        <label class="filter-label">Competência (mês)</label>
-        <select id="f-competencia">
-          <option value="">Todas</option>
+        <label class="filter-label">Ano</label>
+        <select id="f-ano">
+          <option value="">Todos</option>
+          <option value="2025">2025</option>
+          <option value="2026">2026</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">Mês</label>
+        <select id="f-mes-analitico">
+          <option value="">Todos</option>
+          <option value="01">Jan</option>
+          <option value="02">Fev</option>
+          <option value="03">Mar</option>
+          <option value="04">Abr</option>
+          <option value="05">Mai</option>
+          <option value="06">Jun</option>
+          <option value="07">Jul</option>
+          <option value="08">Ago</option>
+          <option value="09">Set</option>
+          <option value="10">Out</option>
+          <option value="11">Nov</option>
+          <option value="12">Dez</option>
         </select>
       </div>
 
@@ -238,7 +258,9 @@ body { font-family: var(--sans); background: var(--bg-main); color: var(--text-p
 
       <div class="filter-group">
         <label class="filter-label">Município</label>
-        <input type="text" id="f-municipio" placeholder="Buscar cidade...">
+        <select id="f-municipio">
+          <option value="">Todos</option>
+        </select>
       </div>
 
       <div class="filter-group">
@@ -388,7 +410,7 @@ body { font-family: var(--sans); background: var(--bg-main); color: var(--text-p
   const s = document.getElementById('loading-screen');
   s.classList.add('hide');
   setTimeout(() => s.remove(), 500);
-}, 5000);
+}, 2000);
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"
         onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js';document.head.appendChild(s);"></script>
@@ -425,10 +447,12 @@ function fmtDias(n) { return Number(n).toFixed(1).replace(".",",") + " dias"; }
 
 function filtros() {
   const p = new URLSearchParams();
-  const comp = document.getElementById("f-competencia").value;
-  const sexo = document.getElementById("f-sexo").value;
-  const mun  = document.getElementById("f-municipio").value.trim();
-  const faixa = document.getElementById("f-faixa").value;
+  const ano   = document.getElementById("f-ano")?.value || "";
+  const mes   = document.getElementById("f-mes-analitico")?.value || "";
+  const comp  = ano && mes ? ano + mes : "";
+  const sexo  = document.getElementById("f-sexo")?.value || "";
+  const mun   = document.getElementById("f-municipio")?.value || "";
+  const faixa = document.getElementById("f-faixa")?.value || "";
   if (comp)  p.set("competencia", comp);
   if (sexo)  p.set("sexo", sexo);
   if (mun)   p.set("municipio", mun);
@@ -446,13 +470,13 @@ async function carregarKPIs() {
 }
 
 async function carregarLinha() {
-  const r = await fetch(API + "/api/custo-por-mes");
+  const r = await fetch(API + "/api/custo-por-mes" + filtros());
   const d = await r.json();
   if (!d.length) return;
   upsertChart("chart-linha", {
     type: "line",
     data: {
-      labels: d.map(x => x.competencia),
+      labels: d.map(x => { const comp = x.competencia; if(!comp) return ''; const meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']; return meses[parseInt(comp.slice(4,6))-1]+'/'+comp.slice(2,4); }),
       datasets: [{ data: d.map(x => x.internacoes ?? 0), borderColor: ACCENT, backgroundColor: "rgba(141,92,204,.12)", fill: true, tension: .35, pointRadius: 3, pointBackgroundColor: ACCENT }],
     },
     options: { ...CHART_DEFAULTS, scales: { x:{ ticks:{color:MUTED}, grid:{display:false} }, y:{ ticks:{color:MUTED}, grid:{color:GRID}, beginAtZero:true } } }
@@ -493,13 +517,13 @@ async function carregarBarrasH() {
 }
 
 async function carregarPermLinha() {
-  const r = await fetch(API + "/api/custo-por-mes");
+  const r = await fetch(API + "/api/custo-por-mes" + filtros());
   const d = await r.json();
   if (!d.length) return;
   upsertChart("chart-perm-linha", {
     type: "line",
     data: {
-      labels: d.map(x => x.competencia),
+      labels: d.map(x => { const comp = x.competencia; if(!comp) return ''; const meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']; return meses[parseInt(comp.slice(4,6))-1]+'/'+comp.slice(2,4); }),
       datasets: [{ data: d.map(x => x.permanencia_media ?? 0), borderColor: GREEN, backgroundColor: "rgba(111,191,115,.1)", fill: true, tension: .35, pointRadius: 3, pointBackgroundColor: GREEN }],
     },
     options: { ...CHART_DEFAULTS, scales: { x:{ ticks:{color:MUTED}, grid:{display:false} }, y:{ ticks:{color:MUTED}, grid:{color:GRID}, beginAtZero:true, min:0 } } }
@@ -507,7 +531,7 @@ async function carregarPermLinha() {
 }
 
 async function carregarRadar() {
-  const r = await fetch(API + "/api/custo-por-mes");
+  const r = await fetch(API + "/api/custo-por-mes" + filtros());
   const d = await r.json();
   if (!d.length) return;
   // normaliza 0-100 relativo ao maximo de cada metrica
@@ -538,7 +562,7 @@ async function carregarRadar() {
 }
 
 async function carregarRanking() {
-  const r = await fetch(API + "/api/custo-por-hospital?limite=10");
+  const r = await fetch(API + "/api/custo-por-hospital?limite=10" + (filtros() ? "&" + filtros().slice(1) : ""));
   const d = await r.json();
   if (!d.length) return;
   const tbody = document.getElementById("rank-body");
@@ -551,16 +575,27 @@ async function carregarRanking() {
 }
 
 async function carregarCompetencias() {
-  const uf = document.getElementById("f-uf")?.value||"";
-  const r = await fetch(API + "/api/competencias" + (uf ? "?uf="+uf : ""));
-  const comps = await r.json();
-  const sel = document.getElementById("f-competencia");
-  sel.innerHTML = '<option value="">Todas</option>';
-  comps.forEach(c => { const o = document.createElement("option"); o.value = c; o.textContent = c ? c.slice(4,6)+'/'+c.slice(0,4) : c; sel.appendChild(o); });
+  // f-competencia removido — filtros por f-ano e f-mes-analitico
+}
+
+async function preencherMunicipiosDropdown() {
+  try {
+    const r = await fetch(API + "/api/analise/municipios-top?limite=100");
+    const d = await r.json();
+    const sel = document.getElementById("f-municipio");
+    if (!sel) return;
+    const sorted = d.map(m => m.municipio).sort();
+    sorted.forEach(m => {
+      const o = document.createElement("option");
+      o.value = o.textContent = m;
+      sel.appendChild(o);
+    });
+  } catch(e) {}
 }
 
 async function carregarTudo() {
   try {
+    preencherMunicipiosDropdown();
     await Promise.all([
       carregarKPIs(), carregarLinha(), carregarPizza(),
       carregarRosca(), carregarBarrasH(), carregarPermLinha(),

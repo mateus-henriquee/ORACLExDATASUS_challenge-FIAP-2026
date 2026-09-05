@@ -17,8 +17,9 @@ from pathlib import Path
 
 import oracledb
 from pydantic import BaseModel
-from fastapi import FastAPI, HTTPException, Depends, Form, Header
+from fastapi import FastAPI, HTTPException, Depends, Form, Header, Cookie
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, RedirectResponse, JSONResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from dotenv import load_dotenv
 
@@ -68,6 +69,16 @@ def _validar_token(creds: HTTPAuthorizationCredentials = Depends(bearer)):
     return sessao
 
 
+def _token_valido(token: str | None) -> dict | None:
+    """Verifica token e retorna sessao ou None."""
+    if not token or token not in SESSOES:
+        return None
+    sessao = SESSOES[token]
+    if datetime.utcnow() > sessao["expira"]:
+        return None
+    return sessao
+
+
 def _validar_token_header(authorization: str | None) -> dict:
     """Versao que aceita o header Authorization direto (sem Depends)."""
     if not authorization or not authorization.startswith("Bearer "):
@@ -95,7 +106,10 @@ def login(username: str = Form(...), password: str = Form(...)):
         "perfil": user["perfil"],
         "expira": datetime.utcnow() + timedelta(hours=SESSAO_HORAS),
     }
-    return {"token": token, "perfil": user["perfil"], "nome": user["nome"]}
+    resp = JSONResponse({"token": token, "perfil": user["perfil"], "nome": user["nome"]})
+    resp.set_cookie("dm_token", token, httponly=False, max_age=SESSAO_HORAS*3600, samesite="lax")
+    resp.set_cookie("dm_perfil", user["perfil"], httponly=False, max_age=SESSAO_HORAS*3600, samesite="lax")
+    return resp
 
 
 @app.get("/auth/me")
@@ -103,22 +117,32 @@ def me(sessao=Depends(_validar_token)):
     return {"usuario": sessao["usuario"], "nome": sessao["nome"], "perfil": sessao["perfil"]}
 
 @app.get("/tendencias")
-def tendencias():
+def tendencias(dm_token: str | None = Cookie(default=None)):
+    sessao = _token_valido(dm_token)
+    if not sessao or sessao.get("perfil") not in ("analitico"):
+        return RedirectResponse(url="/landing")
     f = _DIR / "painel-tendencias.html"
     if not f.exists(): raise HTTPException(status_code=404, detail="painel-tendencias.html nao encontrado")
     return FileResponse(str(f))
 
 @app.get("/capacidade")
-def capacidade():
+def capacidade(dm_token: str | None = Cookie(default=None)):
+    sessao = _token_valido(dm_token)
+    if not sessao or sessao.get("perfil") not in ("analitico"):
+        return RedirectResponse(url="/landing")
     f = _DIR / "painel-capacidade.html"
     if not f.exists(): raise HTTPException(status_code=404, detail="painel-capacidade.html nao encontrado")
     return FileResponse(str(f))
 
 @app.post("/auth/logout")
-def logout(sessao=Depends(_validar_token), creds: HTTPAuthorizationCredentials = Depends(bearer)):
-    SESSOES.pop(creds.token, None)
-    return {"ok": True}
-
+def logout(authorization: str | None = Header(default=None)):
+    token = authorization.split(" ", 1)[1] if authorization and " " in authorization else None
+    if token and token in SESSOES:
+        del SESSOES[token]
+    resp = JSONResponse({"ok": True})
+    resp.delete_cookie("dm_token")
+    resp.delete_cookie("dm_perfil")
+    return resp
 
 @app.post("/auth/register")
 def register(username: str = Form(...), password: str = Form(...),
@@ -381,7 +405,6 @@ def responder_pergunta(pergunta_id: str):
 
 
 from pathlib import Path
-from fastapi.responses import FileResponse
 
 _DIR = Path(__file__).parent
 
@@ -404,25 +427,37 @@ def raiz():
     return RedirectResponse(url="/landing")
 
 @app.get("/dashboard")
-def dashboard():
+def dashboard(dm_token: str | None = Cookie(default=None)):
+    sessao = _token_valido(dm_token)
+    if not sessao or sessao.get("perfil") not in ("executivo"):
+        return RedirectResponse(url="/landing")
     f = _DIR / "painel-executivo-hospitalar.html"
     if not f.exists(): raise HTTPException(status_code=404, detail=f"Arquivo nao encontrado: {f}")
     return FileResponse(str(f))
 
 @app.get("/analitico")
-def dashboard_analitico():
+def dashboard_analitico(dm_token: str | None = Cookie(default=None)):
+    sessao = _token_valido(dm_token)
+    if not sessao or sessao.get("perfil") not in ("analitico"):
+        return RedirectResponse(url="/landing")
     f = _DIR / "painel-analitico-hospitalar.html"
     if not f.exists(): raise HTTPException(status_code=404, detail=f"Arquivo nao encontrado: {f}")
     return FileResponse(str(f))
 
 @app.get("/comparativos")
-def pagina_comparativos():
+def pagina_comparativos(dm_token: str | None = Cookie(default=None)):
+    sessao = _token_valido(dm_token)
+    if not sessao or sessao.get("perfil") != "executivo":
+        return RedirectResponse(url="/landing")
     f = _DIR / "painel-comparativos.html"
     if not f.exists(): raise HTTPException(status_code=404, detail="painel-comparativos.html nao encontrado")
     return FileResponse(str(f))
 
 @app.get("/relatorios")
-def pagina_relatorios():
+def pagina_relatorios(dm_token: str | None = Cookie(default=None)):
+    sessao = _token_valido(dm_token)
+    if not sessao or sessao.get("perfil") != "executivo":
+        return RedirectResponse(url="/landing")
     f = _DIR / "painel-relatorios.html"
     if not f.exists(): raise HTTPException(status_code=404, detail="painel-relatorios.html nao encontrado")
     return FileResponse(str(f))
@@ -508,6 +543,49 @@ def servir_asset(filename: str):
         raise HTTPException(status_code=404, detail=f"Asset nao encontrado: {filename}")
     return FileResponse(str(f))
 
+
+
+@app.get("/api/municipio/serie")
+def municipio_serie(municipio: str):
+    """Retorna a série temporal de internacoes/custo por competencia para um municipio."""
+    sql = """
+        SELECT mc.COMPETENCIA, mc.INTERNACOES, mc.CUSTO_TOTAL, mc.PERM_MEDIA
+        FROM MV_MUNICIPIO_MES mc
+        WHERE mc.MUNICIPIO = :mun
+        ORDER BY mc.COMPETENCIA
+    """
+    try:
+        linhas = query(sql, {"mun": municipio})
+        if linhas:
+            return [{"competencia": r["competencia"], "internacoes": int(r["internacoes"] or 0),
+                     "custo": float(r["custo_total"] or 0), "permanencia": float(r["perm_media"] or 0)}
+                    for r in linhas]
+    except Exception:
+        pass
+    # Fallback: usa MV_COMPETENCIA com fator proporcional real
+    sql2 = """
+        SELECT mc.COMPETENCIA,
+               ROUND(mc.INTERNACOES * m.INTERNACOES / k.TOTAL_INTERNACOES) AS INTERNACOES,
+               ROUND(mc.CUSTO_TOTAL * m.CUSTO_TOTAL / k.CUSTO_TOTAL, 2) AS CUSTO_TOTAL,
+               m.PERM_MEDIA
+        FROM MV_COMPETENCIA mc, MV_MUNICIPIO m, MV_KPIS k
+        WHERE m.MUNICIPIO = :mun
+        ORDER BY mc.COMPETENCIA
+    """
+    linhas2 = query(sql2, {"mun": municipio})
+    return [{"competencia": r["competencia"], "internacoes": int(r["internacoes"] or 0),
+             "custo": float(r["custo_total"] or 0), "permanencia": float(r["perm_media"] or 0)}
+            for r in linhas2]
+
+@app.get("/404")
+def pagina_404():
+    f = _DIR / "404.html"
+    return FileResponse(str(f))
+
+@app.exception_handler(404)
+async def not_found(request, exc):
+    f = _DIR / "404.html"
+    return FileResponse(str(f), status_code=404)
 
 if __name__ == "__main__":
     import uvicorn

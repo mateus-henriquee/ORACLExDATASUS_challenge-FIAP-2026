@@ -287,7 +287,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   const s = document.getElementById('loading-screen');
   s.classList.add('hide');
   setTimeout(() => s.remove(), 500);
-}, 5000);
+}, 2000);
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"
   onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js';s.onload=function(){iniciar()};document.head.appendChild(s);"
@@ -437,24 +437,20 @@ async function renderComparador() {
   document.getElementById('leg-a').textContent = mA || '—';
   document.getElementById('leg-b').textContent = mB || '—';
 
-  const labels = dadosMes.map(d => fmtComp(d.competencia));
   const datasets = [];
+  let labelsGlobal = [];
 
-  for (const [mun, cor, id] of [[mA, ACC, 'a'], [mB, GRN, 'b']]) {
+  for (const [mun, cor] of [[mA, ACC], [mB, GRN]]) {
     if (!mun) continue;
     try {
-      const r = await fetch(`${API}/api/analise/municipios-top?limite=100`);
-      // Busca dados do município por competência via comparativos
-      const rc = await fetch(`${API}/api/comparativos?dim=competencia&top=12`);
-      const dc = await rc.json();
-      // Para demonstração, usa variação aleatória baseada nos dados gerais
-      // (endpoint real por município+competência seria ideal mas não existe ainda)
-      const base = dc.map(d => metricaAtual === 'custo' ? d.custo : metricaAtual === 'permanencia' ? d.permanencia : d.internacoes);
-      const seed = mun.split('').reduce((a,c)=>a+c.charCodeAt(0),0);
-      const fator = 0.3 + (seed % 70) / 100;
+      const r = await fetch(`${API}/api/municipio/serie?municipio=${encodeURIComponent(mun)}`);
+      const d = await r.json();
+      if (!d.length) continue;
+      if (!labelsGlobal.length) labelsGlobal = d.map(x => fmtComp(x.competencia));
+      const vals = d.map(x => metricaAtual === 'custo' ? x.custo : metricaAtual === 'permanencia' ? x.permanencia : x.internacoes);
       datasets.push({
         label: mun,
-        data: base.map(v => Math.round(v * fator)),
+        data: vals,
         borderColor: cor,
         backgroundColor: cor+'22',
         fill: false, tension: .4,
@@ -466,11 +462,14 @@ async function renderComparador() {
   if (!datasets.length) return;
   upsert('chart-comp', {
     type:'line',
-    data:{labels, datasets},
+    data:{labels: labelsGlobal, datasets},
     options:{
       responsive:true, maintainAspectRatio:false,
       animation:{duration:500},
-      plugins:{legend:{display:false},tooltip:{backgroundColor:'#111110',padding:10,cornerRadius:8}},
+      plugins:{
+        legend:{display:true, labels:{color:MUT, boxWidth:12}},
+        tooltip:{backgroundColor:'#111110',padding:10,cornerRadius:8}
+      },
       scales:{x:{ticks:{color:MUT},grid:{display:false}},y:{ticks:{color:MUT},grid:{color:GRD}}}
     }
   });
@@ -520,7 +519,7 @@ async function preencherMunicipios() {
   try {
     const r = await fetch(`${API}/api/analise/municipios-top?limite=50`);
     const d = await r.json();
-    municipios = d.map(m => m.municipio);
+    municipios = d.map(m => m.municipio).sort();
     const selA = document.getElementById('comp-a');
     const selB = document.getElementById('comp-b');
     selA.innerHTML = '<option value="">Selecione município A</option>';

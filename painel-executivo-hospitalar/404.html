@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>404 — DataMind</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #07080d;
+    --accent: #8d5ccc;
+    --accent2: #a87de0;
+    --text: #ece8e1;
+    --muted: #6b6860;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Estrelas de fundo */
+  .stars {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .star {
+    position: absolute;
+    border-radius: 50%;
+    background: #fff;
+    animation: twinkle var(--d) ease-in-out infinite alternate;
+    opacity: 0;
+  }
+  @keyframes twinkle {
+    0%   { opacity: 0; }
+    50%  { opacity: var(--o); }
+    100% { opacity: 0.05; }
+  }
+
+  /* Botão voltar */
+  .back-btn {
+    position: fixed;
+    top: 24px;
+    left: 28px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: .02em;
+    transition: color .2s;
+    z-index: 10;
+    cursor: pointer;
+    background: none;
+    border: none;
+  }
+  .back-btn:hover { color: var(--text); }
+  .back-btn svg { width: 16px; height: 16px; }
+
+  /* Logo */
+  .logo {
+    position: fixed;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: .06em;
+    z-index: 10;
+  }
+
+  /* Container principal */
+  .container {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0;
+  }
+
+  /* Astronauta flutuando */
+  .astronaut-wrap {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin-bottom: 32px;
+    animation: float 4s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(-3deg); }
+    50%       { transform: translateY(-24px) rotate(3deg); }
+  }
+  .astronaut {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Sombra que pulsa no chão */
+  .shadow {
+    width: 80px;
+    height: 12px;
+    background: radial-gradient(ellipse, rgba(141,92,204,.35), transparent 70%);
+    border-radius: 50%;
+    margin: 0 auto;
+    margin-top: -8px;
+    animation: shadow-pulse 4s ease-in-out infinite;
+  }
+  @keyframes shadow-pulse {
+    0%, 100% { transform: scaleX(1); opacity: .5; }
+    50%       { transform: scaleX(.6); opacity: .2; }
+  }
+
+  /* 404 */
+  .error-code {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(80px, 18vw, 160px);
+    font-weight: 700;
+    letter-spacing: -.05em;
+    line-height: 1;
+    margin-top: 28px;
+    background: linear-gradient(135deg, var(--text) 30%, var(--accent2) 80%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    position: relative;
+  }
+  .error-code::after {
+    content: '404';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 40%, rgba(141,92,204,.15));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: blur(20px);
+    z-index: -1;
+  }
+
+  /* Mensagem */
+  .msg-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(16px, 3vw, 22px);
+    font-weight: 700;
+    margin-top: 20px;
+    color: var(--text);
+  }
+  .msg-sub {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.6;
+    max-width: 340px;
+    margin-top: 10px;
+  }
+
+  /* Botão */
+  .cta {
+    margin-top: 32px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--accent);
+    color: #fff;
+    text-decoration: none;
+    font-size: 13.5px;
+    font-weight: 600;
+    padding: 11px 24px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    transition: background .2s, transform .15s;
+    letter-spacing: .02em;
+  }
+  .cta:hover { background: var(--accent2); transform: translateY(-2px); }
+  .cta svg { width: 16px; height: 16px; }
+
+  /* Linha de separação decorativa */
+  .line {
+    width: 1px;
+    height: 48px;
+    background: linear-gradient(to bottom, transparent, var(--accent), transparent);
+    margin: 28px auto 0;
+    opacity: .4;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .astronaut-wrap, .shadow { animation: none; }
+    .star { animation: none; opacity: .3; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Estrelas -->
+<div class="stars" id="stars"></div>
+
+<!-- Logo -->
+<div class="logo">DataMind</div>
+
+<!-- Botão voltar topo esquerdo -->
+<button class="back-btn" onclick="history.length > 1 ? history.back() : location.href='/landing'">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M19 12H5M12 5l-7 7 7 7"/>
+  </svg>
+  Voltar
+</button>
+
+<!-- Conteúdo principal -->
+<div class="container">
+
+  <!-- Astronauta SVG animado -->
+  <div class="astronaut-wrap">
+    <svg class="astronaut" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Corpo do traje -->
+      <ellipse cx="60" cy="72" rx="26" ry="30" fill="#2a2540" stroke="#4a3a7a" stroke-width="1.5"/>
+      <!-- Capacete externo -->
+      <circle cx="60" cy="44" r="22" fill="#1e1a30" stroke="#4a3a7a" stroke-width="1.5"/>
+      <!-- Visor -->
+      <circle cx="60" cy="44" r="14" fill="#0d0b1a"/>
+      <ellipse cx="60" cy="44" rx="14" ry="14" fill="url(#visor-grad)"/>
+      <!-- Reflexo no visor -->
+      <ellipse cx="54" cy="38" rx="5" ry="3" fill="rgba(141,92,204,0.25)" transform="rotate(-20 54 38)"/>
+      <circle cx="58" cy="37" r="1.5" fill="rgba(168,125,224,0.4)"/>
+      <!-- Braços -->
+      <ellipse cx="30" cy="72" rx="8" ry="16" fill="#2a2540" stroke="#4a3a7a" stroke-width="1.5" transform="rotate(15 30 72)"/>
+      <ellipse cx="90" cy="72" rx="8" ry="16" fill="#2a2540" stroke="#4a3a7a" stroke-width="1.5" transform="rotate(-15 90 72)"/>
+      <!-- Luvas -->
+      <circle cx="23" cy="83" r="6" fill="#3a2a60"/>
+      <circle cx="97" cy="83" r="6" fill="#3a2a60"/>
+      <!-- Pernas -->
+      <ellipse cx="48" cy="98" rx="9" ry="12" fill="#2a2540" stroke="#4a3a7a" stroke-width="1.5"/>
+      <ellipse cx="72" cy="98" rx="9" ry="12" fill="#2a2540" stroke="#4a3a7a" stroke-width="1.5"/>
+      <!-- Botas -->
+      <ellipse cx="46" cy="108" rx="11" ry="6" fill="#1a1428"/>
+      <ellipse cx="74" cy="108" rx="11" ry="6" fill="#1a1428"/>
+      <!-- Mochila (jetpack) -->
+      <rect x="44" y="55" width="32" height="22" rx="6" fill="#1a1428" stroke="#4a3a7a" stroke-width="1"/>
+      <!-- Detalhes da mochila -->
+      <rect x="50" y="60" width="8" height="4" rx="2" fill="#8d5ccc" opacity=".6"/>
+      <circle cx="63" cy="62" r="2" fill="#a87de0" opacity=".8"/>
+      <!-- Logo DataMind na mochila -->
+      <text x="50" y="72" font-family="monospace" font-size="5" fill="#8d5ccc" opacity=".7">DM</text>
+      <!-- Antena -->
+      <line x1="60" y1="22" x2="60" y2="10" stroke="#4a3a7a" stroke-width="1.5"/>
+      <circle cx="60" cy="8" r="3" fill="#8d5ccc">
+        <animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite"/>
+      </circle>
+      <!-- Gradiente do visor -->
+      <defs>
+        <radialGradient id="visor-grad" cx="40%" cy="35%">
+          <stop offset="0%" stop-color="#1a1560" stop-opacity=".9"/>
+          <stop offset="100%" stop-color="#0a0820" stop-opacity="1"/>
+        </radialGradient>
+      </defs>
+    </svg>
+  </div>
+
+  <div class="shadow"></div>
+
+  <div class="error-code">404</div>
+
+  <div class="msg-title">Página não encontrada</div>
+  <div class="msg-sub">
+    Parece que você clicou em um link quebrado ou tentou acessar uma área que não existe — ou talvez precise fazer login primeiro.
+  </div>
+
+  <a class="cta" href="/landing">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M3 12h18M3 12l7-7M3 12l7 7"/>
+    </svg>
+    Ir para a página inicial
+  </a>
+
+  <div class="line"></div>
+
+</div>
+
+<script>
+// Gera estrelas aleatórias
+const starsEl = document.getElementById('stars');
+for (let i = 0; i < 120; i++) {
+  const s = document.createElement('div');
+  s.className = 'star';
+  const size = Math.random() * 2.5 + .5;
+  const opacity = Math.random() * .8 + .1;
+  const duration = Math.random() * 4 + 2;
+  s.style.cssText = `
+    width:${size}px; height:${size}px;
+    left:${Math.random()*100}%;
+    top:${Math.random()*100}%;
+    --d:${duration}s;
+    --o:${opacity};
+    animation-delay:${Math.random()*4}s;
+  `;
+  starsEl.appendChild(s);
+}
+</script>
+</body>
+</html>

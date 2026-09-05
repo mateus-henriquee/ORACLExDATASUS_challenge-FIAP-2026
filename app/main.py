@@ -32,19 +32,29 @@ AUTH_API = "http://localhost:8001"
 
 
 def _usuario_do_token(authorization: str | None) -> str:
+    """Resolve o usuário a partir do token consultando o backend."""
     if not authorization or not authorization.startswith("Bearer "):
         return "anonimo"
     token = authorization.split(" ", 1)[1]
-    try:
-        req = urllib.request.Request(
-            f"{AUTH_API}/auth/me",
-            headers={"Authorization": f"Bearer {token}"}
-        )
-        with urllib.request.urlopen(req, timeout=3) as resp:
-            data = json.loads(resp.read())
-            return data.get("usuario", "anonimo")
-    except Exception:
+    if not token:
         return "anonimo"
+    # Tenta localhost e 127.0.0.1
+    for host in ["http://127.0.0.1:8001", "http://localhost:8001"]:
+        try:
+            req = urllib.request.Request(
+                f"{host}/auth/me",
+                headers={"Authorization": f"Bearer {token}"}
+            )
+            with urllib.request.urlopen(req, timeout=3) as resp:
+                data = json.loads(resp.read())
+                usuario = data.get("usuario", "")
+                if usuario:
+                    return usuario
+        except Exception:
+            continue
+    # Fallback: usa o token como identificador único do usuário
+    # (garante isolamento mesmo sem conseguir chamar o backend)
+    return f"user_{token[:16]}"
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -230,19 +240,34 @@ def send_message(chat_id: int, question: str = Form(...)):
 
     rag_context = rag.retrieve(chat_id, question) if df is not None else []
 
-    # ── Roteador de intenção rápido (substitui generate_sql pesado) ──
+    # ── Roteador híbrido: MV rápida OU generate_sql dinâmico ──
     mv_contexto = None
-    if not wants_plot and get_fonte(chat_id) == "oracle" and df is not None:
-        intencao = llm.rotear_intencao(question)
-        if intencao:
-            logger.info("Intenção detectada: %s | SQL: %s", intencao["nome"], intencao["sql"])
+    df_para_plot = df
+
+    if get_fonte(chat_id) == "oracle" and df is not None:
+        tem_filtro = llm.tem_filtro_especifico(question)
+        intencao   = llm.rotear_intencao(question)
+
+        if intencao and not tem_filtro:
+            logger.info("MV rápida: %s", intencao["nome"])
             df_mv = _executar_mv(intencao["sql"])
             if df_mv is not None and not df_mv.empty:
                 linhas = df_mv.head(15).to_string(index=False)
-                mv_contexto = [
-                    f"Dados pré-calculados ({intencao['descricao']}) — {len(df_mv)} registros:\n{linhas}"
-                ]
-                logger.info("MV consultada com sucesso: %d linhas.", len(df_mv))
+                mv_contexto = [f"Dados ({intencao['descricao']}) — {len(df_mv)} registros:\n{linhas}"]
+                df_para_plot = df_mv
+        else:
+            logger.info("Filtro específico — usando generate_sql")
+            sql_gerado = llm.generate_sql(question)
+            if sql_gerado:
+                logger.info("SQL gerado: %s", sql_gerado[:120])
+                try:
+                    df_sql = oracle_connector.query_to_dataframe(sql_gerado)
+                    if df_sql is not None and not df_sql.empty:
+                        linhas = df_sql.head(20).to_string(index=False)
+                        mv_contexto = [f"Resultado ({len(df_sql)} registros):\n{linhas}"]
+                        df_para_plot = df_sql
+                except Exception as e:
+                    logger.warning("SQL gerado falhou (%s) — usando RAG", e)
 
     contexto_final = mv_contexto or rag_context
 
@@ -256,12 +281,7 @@ def send_message(chat_id: int, question: str = Form(...)):
         elif wants_plot:
             # Para plots, usa a MV mais adequada baseada na intenção
             intencao = llm.rotear_intencao(question)
-            df_plot = df  # fallback: df base
-
-            if intencao and get_fonte(chat_id) == "oracle":
-                df_mv = _executar_mv(intencao["sql"])
-                if df_mv is not None and not df_mv.empty:
-                    df_plot = df_mv
+            df_plot = df_para_plot
 
             spec = llm.suggest_plot_spec(list(df_plot.columns), question)
             if not spec or spec.get("x") not in df_plot.columns:
