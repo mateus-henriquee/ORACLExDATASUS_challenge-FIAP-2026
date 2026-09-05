@@ -4,9 +4,7 @@ Plataforma de análise de dados hospitalares do SUS com dashboards interativos, 
 
 **Acesso online:** [http://132.226.165.94:8001/landing](http://132.226.165.94:8001/landing)
 
-![Landing Page](painel-executivo-hospitalar/assets/prev-landing.png)
-
-![Dashboard](painel-executivo-hospitalar/assets/prev-dashboard.png)
+![Landing Page](assets/prev-landing.png)
 
 ---
 
@@ -34,6 +32,8 @@ Três perfis de usuário, três formas de consumir a mesma base de dados reais d
 **Dados carregados:** SP · 2025 e 2026 · ~4,5 milhões de internações
 
 ---
+
+![Dashboard](assets/prev-dashboard.png)
 
 ## Arquitetura
 
