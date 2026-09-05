@@ -8,16 +8,32 @@ venv/
 __pycache__/
 **/__pycache__/
 *.pyc
+*.pyo
 
 # Modelo de IA (arquivo grande, cada um baixa o seu)
 models/*.gguf
 
-# Dados gerados/baixados (não faz sentido versionar)
+# Dados gerados/baixados
 data/
 **/data/
+datalake_local/
+**/datalake_local/
 painel-hospitalar-sus/checkpoint_hospital.json
 *.duckdb
+*.parquet
+
+# Arquivos de usuários e sessão (dados sensíveis, gerados em runtime)
+usuarios.json
+**/usuarios.json
+relatorios.json
+**/relatorios.json
+chat.db
+**/chat.db
 
 # Editor
 .vscode/
 .idea/
+
+# OS
+.DS_Store
+Thumbs.db

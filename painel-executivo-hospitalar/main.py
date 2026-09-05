@@ -227,25 +227,36 @@ def get_kpis(competencia: str | None = None, sexo: str | None = None,
             "municipios_distintos": int(d[0]["municipios_distintos"] or 0)}
 
 @app.get("/api/custo-por-mes")
-def custo_por_mes(uf: str | None = None):
-    # Usa MV_COMPETENCIA — pré-calculada, sem full scan
-    sql = "SELECT COMPETENCIA, INTERNACOES, CUSTO_TOTAL, CUSTO_MEDIO, PERM_MEDIA FROM MV_COMPETENCIA ORDER BY COMPETENCIA"
-    linhas = query(sql)
+def custo_por_mes(uf: str | None = None, municipio: str | None = None):
+    if not municipio:
+        # Sem filtro: usa MV rápida
+        sql = "SELECT COMPETENCIA, INTERNACOES, CUSTO_TOTAL, CUSTO_MEDIO, PERM_MEDIA FROM MV_COMPETENCIA ORDER BY COMPETENCIA"
+        linhas = query(sql)
+    else:
+        # Com municipio: usa MV_MUNICIPIO_MES
+        sql = """SELECT COMPETENCIA, INTERNACOES, CUSTO_TOTAL AS custo_total,
+                        PERM_MEDIA, INTERNACOES AS custo_medio
+                 FROM MV_MUNICIPIO_MES WHERE MUNICIPIO = :mun ORDER BY COMPETENCIA"""
+        linhas = query(sql, {"mun": municipio})
     return [{"competencia": r["competencia"], "custo": float(r["custo_total"] or 0),
              "internacoes": int(r["internacoes"] or 0), "permanencia_media": float(r["perm_media"] or 0)}
             for r in linhas]
 
 @app.get("/api/custo-por-hospital")
-def custo_por_hospital(limite: int = 5):
-    # Usa MV_HOSPITAL — pré-calculada
-    sql = """
+def custo_por_hospital(limite: int = 5, municipio: str | None = None):
+    params = {"limite": limite}
+    where = ""
+    if municipio:
+        where = "WHERE MUNICIPIO = :mun"
+        params["mun"] = municipio
+    sql = f"""
         SELECT HOSPITAL, MUNICIPIO, INTERNACOES, CUSTO_TOTAL AS custo,
                ROUND(INTERNACOES * 100.0 / SUM(INTERNACOES) OVER (), 1) AS pct
-        FROM MV_HOSPITAL
+        FROM MV_HOSPITAL {where}
         ORDER BY INTERNACOES DESC
         FETCH FIRST :limite ROWS ONLY
     """
-    linhas = query(sql, {"limite": limite})
+    linhas = query(sql, params)
     return [{"hospital": r["hospital"], "municipio": r["municipio"],
              "internacoes": int(r["internacoes"] or 0), "custo": float(r["custo"] or 0),
              "pct": float(r["pct"] or 0)}

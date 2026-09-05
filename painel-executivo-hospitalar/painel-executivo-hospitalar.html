@@ -199,6 +199,11 @@ tr:last-child td { border-bottom: none; }
         <label for="f-mes">Mês</label>
         <select id="f-mes"><option value="">Todos</option></select>
       </div>
+      <div class="filter-group" style="margin-top:4px">
+        <button id="btn-aplicar-filtros" style="width:100%;padding:9px;background:var(--accent);border:none;border-radius:8px;color:#fff;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;transition:background .15s" onmouseover="this.style.background='var(--accent-2)'" onmouseout="this.style.background='var(--accent)'">
+          Aplicar filtros
+        </button>
+      </div>
       <div class="filter-group">
         <label for="f-hospital">Hospital</label>
         <div class="search-wrap">
@@ -288,7 +293,7 @@ tr:last-child td { border-bottom: none; }
   const s = document.getElementById('loading-screen');
   s.classList.add('hide');
   setTimeout(() => s.remove(), 500);
-}, 10000);
+}, 3000);
 </script>
 <script>
 // Configuração e Constantes Globais
@@ -376,14 +381,15 @@ function fmtMi(v) {
 async function carregarKPIs(comp) {
   const ano    = document.getElementById("f-ano")?.value || "";
   const mesSel = document.getElementById("f-mes")?.value || "";
+  const mun    = document.getElementById("f-municipio-sidebar")?.value || "";
   const params = new URLSearchParams();
-  // Se ano+mês selecionados, monta competencia no formato AAAAMM
   if (ano && mesSel) {
     params.append("competencia", ano + mesSel);
   } else if (comp) {
     params.append("competencia", comp);
   }
 
+  if (mun) params.append("municipio", mun);
   const url = `${API}/api/kpis${params.toString() ? "?" + params.toString() : ""}`;
   const res = await authFetch(url);
   if (!res.ok) throw new Error("Erro ao carregar KPIs");
@@ -396,7 +402,9 @@ async function carregarKPIs(comp) {
 }
 
 async function carregarGraficoLinha() {
-  const res = await authFetch(`${API}/api/custo-por-mes`);
+  const mun = document.getElementById("f-municipio-sidebar")?.value || "";
+  const url = `${API}/api/custo-por-mes` + (mun ? `?municipio=${encodeURIComponent(mun)}` : "");
+  const res = await authFetch(url);
   if (!res.ok) return;
   const dados = await res.json();
   if (!dados || !dados.length) return;
@@ -428,7 +436,9 @@ async function carregarGraficoLinha() {
 }
 
 async function carregarGraficoBarra() {
-  const res = await authFetch(`${API}/api/custo-por-hospital?limite=5`);
+  const mun = document.getElementById("f-municipio-sidebar")?.value || "";
+  const url = `${API}/api/custo-por-hospital?limite=5` + (mun ? `&municipio=${encodeURIComponent(mun)}` : "");
+  const res = await authFetch(url);
   if (!res.ok) return;
   const dados = await res.json();
   if (!dados || !dados.length) return;
@@ -452,11 +462,13 @@ async function carregarGraficoBarra() {
   });
 }
 
-async function carregarTabela() {
+ async function carregarTabela() {
   const tbody = document.getElementById("tabela-hospitais");
   if (!tbody) return;
 
-  const res = await authFetch(`${API}/api/custo-por-hospital?limite=10`);
+  const mun = document.getElementById("f-municipio-sidebar")?.value || "";
+  const url = `${API}/api/custo-por-hospital?limite=10` + (mun ? `&municipio=${encodeURIComponent(mun)}` : "");
+  const res = await authFetch(url);
   if (!res.ok) return;
   const dados = await res.json();
   tbody.innerHTML = "";
@@ -504,9 +516,9 @@ async function carregarCompetencias() {
     try {
       const rm = await authFetch(`${API}/api/analise/municipios-top?limite=50`);
       const muns = await rm.json();
-      muns.forEach(m => {
+      muns.map(m => m.municipio).sort().forEach(m => {
         const o = document.createElement("option");
-        o.value = o.textContent = m.municipio;
+        o.value = o.textContent = m;
         selMun.appendChild(o);
       });
     } catch(e) {}
@@ -582,6 +594,40 @@ async function iniciar() {
   }
 }
 
+
+function exportarGrafico(canvasId, nome) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const link = document.createElement('a');
+  link.download = nome + '.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+
+// Adicionar botões de export nos charts
+function adicionarBotoesExport() {
+  const chartWrappers = [
+    {canvasId: 'chartLinha', nome: 'custo_por_mes', titulo: 'chart-title'},
+    {canvasId: 'chartBarra', nome: 'custo_por_hospital', titulo: 'chart-title'},
+  ];
+  chartWrappers.forEach(({canvasId, nome}) => {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const wrap = canvas.closest('.chart-wrap') || canvas.parentElement?.parentElement;
+    if (!wrap || wrap.querySelector('.export-btn')) return;
+    const btn = document.createElement('button');
+    btn.className = 'export-btn';
+    btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> PNG';
+    btn.style.cssText = 'position:absolute;top:12px;right:12px;background:rgba(141,92,204,.12);border:1px solid rgba(141,92,204,.3);border-radius:6px;color:#a87de0;font-size:11px;padding:4px 9px;cursor:pointer;display:flex;align-items:center;gap:4px;font-family:var(--sans);transition:background .15s';
+    btn.onmouseover = () => btn.style.background = 'rgba(141,92,204,.25)';
+    btn.onmouseout  = () => btn.style.background = 'rgba(141,92,204,.12)';
+    btn.onclick = () => exportarGrafico(canvasId, nome);
+    const parent = canvas.closest('.chart-wrap') || canvas.parentElement;
+    if (parent) { parent.style.position = 'relative'; parent.appendChild(btn); }
+  });
+}
+
 function iniciarDashboard(chartOk) {
   if (chartOk) {
     iniciar();
@@ -602,16 +648,16 @@ function iniciarDashboard(chartOk) {
 document.getElementById("f-mes")?.addEventListener("change", e => carregarKPIs(e.target.value));
 
 document.getElementById("f-municipio-sidebar")?.addEventListener("change", () => carregarKPIs(document.getElementById("f-mes")?.value));
-document.getElementById("f-ano")?.addEventListener("change", () => {
-  // filtra competencias pelo ano selecionado
-  const ano = document.getElementById("f-ano").value;
-  const selMes = document.getElementById("f-mes");
-  // re-filtra visualmente (oculta meses fora do ano)
-  carregarKPIs(document.getElementById("f-mes")?.value);
+function aplicarTodosFiltros() {
+  const comp = document.getElementById("f-mes")?.value || "";
+  carregarKPIs(comp);
   carregarGraficoLinha();
   carregarGraficoBarra();
   carregarTabela();
-});
+}
+
+document.getElementById("f-ano")?.addEventListener("change", aplicarTodosFiltros);
+document.getElementById("btn-aplicar-filtros")?.addEventListener("click", aplicarTodosFiltros);
 document.getElementById("f-uf")?.addEventListener("change", () => {
   const mes = document.getElementById("f-mes")?.value || "";
   carregarKPIs(mes);
