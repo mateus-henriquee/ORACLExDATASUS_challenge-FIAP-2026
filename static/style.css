@@ -406,30 +406,38 @@ body::-webkit-scrollbar-thumb {
 }
 
 .chart-toggle {
-  position: absolute;
-  top: 10px;
-  right: 10px;
   display: flex;
-  gap: 2px;
-  background: rgba(0, 0, 0, 0.4);
-  border-radius: 8px;
-  padding: 3px;
+  gap: 4px;
+  flex-shrink: 0;
+  align-items: center;
 }
 
 .chart-toggle button {
-  width: 27px;
-  height: 25px;
-  border: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 26px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
   background: transparent;
   color: #b7b3aa;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 13px;
-  line-height: 1;
+  font-size: 11.5px;
+  font-family: var(--sans);
+  white-space: nowrap;
+  transition: background .15s, color .15s, border-color .15s;
+}
+
+.chart-toggle button:hover {
+  background: rgba(141,92,204,.12);
+  border-color: rgba(141,92,204,.4);
+  color: #fff;
 }
 
 .chart-toggle button.active {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(141,92,204,.18);
+  border-color: rgba(141,92,204,.5);
   color: #fff;
 }
 
@@ -457,12 +465,12 @@ body::-webkit-scrollbar-thumb {
 
 .chart-canvas-box {
   position: relative;
-  height: 280px;
+  height: 340px;
   width: 100%;
 }
 
 .chart-table-box {
-  max-height: 280px;
+  max-height: 340px;
   overflow-y: auto;
 }
 
@@ -488,12 +496,7 @@ body::-webkit-scrollbar-thumb {
 
 .data-table tr:last-child td { border-bottom: none; }
 
-/* toggle reposicionado dentro do cartao interativo */
-.chart-wrap-interactive .chart-toggle {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-}
+/* toggle inline no header — sem position absolute */
 
 .typing-cursor {
   display: inline-block;

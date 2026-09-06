@@ -244,19 +244,18 @@ function renderInteractiveChart(bubble, payload) {
   wrap.className = "chart-wrap chart-wrap-interactive";
 
   if (typeof Chart === "undefined") {
-    wrap.innerHTML =
-      '<div class="chart-error">Nao foi possivel carregar a biblioteca do grafico (Chart.js). ' +
-      "Verifique sua conexao com a internet e recarregue a pagina.</div>";
+    wrap.innerHTML = '<div class="chart-error">Chart.js nao carregou. Verifique a conexao.</div>';
     bubble.appendChild(wrap);
-    console.error("Chart.js nao carregou: verifique a tag <script> do CDN em index.html e a conexao com a internet.");
     return;
   }
 
+  // ── Canvas ──
   const canvasBox = document.createElement("div");
   canvasBox.className = "chart-canvas-box";
   const canvas = document.createElement("canvas");
   canvasBox.appendChild(canvas);
 
+  // ── Tabela ──
   const tableBox = document.createElement("div");
   tableBox.className = "chart-table-box";
   tableBox.style.display = "none";
@@ -264,26 +263,78 @@ function renderInteractiveChart(bubble, payload) {
   const table = document.createElement("table");
   table.className = "data-table";
   const thead = document.createElement("thead");
-  thead.innerHTML = `<tr><th>Categoria</th><th>${payload.value_label || "Valor"}</th></tr>`;
+  const valLabel = payload.value_label || "Valor";
+  thead.innerHTML = `<tr><th>Categoria</th><th>${valLabel}</th></tr>`;
   const tbody = document.createElement("tbody");
   payload.labels.forEach((label, i) => {
+    const val = typeof payload.values[i] === "number"
+      ? payload.values[i].toLocaleString("pt-BR")
+      : payload.values[i];
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${label}</td><td>${payload.values[i]}</td>`;
+    tr.innerHTML = `<td>${label}</td><td>${val}</td>`;
     tbody.appendChild(tr);
   });
   table.appendChild(thead);
   table.appendChild(tbody);
   tableBox.appendChild(table);
 
+  // ── Toggle gráfico/tabela ──
   const toggle = document.createElement("div");
   toggle.className = "chart-toggle";
+
   const chartBtn = document.createElement("button");
-  chartBtn.textContent = "📈";
-  chartBtn.title = "Ver grafico";
+  chartBtn.innerHTML = "📈 Gráfico";
+  chartBtn.title = "Ver gráfico";
   chartBtn.className = "active";
+
   const tableBtn = document.createElement("button");
-  tableBtn.textContent = "▤";
+  tableBtn.innerHTML = "▤ Tabela";
   tableBtn.title = "Ver tabela";
+
+  // ── Botão PNG (gráfico) ──
+  const pngBtn = document.createElement("button");
+  pngBtn.innerHTML = "⬇ PNG";
+  pngBtn.title = "Baixar gráfico como PNG";
+  pngBtn.style.marginLeft = "auto";
+  pngBtn.onclick = (e) => {
+    e.stopPropagation();
+    const link = document.createElement("a");
+    link.download = (payload.title || "grafico").replace(/[^a-z0-9]/gi,"_") + ".png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  };
+
+  // ── Botão PDF (tabela) ──
+  const pdfBtn = document.createElement("button");
+  pdfBtn.innerHTML = "⬇ PDF";
+  pdfBtn.title = "Baixar tabela como PDF";
+  pdfBtn.style.marginLeft = "auto";
+  pdfBtn.style.display = "none";
+  pdfBtn.onclick = (e) => {
+    e.stopPropagation();
+    const titulo = payload.title || "Tabela de dados";
+    const linhas = payload.labels.map((l, i) =>
+      `<tr><td style="padding:6px 12px;border-bottom:1px solid #2b2a27;color:#ece8e1">${l}</td>
+       <td style="padding:6px 12px;border-bottom:1px solid #2b2a27;color:#ece8e1;text-align:right">
+         ${typeof payload.values[i]==="number" ? payload.values[i].toLocaleString("pt-BR") : payload.values[i]}
+       </td></tr>`
+    ).join("");
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+      <title>${titulo}</title>
+      <style>body{font-family:Arial,sans-serif;background:#0a0d12;color:#ece8e1;padding:32px}
+      h2{font-size:18px;margin-bottom:4px}p{color:#9a9587;font-size:12px;margin-bottom:20px}
+      table{width:100%;border-collapse:collapse}
+      th{background:#8d5ccc;color:#fff;padding:8px 12px;text-align:left;font-size:12px;text-transform:uppercase}
+      th:last-child{text-align:right}
+      tr:nth-child(even){background:#1a1917}</style></head><body>
+      <h2>${titulo}</h2><p>${valLabel} · DataMind · ${new Date().toLocaleDateString("pt-BR")}</p>
+      <table><thead><tr><th>Categoria</th><th style="text-align:right">${valLabel}</th></tr></thead>
+      <tbody>${linhas}</tbody></table></body></html>`;
+    const win = window.open("","_blank");
+    win.document.write(html);
+    win.document.close();
+    setTimeout(() => win.print(), 400);
+  };
 
   chartBtn.onclick = (e) => {
     e.stopPropagation();
@@ -291,6 +342,8 @@ function renderInteractiveChart(bubble, payload) {
     tableBox.style.display = "none";
     chartBtn.classList.add("active");
     tableBtn.classList.remove("active");
+    pngBtn.style.display = "";
+    pdfBtn.style.display = "none";
   };
   tableBtn.onclick = (e) => {
     e.stopPropagation();
@@ -298,63 +351,119 @@ function renderInteractiveChart(bubble, payload) {
     tableBox.style.display = "block";
     tableBtn.classList.add("active");
     chartBtn.classList.remove("active");
+    pngBtn.style.display = "none";
+    pdfBtn.style.display = "";
   };
+
   toggle.appendChild(chartBtn);
   toggle.appendChild(tableBtn);
+  toggle.appendChild(pngBtn);
+  toggle.appendChild(pdfBtn);
 
-  wrap.appendChild(toggle);
+  // ── Header: título + toggle lado a lado ──
+  const header = document.createElement("div");
+  header.style.cssText = "display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:4px";
+
+  const titleWrap = document.createElement("div");
   if (payload.title) {
     const h = document.createElement("div");
     h.className = "chart-title";
     h.textContent = payload.title;
-    wrap.appendChild(h);
+    titleWrap.appendChild(h);
   }
   if (payload.subtitle) {
     const s = document.createElement("div");
     s.className = "chart-subtitle";
     s.textContent = payload.subtitle;
-    wrap.appendChild(s);
+    titleWrap.appendChild(s);
   }
+
+  header.appendChild(titleWrap);
+  header.appendChild(toggle);
+  wrap.appendChild(header);
   wrap.appendChild(canvasBox);
   wrap.appendChild(tableBox);
   bubble.appendChild(wrap);
 
-  new Chart(canvas, {
-    type: "bar",
-    data: {
-      labels: payload.labels,
-      datasets: [{
-        label: payload.value_label || "Valor",
-        data: payload.values,
-        backgroundColor: "#4C8BF5",
-        borderRadius: 4,
-        maxBarThickness: 46,
-      }],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: "#111110",
-          titleColor: "#fff",
-          bodyColor: "#fff",
-          padding: 10,
-          cornerRadius: 8,
-          displayColors: true,
+  // ── Gráfico Chart.js dinâmico ──
+  const ACC  = "#8d5ccc";
+  const ACC2 = "#a87de0";
+  const PALETTE = [ACC, "#6fbf73", "#e6a832", "#d9695f", ACC2, "#4facfe",
+                   "#f5a04c", "#4cf5b0", "#f04e98", "#ffd166"];
+  const ptype = payload.type || "bar";
+  const isHorizontal = ptype === "bar" && (payload.labels.length > 6 ||
+    payload.labels.some(l => String(l).length > 10));
+  const colors = payload.labels.map((_, i) => PALETTE[i % PALETTE.length]);
+
+  let chartConfig;
+
+  if (ptype === "pie" || ptype === "doughnut") {
+    chartConfig = {
+      type: "doughnut",
+      data: {
+        labels: payload.labels,
+        datasets: [{ data: payload.values, backgroundColor: colors, borderColor: "#0a0d12", borderWidth: 2 }],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        cutout: "55%",
+        plugins: {
+          legend: { display: true, position: "bottom", labels: { color: "#9a9587", boxWidth: 12, padding: 8 } },
+          tooltip: {
+            backgroundColor: "#111110", titleColor: "#ece8e1", bodyColor: "#ece8e1", padding: 12, cornerRadius: 8,
+            callbacks: { label: (ctx) => ` ${ctx.label}: ${ctx.raw.toLocaleString("pt-BR")}` },
+          },
         },
       },
-      scales: {
-        x: { ticks: { color: "#9a9587" }, grid: { display: false } },
-        y: {
-          ticks: { color: "#9a9587" },
-          grid: { color: "#3a3935" },
-          beginAtZero: true,
+    };
+  } else if (ptype === "line") {
+    chartConfig = {
+      type: "line",
+      data: {
+        labels: payload.labels,
+        datasets: [{ label: valLabel, data: payload.values, borderColor: ACC, backgroundColor: "rgba(141,92,204,.12)",
+                     fill: true, tension: 0.4, pointRadius: 4, pointBackgroundColor: ACC2 }],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { backgroundColor: "#111110", titleColor: "#ece8e1", bodyColor: "#ece8e1", padding: 12, cornerRadius: 8,
+                     callbacks: { label: (ctx) => " " + ctx.raw.toLocaleString("pt-BR") } },
+        },
+        scales: {
+          x: { ticks: { color: "#9a9587", font: { size: 10 } }, grid: { display: false } },
+          y: { ticks: { color: "#9a9587" }, grid: { color: "#3a3935" }, beginAtZero: true },
         },
       },
-    },
-  });
+    };
+  } else {
+    // bar (horizontal ou vertical)
+    chartConfig = {
+      type: "bar",
+      data: {
+        labels: payload.labels,
+        datasets: [{ label: valLabel, data: payload.values,
+                     backgroundColor: payload.labels.map((_, i) => i % 2 === 0 ? ACC : ACC2),
+                     borderRadius: 4, maxBarThickness: isHorizontal ? 26 : 40 }],
+      },
+      options: {
+        indexAxis: isHorizontal ? "y" : "x",
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { backgroundColor: "#111110", titleColor: "#ece8e1", bodyColor: "#ece8e1", padding: 12, cornerRadius: 8,
+                     callbacks: { label: (ctx) => " " + ctx.raw.toLocaleString("pt-BR") } },
+        },
+        scales: {
+          x: { ticks: { color: "#9a9587", font: { size: 10 } }, grid: { color: isHorizontal ? "#3a3935" : "transparent" } },
+          y: { ticks: { color: "#9a9587", font: { size: 10 } }, grid: { color: isHorizontal ? "transparent" : "#3a3935" }, beginAtZero: true },
+        },
+      },
+    };
+  }
+
+  new Chart(canvas, chartConfig);
 }
 
 // ---------- Mensagens ----------

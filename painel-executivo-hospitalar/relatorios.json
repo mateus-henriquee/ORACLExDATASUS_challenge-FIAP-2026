@@ -1,17 +1,17 @@
 {
   "mateus@datamind.com": [
     {
-      "id": "1788486481120",
-      "titulo": "Custo por internações",
+      "id": "1788662122487",
+      "titulo": "Cuto das internações por municipio",
       "descricao": "",
       "campos": {
-        "dim": "hospital",
+        "dim": "municipio",
         "metricas": [
           "internacoes",
           "custo"
         ]
       },
-      "criado_em": "03/09/2026 22:48"
+      "criado_em": "05/09/2026 23:35"
     }
   ]
 }

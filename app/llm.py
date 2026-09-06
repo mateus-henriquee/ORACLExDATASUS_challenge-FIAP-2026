@@ -9,7 +9,7 @@ from .config import MODEL_PATH, N_THREADS, N_CTX
 _llm = None
 
 TIME_BUDGET_SECONDS = 55
-MAX_TOKENS_DEFAULT  = 350
+MAX_TOKENS_DEFAULT  = 180
 
 
 def get_llm() -> Llama:
@@ -30,13 +30,17 @@ SYSTEM_PROMPT = (
     "Responda SEMPRE e SOMENTE em portugues do Brasil. Nunca escreva em ingles. "
     "Voce SO pode responder perguntas sobre: internacoes hospitalares, hospitais, municipios, "
     "custos do SUS, faixas etarias, competencias (meses), permanencia hospitalar e dados do DATASUS. "
-    "Se a pergunta NAO for sobre esses dados hospitalares, responda: "
-    "'Posso responder apenas perguntas sobre os dados de internacoes hospitalares do SUS. "
-    "Tente perguntar sobre municipios, hospitais, custos ou internacoes.' "
-    "Seja direto e tecnico, sem enrolacao, usando apenas o contexto de dados fornecido. "
-    "Se o contexto nao tiver a resposta, diga que nao ha dados suficientes. "
-    "NUNCA escreva codigo. NUNCA use markdown. Escreva somente em frases corridas de texto puro. "
-    "Se um grafico ja foi gerado, apenas responda com os numeros que voce ja tem."
+    "Se a pergunta NAO for sobre esses dados, responda apenas: "
+    "'Posso responder apenas perguntas sobre dados de internacoes hospitalares do SUS.' "
+    "REGRA PRINCIPAL: quando o contexto de dados tiver uma tabela ou lista de resultados, "
+    "USE OS NUMEROS EXATOS dessa tabela na sua resposta. "
+    "Por exemplo: se o contexto mostra 'SAO PAULO: 237968 internacoes', responda com o numero exato. "
+    "NUNCA responda apenas com o nome sem o numero quando o contexto tiver dados numericos. "
+    "Formato ideal: 'O municipio com mais internacoes e SAO PAULO com 237.968 internacoes, "
+    "seguido de CAMPINAS com 65.692 e GUARULHOS com 58.432.' "
+    "Seja objetivo e cite os top 3 quando relevante. "
+    "NUNCA escreva codigo. NUNCA use markdown. Escreva somente em frases corridas. "
+    "Se um grafico foi gerado, comente os numeros principais que aparecem nele."
 )
 
 

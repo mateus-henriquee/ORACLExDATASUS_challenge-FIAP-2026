@@ -17,44 +17,83 @@ CARD_SUBTEXT = "#9a9587"
 CARD_GRID = "#3a3935"
 
 
+def _norm_col(s: str) -> str:
+    import unicodedata
+    return unicodedata.normalize("NFKD", str(s)).encode("ascii","ignore").decode().lower().strip()
+
+# Colunas numéricas que JÁ contêm valores agregados — usar diretamente
+_NUMERIC_AGG_COLS = {"internacoes","custo","custo_total","valor_total","perm_media",
+                     "permanencia","custo_medio","total_internacoes","qtd","quantidade"}
+
 def prepare_plot_data(df: pd.DataFrame, x: str, y, agg: str = "count", is_temporal_ok: bool = False) -> pd.DataFrame:
     """
-    Agrega dados brutos (linha a linha) em algo plotavel:
-    - Se x parece data (e is_temporal_ok=True): agrupa por mes.
-    - Se y numerico: agrupa x por soma/media/contagem de y.
-    - Senao: conta ocorrencias de cada valor de x.
-    Sempre limita as TOP_N_CATEGORIAS mais relevantes p/ o grafico ficar legivel.
     Retorna DataFrame com colunas 'categoria' e 'valor'.
+    Detecta se os dados já estão agregados (ex: MV_MUNICIPIO tem INTERNACOES pronto)
+    e usa diretamente sem fazer COUNT errado.
     """
+    if df is None or df.empty or x not in df.columns:
+        return pd.DataFrame({"categoria": [], "valor": []})
+
     tmp = df.copy()
-    group_col = x
 
+    # --- Detectar coluna de valor numérico ---
+    # Prioridade: y explícito > coluna numérica conhecida > primeira numérica
+    val_col = None
+    if y and y in tmp.columns and pd.api.types.is_numeric_dtype(tmp[y]):
+        val_col = y
+    else:
+        # Busca coluna numérica conhecida (INTERNACOES, CUSTO_TOTAL, etc.)
+        for col in tmp.columns:
+            if _norm_col(col) in _NUMERIC_AGG_COLS and pd.api.types.is_numeric_dtype(tmp[col]):
+                val_col = col
+                break
+        # Fallback: primeira coluna numérica que não seja o X
+        if not val_col:
+            for col in tmp.columns:
+                if col != x and pd.api.types.is_numeric_dtype(tmp[col]):
+                    val_col = col
+                    break
+
+    # --- Temporal (ex: COMPETENCIA) ---
     if is_temporal_ok:
-        parsed = pd.to_datetime(tmp[x], errors="coerce", dayfirst=True)
-        if parsed.notna().mean() > 0.7:
-            tmp["_periodo"] = parsed.dt.to_period("M").astype(str)
-            tmp = tmp.dropna(subset=["_periodo"])
-            group_col = "_periodo"
+        # COMPETENCIA no formato AAAAMM — ordenar cronologicamente
+        if _norm_col(x) in {"competencia"}:
+            tmp = tmp.copy()
+            tmp["_cat"] = tmp[x].astype(str)
+            tmp = tmp.sort_values("_cat")
+            if val_col:
+                result = tmp[["_cat", val_col]].copy()
+                result.columns = ["categoria", "valor"]
+            else:
+                result = tmp[["_cat"]].copy()
+                result["valor"] = 1
+                result.columns = ["categoria", "valor"]
+            return result.reset_index(drop=True)
 
-    has_y = y and y in tmp.columns and pd.api.types.is_numeric_dtype(tmp[y])
-
-    if has_y:
-        grouped = tmp.groupby(group_col)[y]
-        if agg == "sum":
-            series = grouped.sum()
-        elif agg == "mean":
-            series = grouped.mean().round(2)
+    # --- Dados já agregados (uma linha por categoria, ex: MV_MUNICIPIO) ---
+    # Detecta se x é coluna de categoria + já tem coluna de valor
+    if val_col and x in tmp.columns:
+        # Verifica se há duplicatas no X — se não houver, dados já estão agregados
+        if tmp[x].nunique() == len(tmp) or tmp[x].nunique() >= len(tmp) * 0.8:
+            # Dados já agregados — usa diretamente
+            result = tmp[[x, val_col]].copy()
+            result.columns = ["categoria", "valor"]
+            result["valor"] = pd.to_numeric(result["valor"], errors="coerce").fillna(0)
+            result = result.sort_values("valor", ascending=False).head(TOP_N_CATEGORIAS)
+            return result.reset_index(drop=True)
         else:
-            series = grouped.count()
+            # Dados brutos — agrega
+            grouped = tmp.groupby(x)[val_col]
+            if agg == "mean":
+                series = grouped.mean().round(2)
+            else:
+                series = grouped.sum()
+            series = series.sort_values(ascending=False).head(TOP_N_CATEGORIAS)
+            return pd.DataFrame({"categoria": series.index.astype(str), "valor": series.values})
     else:
-        series = tmp[group_col].value_counts()
-
-    if group_col == "_periodo":
-        series = series.sort_index()
-    else:
-        series = series.sort_values(ascending=False).head(TOP_N_CATEGORIAS)
-
-    return pd.DataFrame({"categoria": series.index.astype(str), "valor": series.values})
+        # Sem coluna de valor — count por categoria
+        series = tmp[x].value_counts().head(TOP_N_CATEGORIAS)
+        return pd.DataFrame({"categoria": series.index.astype(str), "valor": series.values})
 
 
 def _style_ax(ax):

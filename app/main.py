@@ -295,28 +295,36 @@ def send_message(chat_id: int, question: str = Form(...)):
                 aggf = spec.get("agg", "count")
 
                 if ptype == "hist":
+                    # Histograma: gera PNG (distribuição)
                     plot_filename = Path(plots.hist_plot(df_plot, x, title=title)).name
+                    answer = llm.generate(hist, contexto_final, question)
                 elif ptype == "scatter":
+                    # Scatter: gera PNG
                     plot_filename = Path(plots.scatter_plot(df_plot, x, y, title=title)).name
-                elif ptype == "line":
-                    agg_df = plots.prepare_plot_data(df_plot, x, y, aggf, is_temporal_ok=True)
-                    plot_filename = Path(plots.line_plot(agg_df, "categoria", "valor", title=title)).name
-                    resumo = ", ".join(f"{r.categoria}: {r.valor}" for r in agg_df.itertuples())
-                    contexto_final = contexto_final + [f"Dados exatos do grafico: {resumo}."]
+                    answer = llm.generate(hist, contexto_final, question)
                 else:
-                    agg_df = plots.prepare_plot_data(df_plot, x, y, aggf, is_temporal_ok=False)
-                    value_label = y if (y and aggf != "count") else "Contagem"
-                    chart_data = json.dumps({
-                        "title": title or f"{x} por categoria",
-                        "subtitle": value_label,
-                        "value_label": value_label,
-                        "labels": agg_df["categoria"].tolist(),
-                        "values": agg_df["valor"].tolist(),
-                    })
-                    resumo = ", ".join(f"{r.categoria}: {r.valor}" for r in agg_df.itertuples())
-                    contexto_final = contexto_final + [f"Dados do grafico: {resumo}."]
-
-                answer = llm.generate(hist, contexto_final, question)
+                    # bar, line, pie → chart_data JSON (dinâmico no frontend)
+                    agg_df = plots.prepare_plot_data(
+                        df_plot, x, y, aggf,
+                        is_temporal_ok=(ptype == "line")
+                    )
+                    if agg_df.empty or "categoria" not in agg_df.columns:
+                        answer = "Nao consegui agregar os dados para o gráfico."
+                    else:
+                        labels = [str(v) for v in agg_df["categoria"].tolist()]
+                        values = [float(v) if v == v else 0 for v in agg_df["valor"].tolist()]
+                        value_label = y if (y and aggf != "count") else "Internações"
+                        chart_data = json.dumps({
+                            "type": ptype,
+                            "title": title or f"{x} por categoria",
+                            "subtitle": value_label,
+                            "value_label": value_label,
+                            "labels": labels,
+                            "values": values,
+                        })
+                        resumo = ", ".join(f"{l}: {v:,.0f}" for l, v in zip(labels[:5], values[:5]))
+                        contexto_final = contexto_final + [f"Dados do gráfico: {resumo}."]
+                        answer = llm.generate(hist, contexto_final, question)
         else:
             answer = llm.generate(hist, contexto_final, question)
 
