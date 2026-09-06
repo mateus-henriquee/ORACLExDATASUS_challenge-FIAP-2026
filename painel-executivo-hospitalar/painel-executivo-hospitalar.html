@@ -560,9 +560,9 @@ async function carregarChatbot() {
     perguntas.forEach(p => {
       const btn = document.createElement("button");
       btn.className = "chatbot-q-btn";
-      btn.textContent = p.label;
+      btn.textContent = p.texto || p.label || p.id;
       btn.onclick = async () => {
-        chatbotMsg(p.label);
+        chatbotMsg(p.texto || p.label || p.id);
         btn.disabled = true;
         try {
           const resp = await authFetch(`${API}/api/chatbot/responder?pergunta_id=${encodeURIComponent(p.id)}`);
@@ -654,6 +654,10 @@ function aplicarTodosFiltros() {
   carregarGraficoLinha();
   carregarGraficoBarra();
   carregarTabela();
+}
+
+function aplicarFiltrosMunicipio() {
+  aplicarTodosFiltros();
 }
 
 document.getElementById("f-ano")?.addEventListener("change", aplicarTodosFiltros);

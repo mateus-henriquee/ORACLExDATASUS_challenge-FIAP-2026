@@ -356,6 +356,15 @@ def analise_municipios_top(limite: int = 10, competencia: str | None = None,
     return [{"municipio": r["municipio"], "internacoes": int(r["internacoes"] or 0),
              "custo": float(r["custo"] or 0)} for r in linhas]
 
+PERGUNTAS_PRONTAS = [
+    {"id": "mes_maior_custo",    "texto": "Qual mês teve maior custo total?"},
+    {"id": "municipio_top",      "texto": "Qual município tem mais internações?"},
+    {"id": "permanencia_media",  "texto": "Qual a permanência média geral?"},
+    {"id": "custo_medio",        "texto": "Qual o custo médio por internação?"},
+    {"id": "hospital_top",       "texto": "Qual hospital teve mais internações?"},
+    {"id": "faixa_mais_interna", "texto": "Qual faixa etária tem mais internações?"},
+]
+
 @app.get("/api/chatbot/perguntas")
 def listar_perguntas():
     """Lista fixa de perguntas que o botao do chatbot oferece."""
@@ -364,60 +373,46 @@ def listar_perguntas():
 
 @app.get("/api/chatbot/responder")
 def responder_pergunta(pergunta_id: str):
-    """Cada pergunta tem UMA consulta SQL fixa associada -- nada de texto
-    livre, nada de IA. A resposta e sempre calculada na hora, com dado real."""
+    """Cada pergunta consulta a MV — resposta calculada na hora."""
+    def fmt(n): return f"{int(n):,}".replace(",",".")
 
     if pergunta_id == "mes_maior_custo":
-        r = query("""
-            SELECT COMPETENCIA AS competencia, SUM(VALOR_TOTAL) AS custo
-            FROM FATO_INTERNACAO
-            GROUP BY COMPETENCIA
-            ORDER BY custo DESC
-            FETCH FIRST 1 ROW ONLY
-        """)
-        if not r:
-            return {"resposta": "Ainda não há dados suficientes para responder."}
-        return {"resposta": f"O mês com maior custo foi {r[0]['competencia']}, "
-                             f"totalizando {fmt_real(float(r[0]['custo']))}."}
+        r = query("SELECT COMPETENCIA, CUSTO_TOTAL FROM MV_COMPETENCIA ORDER BY CUSTO_TOTAL DESC FETCH FIRST 1 ROW ONLY")
+        if not r: return {"resposta": "Sem dados suficientes."}
+        comp = r[0]["competencia"]
+        return {"resposta": f"O mes com maior custo foi {comp[4:6]}/{comp[0:4]}, totalizando R$ {fmt(r[0]['custo_total'])}."}
 
-    if pergunta_id == "hospital_maior_custo":
-        r = query("""
-            SELECT h.NOME AS hospital, SUM(f.VALOR_TOTAL) AS custo
-            FROM FATO_INTERNACAO f
-            JOIN DIM_HOSPITAL h ON f.COD_CNES = h.COD_CNES
-            GROUP BY h.NOME
-            ORDER BY custo DESC
-            FETCH FIRST 1 ROW ONLY
-        """)
-        if not r:
-            return {"resposta": "Ainda não há dados suficientes para responder."}
-        return {"resposta": f"O hospital com maior custo no período foi {r[0]['hospital']}, "
-                             f"totalizando {fmt_real(float(r[0]['custo']))}."}
+    if pergunta_id in ("hospital_maior_custo", "hospital_top"):
+        r = query("SELECT HOSPITAL, INTERNACOES, CUSTO_TOTAL FROM MV_HOSPITAL ORDER BY INTERNACOES DESC FETCH FIRST 1 ROW ONLY")
+        if not r: return {"resposta": "Sem dados suficientes."}
+        return {"resposta": f"O hospital com mais internacoes e {r[0]['hospital']} com {fmt(r[0]['internacoes'])} internacoes."}
 
     if pergunta_id == "permanencia_media":
-        r = query("SELECT ROUND(AVG(DIAS_PERMANENCIA), 1) AS media FROM FATO_INTERNACAO")
-        if not r or r[0]["media"] is None:
-            return {"resposta": "Ainda não há dados suficientes para responder."}
-        media = str(r[0]["media"]).replace(".", ",")
-        return {"resposta": f"A permanência média das internações é de {media} dias."}
+        r = query("SELECT PERM_MEDIA FROM MV_KPIS")
+        if not r: return {"resposta": "Sem dados suficientes."}
+        return {"resposta": f"A permanencia media e de {float(r[0]['perm_media']):.1f} dias por internacao."}
 
-    if pergunta_id == "custo_medio_internacao":
-        r = query("SELECT AVG(VALOR_TOTAL) AS media FROM FATO_INTERNACAO")
-        if not r or r[0]["media"] is None:
-            return {"resposta": "Ainda não há dados suficientes para responder."}
-        return {"resposta": f"O custo médio por internação é de {fmt_real(float(r[0]['media']))}."}
+    if pergunta_id in ("custo_medio_internacao", "custo_medio"):
+        r = query("SELECT CUSTO_MEDIO FROM MV_KPIS")
+        if not r: return {"resposta": "Sem dados suficientes."}
+        return {"resposta": f"O custo medio por internacao e R$ {fmt(r[0]['custo_medio'])}."}
 
     if pergunta_id == "total_internacoes":
-        r = query("SELECT COUNT(*) AS total FROM FATO_INTERNACAO")
-        total = r[0]["total"] if r else 0
-        return {"resposta": f"O total de internações no período carregado é {total:,}".replace(",", ".") + "."}
+        r = query("SELECT TOTAL_INTERNACOES FROM MV_KPIS")
+        if not r: return {"resposta": "Sem dados suficientes."}
+        return {"resposta": f"O total de internacoes e {fmt(r[0]['total_internacoes'])}."}
 
-    raise HTTPException(status_code=404, detail="Pergunta não reconhecida.")
+    if pergunta_id == "municipio_top":
+        r = query("SELECT MUNICIPIO, INTERNACOES FROM MV_MUNICIPIO ORDER BY INTERNACOES DESC FETCH FIRST 1 ROW ONLY")
+        if not r: return {"resposta": "Sem dados suficientes."}
+        return {"resposta": f"O municipio com mais internacoes e {r[0]['municipio']} com {fmt(r[0]['internacoes'])} internacoes."}
 
+    if pergunta_id == "faixa_mais_interna":
+        r = query("SELECT FAIXA_ETARIA, INTERNACOES FROM MV_FAIXA_ETARIA ORDER BY INTERNACOES DESC FETCH FIRST 1 ROW ONLY")
+        if not r: return {"resposta": "Sem dados suficientes."}
+        return {"resposta": f"A faixa etaria com mais internacoes e {r[0]['faixa_etaria']} anos com {fmt(r[0]['internacoes'])} internacoes."}
 
-from pathlib import Path
-
-_DIR = Path(__file__).parent
+    raise HTTPException(status_code=404, detail="Pergunta nao reconhecida.")
 
 @app.get("/login")
 def pagina_login():
