@@ -180,6 +180,19 @@ body { font-family: var(--sans); background: var(--bg-main); color: var(--text-p
 .scroll-area::-webkit-scrollbar { width: 8px; }
 .scroll-area::-webkit-scrollbar-track { background: var(--bg-main); }
 .scroll-area::-webkit-scrollbar-thumb { background: #761dbb; border-radius: 8px; }
+
+.mes-chk {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 11px; color: var(--text-dim);
+  cursor: pointer; padding: 3px 5px;
+  border-radius: 5px; transition: background .1s;
+  user-select: none;
+}
+.mes-chk:hover { background: rgba(141,92,204,.1); color: var(--text-primary); }
+.mes-chk input[type="checkbox"] {
+  accent-color: var(--accent);
+  width: 12px; height: 12px; cursor: pointer;
+}
 </style>
 </head>
 
@@ -227,23 +240,44 @@ body { font-family: var(--sans); background: var(--bg-main); color: var(--text-p
           <option value="2026">2026</option>
         </select>
       </div>
-      <div class="filter-group">
+      <div class="filter-group" style="position:relative">
         <label class="filter-label">Mês</label>
-        <select id="f-mes-analitico">
-          <option value="">Todos</option>
-          <option value="01">Jan</option>
-          <option value="02">Fev</option>
-          <option value="03">Mar</option>
-          <option value="04">Abr</option>
-          <option value="05">Mai</option>
-          <option value="06">Jun</option>
-          <option value="07">Jul</option>
-          <option value="08">Ago</option>
-          <option value="09">Set</option>
-          <option value="10">Out</option>
-          <option value="11">Nov</option>
-          <option value="12">Dez</option>
-        </select>
+        <div id="mes-dropdown-trigger" onclick="toggleMesDropdown()" style="
+          width:100%;background:var(--bg-card);border:1px solid var(--border);
+          border-radius:var(--radius-sm);color:var(--text-primary);
+          font-family:var(--sans);font-size:12.5px;padding:7px 10px;
+          cursor:pointer;display:flex;justify-content:space-between;align-items:center;
+          user-select:none;">
+          <span id="mes-dropdown-label">Todos os meses</span>
+          <span style="font-size:10px;opacity:.5">▾</span>
+        </div>
+        <div id="mes-dropdown-panel" style="
+          display:none;position:absolute;top:100%;left:0;right:0;z-index:200;
+          background:var(--bg-card);border:1px solid var(--accent);
+          border-radius:var(--radius-sm);padding:8px;margin-top:2px;
+          box-shadow:0 8px 24px rgba(0,0,0,.4);">
+          <label style="display:flex;align-items:center;gap:6px;padding:5px 4px;
+            font-size:12px;color:var(--accent);cursor:pointer;font-weight:600;
+            border-bottom:1px solid var(--border);margin-bottom:4px">
+            <input type="checkbox" id="mes-todos" onchange="toggleTodosMeses(this)"
+              style="accent-color:var(--accent);width:13px;height:13px">
+            Todos os meses
+          </label>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px" id="meses-checkboxes">
+            <label class="mes-chk"><input type="checkbox" value="01" onchange="atualizarLabelMes()"> Jan</label>
+            <label class="mes-chk"><input type="checkbox" value="02" onchange="atualizarLabelMes()"> Fev</label>
+            <label class="mes-chk"><input type="checkbox" value="03" onchange="atualizarLabelMes()"> Mar</label>
+            <label class="mes-chk"><input type="checkbox" value="04" onchange="atualizarLabelMes()"> Abr</label>
+            <label class="mes-chk"><input type="checkbox" value="05" onchange="atualizarLabelMes()"> Mai</label>
+            <label class="mes-chk"><input type="checkbox" value="06" onchange="atualizarLabelMes()"> Jun</label>
+            <label class="mes-chk"><input type="checkbox" value="07" onchange="atualizarLabelMes()"> Jul</label>
+            <label class="mes-chk"><input type="checkbox" value="08" onchange="atualizarLabelMes()"> Ago</label>
+            <label class="mes-chk"><input type="checkbox" value="09" onchange="atualizarLabelMes()"> Set</label>
+            <label class="mes-chk"><input type="checkbox" value="10" onchange="atualizarLabelMes()"> Out</label>
+            <label class="mes-chk"><input type="checkbox" value="11" onchange="atualizarLabelMes()"> Nov</label>
+            <label class="mes-chk"><input type="checkbox" value="12" onchange="atualizarLabelMes()"> Dez</label>
+          </div>
+        </div>
       </div>
 
       <div class="filter-group">
@@ -444,15 +478,32 @@ function fmtNum(n)  { return Number(n).toLocaleString("pt-BR"); }
 function fmtMi(n)   { return "R$ " + (n/1e6).toLocaleString("pt-BR",{minimumFractionDigits:1,maximumFractionDigits:1}) + " mi"; }
 function fmtDias(n) { return Number(n).toFixed(1).replace(".",",") + " dias"; }
 
+function getMesesSelecionados() {
+  return [...document.querySelectorAll("#meses-checkboxes input:checked")].map(el => el.value);
+}
+
+function toggleTodosMeses() {
+  const chks = document.querySelectorAll("#meses-checkboxes input");
+  const algumMarcado = [...chks].some(el => el.checked);
+  chks.forEach(el => el.checked = !algumMarcado);
+  const label = document.getElementById("sel-todos-meses");
+  if (label) label.textContent = algumMarcado ? "Todos" : "Nenhum";
+}
+
 function filtros() {
   const p = new URLSearchParams();
-  const ano   = document.getElementById("f-ano")?.value || "";
-  const mes   = document.getElementById("f-mes-analitico")?.value || "";
-  const comp  = ano && mes ? ano + mes : "";
-  const sexo  = document.getElementById("f-sexo")?.value || "";
-  const mun   = document.getElementById("f-municipio")?.value || "";
-  const faixa = document.getElementById("f-faixa")?.value || "";
-  if (comp)  p.set("competencia", comp);
+  const ano    = document.getElementById("f-ano")?.value || "";
+  const meses  = getMesesSelecionados();
+  const sexo   = document.getElementById("f-sexo")?.value || "";
+  const mun    = document.getElementById("f-municipio")?.value || "";
+  const faixa  = document.getElementById("f-faixa")?.value || "";
+  // Se selecionou meses específicos e tem ano, filtra pela primeira competência
+  if (ano && meses.length === 1) {
+    p.set("competencia", ano + meses[0]);
+  } else if (ano && meses.length > 1) {
+    // múltiplos meses: não filtra por competência (retorna todos do ano via JS depois)
+    // passa apenas o ano como flag para o backend
+  }
   if (sexo)  p.set("sexo", sexo);
   if (mun)   p.set("municipio", mun);
   if (faixa) p.set("faixa_etaria", faixa);
@@ -469,8 +520,18 @@ async function carregarKPIs() {
 }
 
 async function carregarLinha() {
-  const r = await fetch(API + "/api/custo-por-mes" + filtros());
-  const d = await r.json();
+  const p = new URLSearchParams();
+  const ano   = document.getElementById("f-ano")?.value || "";
+  const meses = getMesesSelecionados();
+  const mun   = document.getElementById("f-municipio")?.value || "";
+  if (mun) p.set("municipio", mun);
+  const r = await fetch(API + "/api/custo-por-mes" + (p.toString() ? "?" + p.toString() : ""));
+  let d = await r.json();
+  if (!d.length) return;
+  const ano_f = document.getElementById("f-ano")?.value || "";
+  const meses_f = getMesesSelecionados();
+  if (ano_f) d = d.filter(x => x.competencia && x.competencia.startsWith(ano_f));
+  if (meses_f.length > 0) d = d.filter(x => x.competencia && meses_f.includes(x.competencia.slice(4,6)));
   if (!d.length) return;
   upsertChart("chart-linha", {
     type: "line",
@@ -516,7 +577,13 @@ async function carregarBarrasH() {
 }
 
 async function carregarPermLinha() {
-  const r = await fetch(API + "/api/custo-por-mes" + filtros());
+  const p = new URLSearchParams();
+  const ano = document.getElementById("f-ano")?.value || "";
+  const mes = document.getElementById("f-mes-analitico")?.value || "";
+  const mun = document.getElementById("f-municipio")?.value || "";
+  if (ano && mes) p.set("competencia", ano + mes);
+  if (mun) p.set("municipio", mun);
+  const r = await fetch(API + "/api/custo-por-mes" + (p.toString() ? "?" + p.toString() : ""));
   const d = await r.json();
   if (!d.length) return;
   upsertChart("chart-perm-linha", {
@@ -530,7 +597,13 @@ async function carregarPermLinha() {
 }
 
 async function carregarRadar() {
-  const r = await fetch(API + "/api/custo-por-mes" + filtros());
+  const p = new URLSearchParams();
+  const ano = document.getElementById("f-ano")?.value || "";
+  const mes = document.getElementById("f-mes-analitico")?.value || "";
+  const mun = document.getElementById("f-municipio")?.value || "";
+  if (ano && mes) p.set("competencia", ano + mes);
+  if (mun) p.set("municipio", mun);
+  const r = await fetch(API + "/api/custo-por-mes" + (p.toString() ? "?" + p.toString() : ""));
   const d = await r.json();
   if (!d.length) return;
   // normaliza 0-100 relativo ao maximo de cada metrica
@@ -746,6 +819,39 @@ renderBotoes();
 addMsg("Escolha uma pergunta para ver a resposta calculada ao vivo com dados reais.");
 
 initChatbot().catch(() => addMsg("Chatbot indisponível (API offline)."));
+
+function toggleMesDropdown() {
+  const p = document.getElementById("mes-dropdown-panel");
+  p.style.display = p.style.display === "none" ? "block" : "none";
+}
+document.addEventListener("click", e => {
+  const trigger = document.getElementById("mes-dropdown-trigger");
+  const panel   = document.getElementById("mes-dropdown-panel");
+  if (!trigger || !panel) return;
+  if (!trigger.contains(e.target) && !panel.contains(e.target)) {
+    panel.style.display = "none";
+  }
+});
+function toggleTodosMeses(el) {
+  const chks = document.querySelectorAll("#meses-checkboxes input");
+  chks.forEach(c => c.checked = el.checked);
+  atualizarLabelMes();
+}
+function atualizarLabelMes() {
+  const todos = document.getElementById("mes-todos");
+  const chks  = [...document.querySelectorAll("#meses-checkboxes input")];
+  const sel   = chks.filter(c => c.checked);
+  const label = document.getElementById("mes-dropdown-label");
+  if (sel.length === 0 || sel.length === 12) {
+    if (todos) todos.checked = sel.length === 12;
+    label.textContent = "Todos os meses";
+  } else {
+    if (todos) todos.checked = false;
+    const nomes = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+    label.textContent = sel.map(c => nomes[parseInt(c.value)-1]).join(", ");
+  }
+}
+
 </script>
 </body>
 </html>

@@ -227,19 +227,18 @@ def get_kpis(competencia: str | None = None, sexo: str | None = None,
             "municipios_distintos": int(d[0]["municipios_distintos"] or 0)}
 
 @app.get("/api/custo-por-mes")
-def custo_por_mes(uf: str | None = None, municipio: str | None = None):
-    if not municipio:
-        # Sem filtro: usa MV rápida
-        sql = "SELECT COMPETENCIA, INTERNACOES, CUSTO_TOTAL, CUSTO_MEDIO, PERM_MEDIA FROM MV_COMPETENCIA ORDER BY COMPETENCIA"
-        linhas = query(sql)
-    else:
-        # Com municipio: usa MV_MUNICIPIO_MES
-        sql = """SELECT COMPETENCIA, INTERNACOES, CUSTO_TOTAL AS custo_total,
-                        PERM_MEDIA, INTERNACOES AS custo_medio
-                 FROM MV_MUNICIPIO_MES WHERE MUNICIPIO = :mun ORDER BY COMPETENCIA"""
+def custo_por_mes(uf: str | None = None, municipio: str | None = None, competencia: str | None = None):
+    if municipio:
+        sql = "SELECT COMPETENCIA, INTERNACOES, CUSTO_TOTAL AS custo_total, PERM_MEDIA FROM MV_MUNICIPIO_MES WHERE MUNICIPIO = :mun ORDER BY COMPETENCIA"
         linhas = query(sql, {"mun": municipio})
+    elif competencia:
+        sql = "SELECT COMPETENCIA, INTERNACOES, CUSTO_TOTAL AS custo_total, CUSTO_MEDIO, PERM_MEDIA FROM MV_COMPETENCIA WHERE COMPETENCIA = :comp ORDER BY COMPETENCIA"
+        linhas = query(sql, {"comp": competencia})
+    else:
+        sql = "SELECT COMPETENCIA, INTERNACOES, CUSTO_TOTAL AS custo_total, CUSTO_MEDIO, PERM_MEDIA FROM MV_COMPETENCIA ORDER BY COMPETENCIA"
+        linhas = query(sql)
     return [{"competencia": r["competencia"], "custo": float(r["custo_total"] or 0),
-             "internacoes": int(r["internacoes"] or 0), "permanencia_media": float(r["perm_media"] or 0)}
+             "internacoes": int(r["internacoes"] or 0), "permanencia_media": float(r.get("perm_media") or 0)}
             for r in linhas]
 
 @app.get("/api/custo-por-hospital")
@@ -334,27 +333,64 @@ def listar_ufs():
 def analise_sexo(competencia: str | None = None, sexo: str | None = None,
                  municipio: str | None = None, faixa_etaria: str | None = None,
                  uf: str | None = None):
-    # Usa MV_SEXO — sem filtros avançados (MV não suporta filtros dinâmicos)
-    linhas = query("SELECT SEXO, INTERNACOES AS qtd FROM MV_SEXO ORDER BY INTERNACOES DESC")
+    # Sem filtros: usa MV rápida
+    if not any([competencia, sexo, municipio, faixa_etaria]):
+        linhas = query("SELECT SEXO, INTERNACOES AS qtd FROM MV_SEXO ORDER BY INTERNACOES DESC")
+        return [{"sexo": r["sexo"], "qtd": int(r["qtd"] or 0)} for r in linhas]
+    # Com filtros: FATO_INTERNACAO
+    conds, params = ["f.SEXO IN ('M','F')"], {}
+    if competencia:  conds.append("f.COMPETENCIA = :comp");  params["comp"] = competencia
+    if sexo:         conds.append("f.SEXO = :sexo");          params["sexo"] = sexo
+    if municipio:    conds.append("UPPER(m.NOME) LIKE UPPER(:mun)"); params["mun"] = f"%{municipio}%"
+    if faixa_etaria: conds.append("f.FAIXA_ETARIA = :faixa"); params["faixa"] = faixa_etaria
+    where = "WHERE " + " AND ".join(conds)
+    sql = f"SELECT f.SEXO, COUNT(*) AS qtd FROM FATO_INTERNACAO f JOIN DIM_MUNICIPIO m ON f.COD_IBGE=m.COD_IBGE {where} GROUP BY f.SEXO ORDER BY qtd DESC"
+    linhas = query(sql, params)
     return [{"sexo": r["sexo"], "qtd": int(r["qtd"] or 0)} for r in linhas]
 
 @app.get("/api/analise/faixa-etaria")
 def analise_faixa_etaria(competencia: str | None = None, sexo: str | None = None,
                          municipio: str | None = None, faixa_etaria: str | None = None,
                          uf: str | None = None):
-    # Usa MV_FAIXA_ETARIA
-    linhas = query("SELECT FAIXA_ETARIA, INTERNACOES AS qtd FROM MV_FAIXA_ETARIA ORDER BY INTERNACOES DESC")
+    if not any([competencia, sexo, municipio]):
+        linhas = query("SELECT FAIXA_ETARIA, INTERNACOES AS qtd FROM MV_FAIXA_ETARIA ORDER BY INTERNACOES DESC")
+        return [{"faixa_etaria": r["faixa_etaria"], "qtd": int(r["qtd"] or 0)} for r in linhas]
+    conds, params = ["f.FAIXA_ETARIA IS NOT NULL"], {}
+    if competencia: conds.append("f.COMPETENCIA = :comp"); params["comp"] = competencia
+    if sexo:        conds.append("f.SEXO = :sexo"); params["sexo"] = sexo
+    if municipio:   conds.append("UPPER(m.NOME) LIKE UPPER(:mun)"); params["mun"] = f"%{municipio}%"
+    where = "WHERE " + " AND ".join(conds)
+    sql = f"SELECT f.FAIXA_ETARIA, COUNT(*) AS qtd FROM FATO_INTERNACAO f JOIN DIM_MUNICIPIO m ON f.COD_IBGE=m.COD_IBGE {where} GROUP BY f.FAIXA_ETARIA ORDER BY qtd DESC"
+    linhas = query(sql, params)
     return [{"faixa_etaria": r["faixa_etaria"], "qtd": int(r["qtd"] or 0)} for r in linhas]
 
 @app.get("/api/analise/municipios-top")
 def analise_municipios_top(limite: int = 10, competencia: str | None = None,
                            sexo: str | None = None, faixa_etaria: str | None = None,
                            uf: str | None = None):
-    # Usa MV_MUNICIPIO
-    sql = "SELECT MUNICIPIO, INTERNACOES, CUSTO_TOTAL AS custo FROM MV_MUNICIPIO ORDER BY INTERNACOES DESC FETCH FIRST :limite ROWS ONLY"
-    linhas = query(sql, {"limite": limite})
-    return [{"municipio": r["municipio"], "internacoes": int(r["internacoes"] or 0),
-             "custo": float(r["custo"] or 0)} for r in linhas]
+    if not any([competencia, sexo, faixa_etaria]):
+        sql = "SELECT MUNICIPIO, INTERNACOES, CUSTO_TOTAL AS custo FROM MV_MUNICIPIO ORDER BY INTERNACOES DESC FETCH FIRST :limite ROWS ONLY"
+        linhas = query(sql, {"limite": limite})
+        return [{"municipio": r["municipio"], "internacoes": int(r["internacoes"] or 0), "custo": float(r["custo"] or 0)} for r in linhas]
+    conds, params = [], {"limite": limite}
+    if competencia:  conds.append("f.COMPETENCIA = :comp"); params["comp"] = competencia
+    if sexo:         conds.append("f.SEXO = :sexo"); params["sexo"] = sexo
+    if faixa_etaria: conds.append("f.FAIXA_ETARIA = :faixa"); params["faixa"] = faixa_etaria
+    where = ("WHERE " + " AND ".join(conds)) if conds else ""
+    sql = f"""SELECT m.NOME AS municipio, COUNT(*) AS internacoes, SUM(f.VALOR_TOTAL) AS custo
+              FROM FATO_INTERNACAO f JOIN DIM_MUNICIPIO m ON f.COD_IBGE=m.COD_IBGE {where}
+              GROUP BY m.NOME ORDER BY internacoes DESC FETCH FIRST :limite ROWS ONLY"""
+    linhas = query(sql, params)
+    return [{"municipio": r["municipio"], "internacoes": int(r["internacoes"] or 0), "custo": float(r["custo"] or 0)} for r in linhas]
+
+PERGUNTAS_PRONTAS = [
+    {"id": "mes_maior_custo",    "texto": "Qual mês teve maior custo total?"},
+    {"id": "municipio_top",      "texto": "Qual município tem mais internações?"},
+    {"id": "permanencia_media",  "texto": "Qual a permanência média geral?"},
+    {"id": "custo_medio",        "texto": "Qual o custo médio por internação?"},
+    {"id": "hospital_top",       "texto": "Qual hospital teve mais internações?"},
+    {"id": "faixa_mais_interna", "texto": "Qual faixa etária tem mais internações?"},
+]
 
 @app.get("/api/chatbot/perguntas")
 def listar_perguntas():
@@ -364,60 +400,47 @@ def listar_perguntas():
 
 @app.get("/api/chatbot/responder")
 def responder_pergunta(pergunta_id: str):
-    """Cada pergunta tem UMA consulta SQL fixa associada -- nada de texto
-    livre, nada de IA. A resposta e sempre calculada na hora, com dado real."""
+    """Responde usando MVs pre-calculadas."""
+    def fmt(n):
+        return f"{int(n):,}".replace(",", ".")
 
     if pergunta_id == "mes_maior_custo":
-        r = query("""
-            SELECT COMPETENCIA AS competencia, SUM(VALOR_TOTAL) AS custo
-            FROM FATO_INTERNACAO
-            GROUP BY COMPETENCIA
-            ORDER BY custo DESC
-            FETCH FIRST 1 ROW ONLY
-        """)
-        if not r:
-            return {"resposta": "Ainda não há dados suficientes para responder."}
-        return {"resposta": f"O mês com maior custo foi {r[0]['competencia']}, "
-                             f"totalizando {fmt_real(float(r[0]['custo']))}."}
+        r = query("SELECT COMPETENCIA, CUSTO_TOTAL FROM MV_COMPETENCIA ORDER BY CUSTO_TOTAL DESC FETCH FIRST 1 ROW ONLY")
+        if not r: return {"resposta": "Sem dados suficientes."}
+        comp = r[0]["competencia"]
+        return {"resposta": f"O mes com maior custo foi {comp[4:6]}/{comp[0:4]}, totalizando R$ {fmt(r[0]['custo_total'])}."}
 
-    if pergunta_id == "hospital_maior_custo":
-        r = query("""
-            SELECT h.NOME AS hospital, SUM(f.VALOR_TOTAL) AS custo
-            FROM FATO_INTERNACAO f
-            JOIN DIM_HOSPITAL h ON f.COD_CNES = h.COD_CNES
-            GROUP BY h.NOME
-            ORDER BY custo DESC
-            FETCH FIRST 1 ROW ONLY
-        """)
-        if not r:
-            return {"resposta": "Ainda não há dados suficientes para responder."}
-        return {"resposta": f"O hospital com maior custo no período foi {r[0]['hospital']}, "
-                             f"totalizando {fmt_real(float(r[0]['custo']))}."}
+    if pergunta_id in ("hospital_maior_custo", "hospital_top"):
+        r = query("SELECT HOSPITAL, INTERNACOES FROM MV_HOSPITAL ORDER BY INTERNACOES DESC FETCH FIRST 1 ROW ONLY")
+        if not r: return {"resposta": "Sem dados suficientes."}
+        return {"resposta": f"O hospital com mais internacoes e {r[0]['hospital']} com {fmt(r[0]['internacoes'])} internacoes."}
 
     if pergunta_id == "permanencia_media":
-        r = query("SELECT ROUND(AVG(DIAS_PERMANENCIA), 1) AS media FROM FATO_INTERNACAO")
-        if not r or r[0]["media"] is None:
-            return {"resposta": "Ainda não há dados suficientes para responder."}
-        media = str(r[0]["media"]).replace(".", ",")
-        return {"resposta": f"A permanência média das internações é de {media} dias."}
+        r = query("SELECT PERM_MEDIA FROM MV_KPIS")
+        if not r: return {"resposta": "Sem dados suficientes."}
+        return {"resposta": f"A permanencia media e de {float(r[0]['perm_media']):.1f} dias por internacao."}
 
-    if pergunta_id == "custo_medio_internacao":
-        r = query("SELECT AVG(VALOR_TOTAL) AS media FROM FATO_INTERNACAO")
-        if not r or r[0]["media"] is None:
-            return {"resposta": "Ainda não há dados suficientes para responder."}
-        return {"resposta": f"O custo médio por internação é de {fmt_real(float(r[0]['media']))}."}
+    if pergunta_id in ("custo_medio_internacao", "custo_medio"):
+        r = query("SELECT CUSTO_MEDIO FROM MV_KPIS")
+        if not r: return {"resposta": "Sem dados suficientes."}
+        return {"resposta": f"O custo medio por internacao e R$ {fmt(r[0]['custo_medio'])}."}
 
     if pergunta_id == "total_internacoes":
-        r = query("SELECT COUNT(*) AS total FROM FATO_INTERNACAO")
-        total = r[0]["total"] if r else 0
-        return {"resposta": f"O total de internações no período carregado é {total:,}".replace(",", ".") + "."}
+        r = query("SELECT TOTAL_INTERNACOES FROM MV_KPIS")
+        if not r: return {"resposta": "Sem dados suficientes."}
+        return {"resposta": f"O total de internacoes e {fmt(r[0]['total_internacoes'])}."}
 
-    raise HTTPException(status_code=404, detail="Pergunta não reconhecida.")
+    if pergunta_id == "municipio_top":
+        r = query("SELECT MUNICIPIO, INTERNACOES FROM MV_MUNICIPIO ORDER BY INTERNACOES DESC FETCH FIRST 1 ROW ONLY")
+        if not r: return {"resposta": "Sem dados suficientes."}
+        return {"resposta": f"O municipio com mais internacoes e {r[0]['municipio']} com {fmt(r[0]['internacoes'])} internacoes."}
 
+    if pergunta_id == "faixa_mais_interna":
+        r = query("SELECT FAIXA_ETARIA, INTERNACOES FROM MV_FAIXA_ETARIA ORDER BY INTERNACOES DESC FETCH FIRST 1 ROW ONLY")
+        if not r: return {"resposta": "Sem dados suficientes."}
+        return {"resposta": f"A faixa etaria com mais internacoes e {r[0]['faixa_etaria']} anos com {fmt(r[0]['internacoes'])} internacoes."}
 
-from pathlib import Path
-
-_DIR = Path(__file__).parent
+    raise HTTPException(status_code=404, detail="Pergunta nao reconhecida.")
 
 @app.get("/login")
 def pagina_login():
