@@ -356,15 +356,6 @@ def analise_municipios_top(limite: int = 10, competencia: str | None = None,
     return [{"municipio": r["municipio"], "internacoes": int(r["internacoes"] or 0),
              "custo": float(r["custo"] or 0)} for r in linhas]
 
-PERGUNTAS_PRONTAS = [
-    {"id": "mes_maior_custo",    "texto": "Qual mês teve maior custo total?"},
-    {"id": "municipio_top",      "texto": "Qual município tem mais internações?"},
-    {"id": "permanencia_media",  "texto": "Qual a permanência média geral?"},
-    {"id": "custo_medio",        "texto": "Qual o custo médio por internação?"},
-    {"id": "hospital_top",       "texto": "Qual hospital teve mais internações?"},
-    {"id": "faixa_mais_interna", "texto": "Qual faixa etária tem mais internações?"},
-]
-
 @app.get("/api/chatbot/perguntas")
 def listar_perguntas():
     """Lista fixa de perguntas que o botao do chatbot oferece."""
@@ -373,46 +364,60 @@ def listar_perguntas():
 
 @app.get("/api/chatbot/responder")
 def responder_pergunta(pergunta_id: str):
-    """Cada pergunta consulta a MV — resposta calculada na hora."""
-    def fmt(n): return f"{int(n):,}".replace(",",".")
+    """Cada pergunta tem UMA consulta SQL fixa associada -- nada de texto
+    livre, nada de IA. A resposta e sempre calculada na hora, com dado real."""
 
     if pergunta_id == "mes_maior_custo":
-        r = query("SELECT COMPETENCIA, CUSTO_TOTAL FROM MV_COMPETENCIA ORDER BY CUSTO_TOTAL DESC FETCH FIRST 1 ROW ONLY")
-        if not r: return {"resposta": "Sem dados suficientes."}
-        comp = r[0]["competencia"]
-        return {"resposta": f"O mes com maior custo foi {comp[4:6]}/{comp[0:4]}, totalizando R$ {fmt(r[0]['custo_total'])}."}
+        r = query("""
+            SELECT COMPETENCIA AS competencia, SUM(VALOR_TOTAL) AS custo
+            FROM FATO_INTERNACAO
+            GROUP BY COMPETENCIA
+            ORDER BY custo DESC
+            FETCH FIRST 1 ROW ONLY
+        """)
+        if not r:
+            return {"resposta": "Ainda não há dados suficientes para responder."}
+        return {"resposta": f"O mês com maior custo foi {r[0]['competencia']}, "
+                             f"totalizando {fmt_real(float(r[0]['custo']))}."}
 
-    if pergunta_id in ("hospital_maior_custo", "hospital_top"):
-        r = query("SELECT HOSPITAL, INTERNACOES, CUSTO_TOTAL FROM MV_HOSPITAL ORDER BY INTERNACOES DESC FETCH FIRST 1 ROW ONLY")
-        if not r: return {"resposta": "Sem dados suficientes."}
-        return {"resposta": f"O hospital com mais internacoes e {r[0]['hospital']} com {fmt(r[0]['internacoes'])} internacoes."}
+    if pergunta_id == "hospital_maior_custo":
+        r = query("""
+            SELECT h.NOME AS hospital, SUM(f.VALOR_TOTAL) AS custo
+            FROM FATO_INTERNACAO f
+            JOIN DIM_HOSPITAL h ON f.COD_CNES = h.COD_CNES
+            GROUP BY h.NOME
+            ORDER BY custo DESC
+            FETCH FIRST 1 ROW ONLY
+        """)
+        if not r:
+            return {"resposta": "Ainda não há dados suficientes para responder."}
+        return {"resposta": f"O hospital com maior custo no período foi {r[0]['hospital']}, "
+                             f"totalizando {fmt_real(float(r[0]['custo']))}."}
 
     if pergunta_id == "permanencia_media":
-        r = query("SELECT PERM_MEDIA FROM MV_KPIS")
-        if not r: return {"resposta": "Sem dados suficientes."}
-        return {"resposta": f"A permanencia media e de {float(r[0]['perm_media']):.1f} dias por internacao."}
+        r = query("SELECT ROUND(AVG(DIAS_PERMANENCIA), 1) AS media FROM FATO_INTERNACAO")
+        if not r or r[0]["media"] is None:
+            return {"resposta": "Ainda não há dados suficientes para responder."}
+        media = str(r[0]["media"]).replace(".", ",")
+        return {"resposta": f"A permanência média das internações é de {media} dias."}
 
-    if pergunta_id in ("custo_medio_internacao", "custo_medio"):
-        r = query("SELECT CUSTO_MEDIO FROM MV_KPIS")
-        if not r: return {"resposta": "Sem dados suficientes."}
-        return {"resposta": f"O custo medio por internacao e R$ {fmt(r[0]['custo_medio'])}."}
+    if pergunta_id == "custo_medio_internacao":
+        r = query("SELECT AVG(VALOR_TOTAL) AS media FROM FATO_INTERNACAO")
+        if not r or r[0]["media"] is None:
+            return {"resposta": "Ainda não há dados suficientes para responder."}
+        return {"resposta": f"O custo médio por internação é de {fmt_real(float(r[0]['media']))}."}
 
     if pergunta_id == "total_internacoes":
-        r = query("SELECT TOTAL_INTERNACOES FROM MV_KPIS")
-        if not r: return {"resposta": "Sem dados suficientes."}
-        return {"resposta": f"O total de internacoes e {fmt(r[0]['total_internacoes'])}."}
+        r = query("SELECT COUNT(*) AS total FROM FATO_INTERNACAO")
+        total = r[0]["total"] if r else 0
+        return {"resposta": f"O total de internações no período carregado é {total:,}".replace(",", ".") + "."}
 
-    if pergunta_id == "municipio_top":
-        r = query("SELECT MUNICIPIO, INTERNACOES FROM MV_MUNICIPIO ORDER BY INTERNACOES DESC FETCH FIRST 1 ROW ONLY")
-        if not r: return {"resposta": "Sem dados suficientes."}
-        return {"resposta": f"O municipio com mais internacoes e {r[0]['municipio']} com {fmt(r[0]['internacoes'])} internacoes."}
+    raise HTTPException(status_code=404, detail="Pergunta não reconhecida.")
 
-    if pergunta_id == "faixa_mais_interna":
-        r = query("SELECT FAIXA_ETARIA, INTERNACOES FROM MV_FAIXA_ETARIA ORDER BY INTERNACOES DESC FETCH FIRST 1 ROW ONLY")
-        if not r: return {"resposta": "Sem dados suficientes."}
-        return {"resposta": f"A faixa etaria com mais internacoes e {r[0]['faixa_etaria']} anos com {fmt(r[0]['internacoes'])} internacoes."}
 
-    raise HTTPException(status_code=404, detail="Pergunta nao reconhecida.")
+from pathlib import Path
+
+_DIR = Path(__file__).parent
 
 @app.get("/login")
 def pagina_login():
@@ -592,6 +597,63 @@ def pagina_404():
 async def not_found(request, exc):
     f = _DIR / "404.html"
     return FileResponse(str(f), status_code=404)
+
+
+@app.get("/api/alertas")
+def alertas_saude():
+    """Calcula alertas de pressão hospitalar por município.
+    Compara últimas 3 competências vs 3 anteriores para detectar crescimento anormal."""
+    try:
+        # Pegar últimas 6 competências disponíveis
+        comps = query("SELECT COMPETENCIA FROM MV_COMPETENCIA ORDER BY COMPETENCIA DESC FETCH FIRST 6 ROWS ONLY")
+        if len(comps) < 4:
+            return []
+        comps_sorted = sorted([r["competencia"] for r in comps])
+        recentes   = comps_sorted[-3:]  # últimas 3
+        anteriores = comps_sorted[-6:-3] if len(comps_sorted) >= 6 else comps_sorted[:3]
+
+        # Internações por município nos dois períodos
+        def internacoes_periodo(competencias):
+            placeholders = ", ".join(f"'{c}'" for c in competencias)
+            sql = f"""
+                SELECT MUNICIPIO, SUM(INTERNACOES) AS INTERNACOES, AVG(PERM_MEDIA) AS PERM_MEDIA
+                FROM MV_MUNICIPIO_MES
+                WHERE COMPETENCIA IN ({placeholders})
+                GROUP BY MUNICIPIO
+                ORDER BY INTERNACOES DESC
+                FETCH FIRST 50 ROWS ONLY
+            """
+            return {r["municipio"]: r for r in query(sql)}
+
+        recente_dict   = internacoes_periodo(recentes)
+        anterior_dict  = internacoes_periodo(anteriores)
+
+        alertas = []
+        for mun, dados in recente_dict.items():
+            if mun not in anterior_dict:
+                continue
+            int_rec  = float(dados["internacoes"] or 0)
+            int_ant  = float(anterior_dict[mun]["internacoes"] or 1)
+            crescimento = ((int_rec - int_ant) / int_ant) * 100
+            perm_media  = float(dados["perm_media"] or 0)
+            alertas.append({
+                "municipio": mun,
+                "internacoes": int(int_rec),
+                "crescimento": round(crescimento, 1),
+                "perm_media": round(perm_media, 1),
+            })
+
+        # Ordenar: críticos primeiro, depois atenção, depois estáveis
+        def nivel(a):
+            if a["crescimento"] > 12: return 0
+            if a["crescimento"] > 5:  return 1
+            return 2
+
+        alertas.sort(key=lambda a: (nivel(a), -a["crescimento"]))
+        return alertas[:6]  # top 6 para exibir na landing
+    except Exception as e:
+        return []
+
 
 if __name__ == "__main__":
     import uvicorn

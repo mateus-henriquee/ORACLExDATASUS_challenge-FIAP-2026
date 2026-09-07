@@ -1504,6 +1504,189 @@ footer::before {
   .footer-brand { grid-column: 1 / -1; }
   .footer-wordmark { font-size: clamp(48px, 16vw, 100px); }
 }
+
+/* ── Alertas ── */
+.alertas-section { padding: 100px 40px; max-width: 1200px; margin: 0 auto; }
+.alertas-eyebrow { font-family: "JetBrains Mono", monospace; font-size: 12px; letter-spacing: .14em; color: var(--accent); text-transform: uppercase; margin-bottom: 16px; text-align: center; }
+.alertas-titulo { font-family: "Space Grotesk", sans-serif; font-size: clamp(26px,4vw,40px); font-weight: 700; letter-spacing: -.03em; margin-bottom: 10px; text-align: center; }
+.alertas-sub { font-size: 14px; color: var(--text-dim); text-align: center; max-width: 500px; margin: 0 auto 56px; line-height: 1.6; }
+.alertas-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+@media (max-width: 900px) { .alertas-grid { grid-template-columns: 1fr; } }
+.alerta-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; position: relative; overflow: hidden; transition: border-color .2s, transform .2s; }
+.alerta-card:hover { transform: translateY(-4px); }
+.alerta-card.critico { border-color: rgba(217,105,95,.4); }
+.alerta-card.atencao { border-color: rgba(230,168,50,.4); }
+.alerta-card.normal { border-color: rgba(111,191,115,.4); }
+.alerta-card::before { content: ""; position: absolute; inset: 0; opacity: .04; pointer-events: none; }
+.alerta-card.critico::before { background: #d9695f; }
+.alerta-card.atencao::before { background: #e6a832; }
+.alerta-card.normal::before { background: #6fbf73; }
+.alerta-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; margin-bottom: 14px; }
+.alerta-badge.critico { background: rgba(217,105,95,.15); color: #d9695f; border: 1px solid rgba(217,105,95,.3); }
+.alerta-badge.atencao { background: rgba(230,168,50,.15); color: #e6a832; border: 1px solid rgba(230,168,50,.3); }
+.alerta-badge.normal { background: rgba(111,191,115,.15); color: #6fbf73; border: 1px solid rgba(111,191,115,.3); }
+.alerta-municipio { font-family: "Space Grotesk", sans-serif; font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+.alerta-desc { font-size: 13px; color: var(--text-dim); line-height: 1.5; margin-bottom: 16px; }
+.alerta-stats { display: flex; gap: 16px; }
+.alerta-stat { display: flex; flex-direction: column; gap: 2px; }
+.alerta-stat-val { font-size: 18px; font-weight: 700; font-family: "Space Grotesk", sans-serif; }
+.alerta-stat-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: .05em; }
+.alerta-recomendacao { margin-top: 16px; padding: 10px 14px; background: rgba(0,0,0,.2); border-radius: 8px; font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+.alerta-recomendacao strong { color: var(--text); }
+.alertas-nota { text-align: center; margin-top: 32px; font-size: 12px; color: var(--text-dim); }
+.alertas-nota a { color: var(--accent); text-decoration: none; }
+
+/* ── Dashboard Preview (hero-right) ── */
+.dash-preview {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(0,0,0,.5);
+  min-height: 380px;
+}
+.dash-preview-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(0,0,0,.2);
+}
+.dash-preview-title { font-size: 12px; font-weight: 600; color: var(--text-dim); letter-spacing: .05em; text-transform: uppercase; }
+.dash-preview-dots { display: flex; gap: 6px; }
+.dash-preview-dots span { width: 10px; height: 10px; border-radius: 50%; background: var(--border); }
+.dash-preview-dots span:nth-child(1) { background: #d9695f; }
+.dash-preview-dots span:nth-child(2) { background: #e6a832; }
+.dash-preview-dots span:nth-child(3) { background: #6fbf73; }
+.dash-preview-body { padding: 20px 18px; }
+.dash-kpis { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
+.dash-kpi { background: rgba(0,0,0,.25); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+.dash-kpi-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+.dash-kpi-val { font-family: "Space Grotesk", sans-serif; font-size: 20px; font-weight: 700; }
+.dash-kpi-sub { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+.dash-bars { display: flex; flex-direction: column; gap: 8px; }
+.dash-bar-row { display: flex; align-items: center; gap: 10px; }
+.dash-bar-label { font-size: 11px; color: var(--text-dim); width: 90px; flex-shrink: 0; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dash-bar-track { flex: 1; height: 8px; background: rgba(255,255,255,.06); border-radius: 4px; overflow: hidden; }
+.dash-bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); animation: dash-grow .8s ease forwards; transform-origin: left; }
+@keyframes dash-grow { from { width: 0 !important; } }
+.dash-bar-val { font-size: 10px; color: var(--text-dim); width: 40px; }
+.dash-bar-alert { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.dash-bar-alert.critico { background: #d9695f; box-shadow: 0 0 6px #d9695f; }
+.dash-bar-alert.atencao { background: #e6a832; }
+.dash-bar-alert.normal { background: #6fbf73; }
+
+/* ── Cards horizontais (alertas compactos) ── */
+.alertas-cards-row-wrap {
+  overflow: hidden;
+  margin-top: 40px;
+  position: relative;
+  -webkit-mask: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+  mask: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+}
+.alertas-cards-row {
+  display: flex;
+  gap: 12px;
+  padding-bottom: 8px;
+  width: max-content;
+  animation: scroll-cards 24s linear infinite;
+}
+.alertas-cards-row-wrap:hover .alertas-cards-row { animation-play-state: paused; }
+@keyframes scroll-cards {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.alerta-mini {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px 18px;
+  min-width: 200px;
+  max-width: 200px;
+  flex-shrink: 0;
+  cursor: default;
+  transition: min-width .35s ease, max-width .35s ease, border-color .2s, box-shadow .2s;
+  overflow: hidden;
+  position: relative;
+}
+.alerta-mini:hover {
+  min-width: 300px;
+  max-width: 300px;
+  box-shadow: 0 0 32px rgba(141,92,204,.2);
+}
+.alerta-mini.critico { border-color: rgba(217,105,95,.3); }
+.alerta-mini.critico:hover { border-color: rgba(217,105,95,.6); box-shadow: 0 0 24px rgba(217,105,95,.2); }
+.alerta-mini.atencao { border-color: rgba(230,168,50,.3); }
+.alerta-mini.atencao:hover { border-color: rgba(230,168,50,.6); box-shadow: 0 0 24px rgba(230,168,50,.15); }
+.alerta-mini.normal { border-color: rgba(111,191,115,.3); }
+.alerta-mini.normal:hover { border-color: rgba(111,191,115,.6); box-shadow: 0 0 24px rgba(111,191,115,.15); }
+.alerta-mini-top { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.alerta-mini-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.alerta-mini.critico .alerta-mini-dot { background: #d9695f; box-shadow: 0 0 6px #d9695f; }
+.alerta-mini.atencao .alerta-mini-dot { background: #e6a832; }
+.alerta-mini.normal .alerta-mini-dot { background: #6fbf73; }
+.alerta-mini-mun { font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.alerta-mini-pct { font-size: 12px; font-weight: 700; margin-left: auto; flex-shrink: 0; }
+.alerta-mini.critico .alerta-mini-pct { color: #d9695f; }
+.alerta-mini.atencao .alerta-mini-pct { color: #e6a832; }
+.alerta-mini.normal .alerta-mini-pct { color: #6fbf73; }
+.alerta-mini-desc { font-size: 11.5px; color: var(--text-dim); line-height: 1.5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.alerta-mini-expand {
+  max-height: 0; overflow: hidden;
+  transition: max-height .35s ease;
+  font-size: 11.5px; color: var(--text-dim); line-height: 1.6;
+  margin-top: 0;
+}
+.alerta-mini:hover .alerta-mini-expand { max-height: 200px; margin-top: 10px; }
+.alerta-mini-stat { display: flex; gap: 12px; margin-top: 10px; }
+.alerta-mini-stat-item { display: flex; flex-direction: column; gap: 2px; }
+.alerta-mini-stat-val { font-size: 14px; font-weight: 700; font-family: "Space Grotesk", sans-serif; }
+.alerta-mini-stat-label { font-size: 9px; color: var(--text-dim); text-transform: uppercase; letter-spacing: .05em; }
+.alerta-mini-rec { margin-top: 10px; padding: 8px 10px; background: rgba(0,0,0,.2); border-radius: 6px; font-size: 11px; color: var(--text-dim); }
+.alerta-mini-rec strong { color: var(--text); }
+
+/* ── Dashboard de Decisão ── */
+.decisao-dash {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 40px;
+}
+.decisao-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(0,0,0,.2);
+  gap: 12px;
+}
+.decisao-header-left { display: flex; align-items: center; gap: 12px; }
+.decisao-row {
+  display: grid;
+  grid-template-columns: 28px 1fr 1fr 52px 90px;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+  transition: background .15s;
+}
+.decisao-row:hover { background: rgba(255,255,255,.03); }
+.decisao-row:last-child { border-bottom: none; }
+.decisao-rank { font-size: 11px; color: var(--text-dim); font-family: "JetBrains Mono", monospace; }
+.decisao-mun { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.decisao-bar-wrap { height: 6px; background: rgba(255,255,255,.06); border-radius: 3px; overflow: hidden; }
+.decisao-bar { height: 100%; border-radius: 3px; }
+.decisao-val { font-size: 12px; color: var(--text-dim); font-family: "JetBrains Mono", monospace; text-align: right; }
+.decisao-badge { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 20px; text-align: center; white-space: nowrap; }
+.decisao-badge.critico { background: rgba(217,105,95,.15); color: #d9695f; }
+.decisao-badge.atencao { background: rgba(230,168,50,.15); color: #e6a832; }
+.decisao-badge.normal { background: rgba(111,191,115,.15); color: #6fbf73; }
+.decisao-legenda {
+  display: flex; gap: 20px; padding: 12px 20px;
+  border-top: 1px solid var(--border);
+  background: rgba(0,0,0,.15);
+  font-size: 11px; color: var(--text-dim);
+}
+.decisao-leg-item { display: flex; align-items: center; gap: 6px; }
 </style>
 </head>
 <body>
@@ -1519,6 +1702,7 @@ footer::before {
   <nav>
     <a href="#como-funciona">Como funciona</a>
     <a href="#flowPin">Fluxo</a>
+    <a href="#alertas">Alertas</a>
     <a href="#quem-somos">Quem somos</a>
     <a href="#numeros">Números</a>
     <a href="#stack">Tecnologia</a>
@@ -1728,6 +1912,278 @@ footer::before {
 </section>
 
 
+
+<!-- ── Alertas de Saúde Pública ── -->
+<section id="alertas" style="border-top: 1px solid var(--border);">
+  <div class="alertas-section">
+    <p class="alertas-eyebrow">Inteligência em saúde pública</p>
+    <h2 class="alertas-titulo">Alertas e recomendações em tempo real</h2>
+    <p class="alertas-sub">Municípios com crescimento anormal de internações nos últimos 3 meses — calculado automaticamente com dados reais do SIH-SUS.</p>
+
+    <div class="decisao-dash">
+      <!-- Header do dashboard -->
+      <div class="decisao-header">
+        <div class="decisao-header-left">
+          <div class="live-badge" style="margin-bottom:0"><div class="live-dot"></div> Dados ao vivo</div>
+          <span style="font-size:11px;color:var(--text-dim)">SIH-SUS · São Paulo · 2025–2026</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-dim)">Crescimento vs. 3 meses anteriores</div>
+      </div>
+
+      <!-- Tabela de municípios -->
+      <div class="decisao-table" id="decisao-table">
+        <!-- Carregado via JS -->
+        <div class="decisao-row">
+          <div class="decisao-rank">#1</div>
+          <div class="decisao-mun">São Paulo</div>
+          <div class="decisao-bar-wrap"><div class="decisao-bar" style="width:100%;background:linear-gradient(90deg,#d9695f,#e8896e)"></div></div>
+          <div class="decisao-val">1.12M</div>
+          <div class="decisao-badge critico">+18% ⚠</div>
+        </div>
+        <div class="decisao-row">
+          <div class="decisao-rank">#2</div>
+          <div class="decisao-mun">São J. Rio Preto</div>
+          <div class="decisao-bar-wrap"><div class="decisao-bar" style="width:13%;background:linear-gradient(90deg,#d9695f,#e8896e)"></div></div>
+          <div class="decisao-val">142K</div>
+          <div class="decisao-badge critico">+14% ⚠</div>
+        </div>
+        <div class="decisao-row">
+          <div class="decisao-rank">#3</div>
+          <div class="decisao-mun">Campinas</div>
+          <div class="decisao-bar-wrap"><div class="decisao-bar" style="width:26%;background:linear-gradient(90deg,#e6a832,#f0c060)"></div></div>
+          <div class="decisao-val">287K</div>
+          <div class="decisao-badge atencao">+8% ◐</div>
+        </div>
+        <div class="decisao-row">
+          <div class="decisao-rank">#4</div>
+          <div class="decisao-mun">Ribeirão Preto</div>
+          <div class="decisao-bar-wrap"><div class="decisao-bar" style="width:12%;background:linear-gradient(90deg,#6fbf73,#8fd492)"></div></div>
+          <div class="decisao-val">138K</div>
+          <div class="decisao-badge normal">+2% ✓</div>
+        </div>
+        <div class="decisao-row">
+          <div class="decisao-rank">#5</div>
+          <div class="decisao-mun">Guarulhos</div>
+          <div class="decisao-bar-wrap"><div class="decisao-bar" style="width:20%;background:linear-gradient(90deg,#e6a832,#f0c060)"></div></div>
+          <div class="decisao-val">224K</div>
+          <div class="decisao-badge atencao">+7% ◐</div>
+        </div>
+        <div class="decisao-row">
+          <div class="decisao-rank">#6</div>
+          <div class="decisao-mun">Sorocaba</div>
+          <div class="decisao-bar-wrap"><div class="decisao-bar" style="width:18%;background:linear-gradient(90deg,#6fbf73,#8fd492)"></div></div>
+          <div class="decisao-val">198K</div>
+          <div class="decisao-badge normal">+3% ✓</div>
+        </div>
+      </div>
+
+      <!-- Legenda -->
+      <div class="decisao-legenda">
+        <div class="decisao-leg-item"><span style="color:#d9695f">⚠ Crítico</span> — expandir capacidade</div>
+        <div class="decisao-leg-item"><span style="color:#e6a832">◐ Atenção</span> — monitorar</div>
+        <div class="decisao-leg-item"><span style="color:#6fbf73">✓ Estável</span> — manter protocolo</div>
+      </div>
+    </div>
+
+    <p class="alertas-nota" style="margin-bottom:32px">Dados calculados automaticamente com base no SIH-SUS</p>
+
+    <!-- Cards mini horizontais -->
+    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;color:var(--accent);text-transform:uppercase;margin-bottom:16px">Alertas de superlotação · últimos 3 meses</div>
+    <div class="alertas-cards-row-wrap">
+  <div class="alertas-cards-row" id="alertas-mini-row">
+    
+      <!-- Fallback estático -->
+      <div class="alerta-mini critico">
+        <div class="alerta-mini-top">
+          <div class="alerta-mini-dot"></div>
+          <div class="alerta-mini-mun">São Paulo</div>
+          <div class="alerta-mini-pct">+18%</div>
+        </div>
+        <div class="alerta-mini-desc">Pressão crítica · expandir leitos</div>
+        <div class="alerta-mini-expand">
+          <div class="alerta-mini-stat">
+            <div class="alerta-mini-stat-item"><span class="alerta-mini-stat-val">1.12M</span><span class="alerta-mini-stat-label">Internações</span></div>
+            <div class="alerta-mini-stat-item"><span class="alerta-mini-stat-val">5,2 dias</span><span class="alerta-mini-stat-label">Permanência</span></div>
+          </div>
+          <div class="alerta-mini-rec"><strong>Ação:</strong> Expandir capacidade e reforçar equipes urgentemente.</div>
+        </div>
+      </div>
+      <div class="alerta-mini atencao">
+        <div class="alerta-mini-top">
+          <div class="alerta-mini-dot"></div>
+          <div class="alerta-mini-mun">Campinas</div>
+          <div class="alerta-mini-pct">+8%</div>
+        </div>
+        <div class="alerta-mini-desc">Atenção · monitorar ocupação</div>
+        <div class="alerta-mini-expand">
+          <div class="alerta-mini-stat">
+            <div class="alerta-mini-stat-item"><span class="alerta-mini-stat-val">287K</span><span class="alerta-mini-stat-label">Internações</span></div>
+            <div class="alerta-mini-stat-item"><span class="alerta-mini-stat-val">5,8 dias</span><span class="alerta-mini-stat-label">Permanência</span></div>
+          </div>
+          <div class="alerta-mini-rec"><strong>Ação:</strong> Revisar protocolos de alta. Verificar leitos disponíveis.</div>
+        </div>
+      </div>
+      <div class="alerta-mini normal">
+        <div class="alerta-mini-top">
+          <div class="alerta-mini-dot"></div>
+          <div class="alerta-mini-mun">Ribeirão Preto</div>
+          <div class="alerta-mini-pct">+2%</div>
+        </div>
+        <div class="alerta-mini-desc">Estável · dentro da média</div>
+        <div class="alerta-mini-expand">
+          <div class="alerta-mini-stat">
+            <div class="alerta-mini-stat-item"><span class="alerta-mini-stat-val">138K</span><span class="alerta-mini-stat-label">Internações</span></div>
+            <div class="alerta-mini-stat-item"><span class="alerta-mini-stat-val">4,9 dias</span><span class="alerta-mini-stat-label">Permanência</span></div>
+          </div>
+          <div class="alerta-mini-rec"><strong>Ação:</strong> Manter protocolo. Revisão no próximo ciclo mensal.</div>
+        </div>
+      </div>
+      <div class="alerta-mini atencao">
+        <div class="alerta-mini-top">
+          <div class="alerta-mini-dot"></div>
+          <div class="alerta-mini-mun">Guarulhos</div>
+          <div class="alerta-mini-pct">+7%</div>
+        </div>
+        <div class="alerta-mini-desc">Atenção · crescimento moderado</div>
+        <div class="alerta-mini-expand">
+          <div class="alerta-mini-stat">
+            <div class="alerta-mini-stat-item"><span class="alerta-mini-stat-val">224K</span><span class="alerta-mini-stat-label">Internações</span></div>
+            <div class="alerta-mini-stat-item"><span class="alerta-mini-stat-val">5,1 dias</span><span class="alerta-mini-stat-label">Permanência</span></div>
+          </div>
+          <div class="alerta-mini-rec"><strong>Ação:</strong> Acompanhar semanalmente. Preparar plano de contingência.</div>
+        </div>
+      </div>
+      <div class="alerta-mini normal">
+        <div class="alerta-mini-top">
+          <div class="alerta-mini-dot"></div>
+          <div class="alerta-mini-mun">Sorocaba</div>
+          <div class="alerta-mini-pct">+3%</div>
+        </div>
+        <div class="alerta-mini-desc">Estável · sem ação imediata</div>
+        <div class="alerta-mini-expand">
+          <div class="alerta-mini-stat">
+            <div class="alerta-mini-stat-item"><span class="alerta-mini-stat-val">198K</span><span class="alerta-mini-stat-label">Internações</span></div>
+            <div class="alerta-mini-stat-item"><span class="alerta-mini-stat-val">4,7 dias</span><span class="alerta-mini-stat-label">Permanência</span></div>
+          </div>
+          <div class="alerta-mini-rec"><strong>Ação:</strong> Manter monitoramento regular. Situação controlada.</div>
+        </div>
+      </div>
+      <div class="alerta-mini critico">
+        <div class="alerta-mini-top">
+          <div class="alerta-mini-dot"></div>
+          <div class="alerta-mini-mun">São José do Rio Preto</div>
+          <div class="alerta-mini-pct">+14%</div>
+        </div>
+        <div class="alerta-mini-desc">Pressão crítica · ação urgente</div>
+        <div class="alerta-mini-expand">
+          <div class="alerta-mini-stat">
+            <div class="alerta-mini-stat-item"><span class="alerta-mini-stat-val">142K</span><span class="alerta-mini-stat-label">Internações</span></div>
+            <div class="alerta-mini-stat-item"><span class="alerta-mini-stat-val">5,5 dias</span><span class="alerta-mini-stat-label">Permanência</span></div>
+          </div>
+          <div class="alerta-mini-rec"><strong>Ação:</strong> Acionar plano de contingência. Redistribuir pacientes se possível.</div>
+        </div>
+      </div>
+    
+    
+      <!-- Fallback estático -->
+      <div class="alerta-mini critico">
+        <div class="alerta-mini-top">
+          <div class="alerta-mini-dot"></div>
+          <div class="alerta-mini-mun">São Paulo</div>
+          <div class="alerta-mini-pct">+18%</div>
+        </div>
+        <div class="alerta-mini-desc">Pressão crítica · expandir leitos</div>
+        <div class="alerta-mini-expand">
+          <div class="alerta-mini-stat">
+            <div class="alerta-mini-stat-item"><span class="alerta-mini-stat-val">1.12M</span><span class="alerta-mini-stat-label">Internações</span></div>
+            <div class="alerta-mini-stat-item"><span class="alerta-mini-stat-val">5,2 dias</span><span class="alerta-mini-stat-label">Permanência</span></div>
+          </div>
+          <div class="alerta-mini-rec"><strong>Ação:</strong> Expandir capacidade e reforçar equipes urgentemente.</div>
+        </div>
+      </div>
+      <div class="alerta-mini atencao">
+        <div class="alerta-mini-top">
+          <div class="alerta-mini-dot"></div>
+          <div class="alerta-mini-mun">Campinas</div>
+          <div class="alerta-mini-pct">+8%</div>
+        </div>
+        <div class="alerta-mini-desc">Atenção · monitorar ocupação</div>
+        <div class="alerta-mini-expand">
+          <div class="alerta-mini-stat">
+            <div class="alerta-mini-stat-item"><span class="alerta-mini-stat-val">287K</span><span class="alerta-mini-stat-label">Internações</span></div>
+            <div class="alerta-mini-stat-item"><span class="alerta-mini-stat-val">5,8 dias</span><span class="alerta-mini-stat-label">Permanência</span></div>
+          </div>
+          <div class="alerta-mini-rec"><strong>Ação:</strong> Revisar protocolos de alta. Verificar leitos disponíveis.</div>
+        </div>
+      </div>
+      <div class="alerta-mini normal">
+        <div class="alerta-mini-top">
+          <div class="alerta-mini-dot"></div>
+          <div class="alerta-mini-mun">Ribeirão Preto</div>
+          <div class="alerta-mini-pct">+2%</div>
+        </div>
+        <div class="alerta-mini-desc">Estável · dentro da média</div>
+        <div class="alerta-mini-expand">
+          <div class="alerta-mini-stat">
+            <div class="alerta-mini-stat-item"><span class="alerta-mini-stat-val">138K</span><span class="alerta-mini-stat-label">Internações</span></div>
+            <div class="alerta-mini-stat-item"><span class="alerta-mini-stat-val">4,9 dias</span><span class="alerta-mini-stat-label">Permanência</span></div>
+          </div>
+          <div class="alerta-mini-rec"><strong>Ação:</strong> Manter protocolo. Revisão no próximo ciclo mensal.</div>
+        </div>
+      </div>
+      <div class="alerta-mini atencao">
+        <div class="alerta-mini-top">
+          <div class="alerta-mini-dot"></div>
+          <div class="alerta-mini-mun">Guarulhos</div>
+          <div class="alerta-mini-pct">+7%</div>
+        </div>
+        <div class="alerta-mini-desc">Atenção · crescimento moderado</div>
+        <div class="alerta-mini-expand">
+          <div class="alerta-mini-stat">
+            <div class="alerta-mini-stat-item"><span class="alerta-mini-stat-val">224K</span><span class="alerta-mini-stat-label">Internações</span></div>
+            <div class="alerta-mini-stat-item"><span class="alerta-mini-stat-val">5,1 dias</span><span class="alerta-mini-stat-label">Permanência</span></div>
+          </div>
+          <div class="alerta-mini-rec"><strong>Ação:</strong> Acompanhar semanalmente. Preparar plano de contingência.</div>
+        </div>
+      </div>
+      <div class="alerta-mini normal">
+        <div class="alerta-mini-top">
+          <div class="alerta-mini-dot"></div>
+          <div class="alerta-mini-mun">Sorocaba</div>
+          <div class="alerta-mini-pct">+3%</div>
+        </div>
+        <div class="alerta-mini-desc">Estável · sem ação imediata</div>
+        <div class="alerta-mini-expand">
+          <div class="alerta-mini-stat">
+            <div class="alerta-mini-stat-item"><span class="alerta-mini-stat-val">198K</span><span class="alerta-mini-stat-label">Internações</span></div>
+            <div class="alerta-mini-stat-item"><span class="alerta-mini-stat-val">4,7 dias</span><span class="alerta-mini-stat-label">Permanência</span></div>
+          </div>
+          <div class="alerta-mini-rec"><strong>Ação:</strong> Manter monitoramento regular. Situação controlada.</div>
+        </div>
+      </div>
+      <div class="alerta-mini critico">
+        <div class="alerta-mini-top">
+          <div class="alerta-mini-dot"></div>
+          <div class="alerta-mini-mun">São José do Rio Preto</div>
+          <div class="alerta-mini-pct">+14%</div>
+        </div>
+        <div class="alerta-mini-desc">Pressão crítica · ação urgente</div>
+        <div class="alerta-mini-expand">
+          <div class="alerta-mini-stat">
+            <div class="alerta-mini-stat-item"><span class="alerta-mini-stat-val">142K</span><span class="alerta-mini-stat-label">Internações</span></div>
+            <div class="alerta-mini-stat-item"><span class="alerta-mini-stat-val">5,5 dias</span><span class="alerta-mini-stat-label">Permanência</span></div>
+          </div>
+          <div class="alerta-mini-rec"><strong>Ação:</strong> Acionar plano de contingência. Redistribuir pacientes se possível.</div>
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+    <p class="alertas-nota" style="margin-top:24px">Passe o mouse nos cards para ver detalhes · <a href="/dashboard" onclick="document.getElementById('openAuthBtn').click();return false;">Ver análise completa →</a></p>
+  </div>
+</section>
+
 <!-- ── Seção Perfis ── -->
 <section style="background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); .perfil-card:hover .perfil-gif img { opacity: 0.9; }">
   <div class="perfis-section">
@@ -1913,31 +2369,6 @@ footer::before {
 </section>
 
 <!-- ── 3. Destaques ao vivo ── -->
-<section style="background: var(--surface); border-top: 1px solid var(--border);">
-  <div class="destaques-section">
-    <div class="destaques-header">
-      <h2 class="destaques-titulo">Destaques do período</h2>
-      <div class="live-badge"><div class="live-dot"></div> Dados ao vivo — Oracle</div>
-    </div>
-    <div class="destaques-grid">
-      <div class="destaque-card">
-        <span class="destaque-tag">🏆 Hospital líder</span>
-        <div class="destaque-val" id="dest-hospital"><div class="destaque-skeleton"></div></div>
-        <p class="destaque-desc">Estabelecimento com maior volume de internações no período carregado.</p>
-      </div>
-      <div class="destaque-card">
-        <span class="destaque-tag">📍 Município em destaque</span>
-        <div class="destaque-val" id="dest-municipio"><div class="destaque-skeleton"></div></div>
-        <p class="destaque-desc">Cidade com maior custo total de reembolso SUS no período.</p>
-      </div>
-      <div class="destaque-card">
-        <span class="destaque-tag">📅 Mês de pico</span>
-        <div class="destaque-val" id="dest-mes"><div class="destaque-skeleton"></div></div>
-        <p class="destaque-desc">Competência com o maior número de internações registradas.</p>
-      </div>
-    </div>
-  </div>
-</section>
 
 <!-- ── 4. Tecnologia / Stack ── -->
 <section id="stack">
@@ -3049,6 +3480,56 @@ function toggleFaq(btn) {
 }
 
 
+
+// ── Dashboard Preview: carrega KPIs e top municípios reais ──
+(function() {
+  const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:8001' : 'http://132.226.165.94:8001';
+
+  function fmtNum(n) {
+    if (n >= 1e9) return 'R$ ' + (n/1e9).toFixed(1) + ' bi';
+    if (n >= 1e6) return 'R$ ' + (n/1e6).toFixed(1) + ' mi';
+    if (n >= 1e3) return (n/1e3).toFixed(0) + 'K';
+    return String(Math.round(n));
+  }
+
+  async function carregarPreview() {
+    try {
+      const [kpis, muns] = await Promise.all([
+        fetch(`${API_BASE}/api/kpis`, { signal: AbortSignal.timeout(5000) }).then(r => r.json()),
+        fetch(`${API_BASE}/api/analise/municipios-top?limite=6`, { signal: AbortSignal.timeout(5000) }).then(r => r.json()),
+      ]);
+
+      const el = (id) => document.getElementById(id);
+      if (el('prev-total')) el('prev-total').textContent = Number(kpis.total_internacoes || 0).toLocaleString('pt-BR');
+      if (el('prev-custo')) el('prev-custo').textContent = fmtNum(kpis.custo_total || 0);
+      if (el('prev-custo-medio')) el('prev-custo-medio').textContent = 'R$ ' + Math.round(kpis.custo_medio || 0).toLocaleString('pt-BR');
+      if (el('prev-perm')) el('prev-perm').textContent = (kpis.permanencia_media || 0).toFixed(1) + ' dias';
+
+      const barsEl = el('prev-bars');
+      if (barsEl && muns && muns.length) {
+        const max = muns[0].internacoes || 1;
+        const niveis = ['critico','atencao','normal','normal','atencao','normal'];
+        barsEl.innerHTML = muns.map((m, i) => {
+          const pct = Math.round((m.internacoes / max) * 100);
+          const nivel = niveis[i] || 'normal';
+          const nome = m.municipio.length > 16 ? m.municipio.slice(0,14) + '…' : m.municipio;
+          return `<div class="dash-bar-row">
+            <div class="dash-bar-label">${nome}</div>
+            <div class="dash-bar-track"><div class="dash-bar-fill" style="width:${pct}%"></div></div>
+            <div class="dash-bar-val">${(m.internacoes/1000).toFixed(0)}K</div>
+            <div class="dash-bar-alert ${nivel}"></div>
+          </div>`;
+        }).join('');
+      }
+    } catch(e) {
+      // API indisponível — mantém valores estáticos
+    }
+  }
+
+  carregarPreview();
+})();
+
 // ── Countdown para próxima atualização dos dados (dia 15 às 02h UTC) ──
 (function() {
   function proximoDia15() {
@@ -3081,7 +3562,62 @@ function toggleFaq(btn) {
   setInterval(atualizarContador, 1000);
 })();
 
-</script>
+// ── Alertas dinâmicos (carrega da API se disponível) ──
+(function() {
+  const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:8001'
+    : 'http://132.226.165.94:8001';
 
+  async function carregarAlertas() {
+    try {
+      const r = await fetch(`${API}/api/alertas`, { signal: AbortSignal.timeout(4000) });
+      if (!r.ok) return; // mantém cards estáticos
+      const dados = await r.json();
+      if (!dados || !dados.length) return;
+
+      const grid = document.getElementById('alertas-grid');
+      if (!grid) return;
+      grid.innerHTML = '';
+
+      dados.forEach(m => {
+        const nivel = m.crescimento > 12 ? 'critico' : m.crescimento > 5 ? 'atencao' : 'normal';
+        const badge = nivel === 'critico' ? '⚠ Pressão crítica' : nivel === 'atencao' ? '◐ Atenção' : '✓ Estável';
+        const cor = nivel === 'critico' ? '#d9695f' : nivel === 'atencao' ? '#e6a832' : '#6fbf73';
+        const desc = nivel === 'critico'
+          ? `Crescimento de ${m.crescimento.toFixed(1)}% nas últimas competências. Ação recomendada.`
+          : nivel === 'atencao'
+          ? `Crescimento moderado de ${m.crescimento.toFixed(1)}%. Situação requer monitoramento.`
+          : `Volume dentro da média histórica. Crescimento de ${m.crescimento.toFixed(1)}%.`;
+        const rec = nivel === 'critico'
+          ? 'Avaliar expansão de leitos e reforço de equipes. Monitorar diariamente.'
+          : nivel === 'atencao'
+          ? 'Revisar protocolos de alta hospitalar. Verificar disponibilidade de leitos.'
+          : 'Manter protocolo atual. Próxima revisão no ciclo mensal.';
+
+        const int_fmt = m.internacoes >= 1000000
+          ? (m.internacoes/1000000).toFixed(1) + 'M'
+          : m.internacoes >= 1000 ? (m.internacoes/1000).toFixed(0) + 'K' : m.internacoes;
+
+        grid.innerHTML += `
+          <div class="alerta-card ${nivel}">
+            <div class="alerta-badge ${nivel}">${badge}</div>
+            <div class="alerta-municipio">${m.municipio}</div>
+            <div class="alerta-desc">${desc}</div>
+            <div class="alerta-stats">
+              <div class="alerta-stat"><span class="alerta-stat-val" style="color:${cor}">${m.crescimento > 0 ? '+' : ''}${m.crescimento.toFixed(1)}%</span><span class="alerta-stat-label">Crescimento</span></div>
+              <div class="alerta-stat"><span class="alerta-stat-val">${int_fmt}</span><span class="alerta-stat-label">Internações</span></div>
+              <div class="alerta-stat"><span class="alerta-stat-val">${m.perm_media.toFixed(1)} dias</span><span class="alerta-stat-label">Permanência</span></div>
+            </div>
+            <div class="alerta-recomendacao"><strong>Recomendação:</strong> ${rec}</div>
+          </div>`;
+      });
+    } catch(e) {
+      // API indisponível — mantém cards estáticos de exemplo
+    }
+  }
+
+  carregarAlertas();
+})();
+</script>
 </body>
 </html>
