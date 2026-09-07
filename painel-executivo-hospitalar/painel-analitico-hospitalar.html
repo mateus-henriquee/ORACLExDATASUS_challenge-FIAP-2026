@@ -47,7 +47,15 @@ body { font-family: var(--sans); background: var(--bg-main); color: var(--text-p
   border-right: 1px solid var(--border);
   display: flex; flex-direction: column;
   padding: 18px 14px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 100vh;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent) transparent;
 }
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 4px; opacity: .5; }
 .brand { display: flex; align-items: center; gap: 8px; padding-bottom: 20px; }
 .brand-mark { color: var(--accent); font-size: 20px; }
 .brand-name { font-family: var(--serif); font-size: 16px; font-weight: 600; }
