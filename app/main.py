@@ -238,13 +238,25 @@ def send_message(chat_id: int, question: str = Form(...)):
         logger.error("Falha ao carregar dados: %s", traceback.format_exc())
         erro_dados = str(e)
 
-    rag_context = rag.retrieve(chat_id, question) if df is not None else []
+        rag_context = rag.retrieve(chat_id, question) if df is not None else []
 
     # ── Roteador híbrido: MV rápida OU generate_sql dinâmico ──
     mv_contexto = None
     df_para_plot = df
 
-    if get_fonte(chat_id) == "oracle" and df is not None:
+    fonte_atual = get_fonte(chat_id)
+
+    if fonte_atual == "csv" and df is not None:
+        # CSV: usa o DataFrame diretamente como contexto
+        logger.info("Fonte CSV — usando RAG sobre dados carregados")
+        linhas = df.head(5).to_string(index=False)
+        colunas = list(df.columns)
+        mv_contexto = [
+            f"Dados do CSV carregado ({len(df)} linhas, colunas: {', '.join(colunas)}):\n{linhas}"
+        ]
+        df_para_plot = df
+
+    elif fonte_atual == "oracle" and df is not None:
         tem_filtro = llm.tem_filtro_especifico(question)
         intencao   = llm.rotear_intencao(question)
 
